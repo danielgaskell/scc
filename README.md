@@ -19,5 +19,6 @@ documentation and the system header file:
 # License
 
 Compiler is GPLv3. Libraries are LGPL except where indicated. copt is from Z88DK under
-the Clarified Artistic License. cpp is from MCPP under the BSD license.
+the Clarified Artistic License. cpp is from MCPP under the BSD license. Sample code is
+public domain.
 
