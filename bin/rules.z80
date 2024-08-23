@@ -1,0 +1,481 @@
+# Branches
+	jr %1
+%1:
+=
+%1:
+
+	jr %2
+%1:
+%2:
+=
+%1:
+%2:
+
+	jr L%1
+	jr L%2
+=
+	jr L%1
+
+# Trivial
+	ex de,hl
+	ex de,hl
+=
+
+	ex de,hl
+;
+	ex de,hl
+=
+
+	push hl
+	pop hl
+=
+
+	push hl
+;
+	pop hl
+=
+
+	inc hl
+	dec hl
+=
+
+	dec hl
+	inc hl
+=
+
+	ld a,0x0
+=
+	xor a
+
+# Trivial perverse assignment and usage pattern
+# Really we need reg tracking for ix iy hl and maybe bc de
+	push hl
+	pop i%1
+;
+	push i%1
+	pop hl
+=
+	push hl
+	pop i%1
+
+	push hl
+;
+	pop hl
+	push hl
+=
+	push hl
+;
+
+# Bitops switch
+	ex de,hl
+	res %1,l
+	ex de,hl
+=
+	res %1,e
+
+	ex de,hl
+	set %1,l
+	ex de,hl
+=
+	set %1,e
+
+	ex de,hl
+	res %1,h
+	ex de,hl
+=
+	res %1,d
+
+	ex de,hl
+	set %1,h
+	ex de,hl
+=
+	set %1,d
+
+# This will need reworking properly in the backend once we track HL
+	ld hl,%1
+	push hl
+	pop i%2
+;
+=
+	ld i%2,%1
+
+	ld c,l
+	ld b,h
+;
+	ld l,c
+	ld h,b
+=
+	ld c,l
+	ld b,h
+
+	ld hl,%1
+	push hl
+	pop i%2
+;
+=
+	ld i%2,%1
+
+# HL reloads. TODO track HL in the core code so we can eliminate them
+# properly and for more than constants
+	ld hl,0x%1
+	ld (%2),hl
+;
+	ld hl,0x%1
+=
+	ld hl,0x%1
+	ld (%2),hl
+
+	ld hl,0x%1
+	ld (%2),hl
+;
+	ld hl,0x%1
+=
+	ld hl,0x%1
+	ld (%2),hl
+
+	ex de,hl
+	pop de
+	ex de,hl
+=
+	pop hl
+
+# Clean up trivial multiple loads - often from assignments
+	ld hl,0x%1
+	ld (%2),hl
+	ld hl,0x%1
+=
+	ld hl,0x%1
+	ld (%2),hl
+
+	ld hl,0x%1
+	ld (%2),hl
+	ld hl,0x%1
+=
+	ld hl,0x%1
+	ld (%2),hl
+
+	ld hl,0x%1
+	ld (%2),hl
+	ld (%3),hl
+;
+	ld hl,0x%1
+=
+	ld hl,0x%1
+	ld (%2),hl
+	ld (%3),hl
+
+# Trivial byte cleanup
+	ld a,0x0
+	ld (hl),a
+	ld l,a
+=
+	xor a
+	ld (hl),a
+	ld l,a
+
+# Simple stack optimize for pushes of same
+	ld hl,0x%1
+	push hl
+	ld hl,0x%1
+=
+	ld hl,0x%1
+	push hl
+
+	ld hl,0x%1
+	push hl
+;
+	ld hl,0x%1
+=
+	ld hl,0x%1
+	push hl
+;
+
+# Function entry frame setup
+# we may rework this if we build args as we go, but in the mean time
+	push hl
+	ld hl,%1
+	pop af
+	push hl
+=
+	ld hl,%1
+	push hl
+
+# This happens a lot. Fix it up here until we add a layer of byte op
+# spotting to the compiler backends.
+	ld h,0x0
+	ld e,%1
+	call __bandde0d
+=
+	ld h,0x0
+	ld a,%1
+	and l
+	ld l,a
+
+	ld h,0x0
+	ld e,%1
+	call __orde0d
+=
+	ld h,0x0
+	ld a,%1
+	or l
+	ld l,a
+
+	ld h,0x0
+	ld e,%1
+	call __xorde0d
+=
+	ld h,0x0
+	ld a,%1
+	xor l
+	ld l,a
+
+# Byte load and then store to local without data then being needed
+# TODO: might be able to fix this up in the backend pass as tree match
+	ld l,0x%1
+	ld a,l
+	ld hl,%2
+	add hl,sp
+	ld (hl),a
+=
+	ld hl,%2
+	add hl,sp
+	ld (hl),0x%1
+
+# Use ex (sp),hl for some setups. Needs a big match as we use pop af to get the
+# byte 1 offset byte sized argument now and then
+	ld hl,%1
+	pop af
+	push hl
+;
+	ld hl,%2
+=
+	ld hl,%1
+	ex (sp),hl
+;
+	ld hl,%2
+
+# When in fp mode eliminate extra load/store of local indirect
+	ld (iy + %1), l
+	ld (iy + %2), h
+;
+	ld l,(iy + %1)
+	ld h,(iy + %2)
+=
+	ld (iy + %1), l
+	ld (iy + %2), h
+;
+
+# Some 8bit stuff
+	ld l,a
+	ld a,l
+=
+	ld l,a
+
+	ld a,%1
+	ld l,a
+	call __boolc
+=
+	ld a,%1
+	call __boolca
+
+	ld h,0x0
+	ld a,%1
+	and l
+	ld l,a
+	call __bool
+=
+	ld a,%1
+	and l
+	call __boolca
+
+# BC reg optimizations (again we need an '8bitifier' subtree analysis to use
+# A and byte ops)
+	ld l,c
+	ld h,b
+	ld h,0x0
+=
+	ld l,c
+	ld h,0x0
+
+	ld l,c
+	ld h,b
+	ld h,0x0
+=
+	ld l,c
+	ld h,0
+
+# char = regint >> 8
+	ld l,c
+	ld h,b
+	ld l,h
+	ld h,0x0
+=
+	ld l,b
+	ld h,0x0
+
+	ld l,(hl)
+	ld h,0x0
+	ld a,%1
+	and l
+	ld l,a
+=
+	ld a,%1
+	and (hl)
+	ld l,a
+	ld h,0
+
+	ld l,(hl)
+	ld h,0x0
+	ld a,%1
+	or l
+	ld l,a
+=
+	ld a,%1
+	or (hl)
+	ld l,a
+	ld h,0
+
+	ld l,(hl)
+	ld h,0x0
+	ld a,%1
+	xor l
+	ld l,a
+=
+	ld a,%1
+	xor (hl)
+	ld l,a
+	ld h,0
+
+# Compare to 8bit value of 8bit widened to 16
+	ld h,0x0
+	ld a,%1
+	xor l
+	or h
+;
+=
+	ld h,0x0
+	ld a,%1
+	xor l
+
+# Until we track HL
+;
+	ld hl,%1
+	ld (%2), hl
+;
+	ld hl,%1
+	ld (%3), hl
+=
+	ld hl,%1
+	ld (%2), hl
+	ld (%3), hl
+
+# More byte stuff
+	ld l,%1
+	ld h,0x0
+	ld e,%2
+	call __cmpeq0d
+=
+	ld l,%1
+	ld a,%2
+	call __cmpeqla
+
+	ld l,%1
+	ld h,0x0
+	ld e,%2
+	call __cmpne0d
+=
+	ld l,%1
+	ld a,%2
+	call __cmpnela
+
+	ld l,a
+	ld h,0
+	ld a,h
+	or l
+=
+	ld h,0
+	ld l,a
+	or h
+
+# Squash messy compare and branches
+	ld a,%1
+	ld l,a
+	ld a,0x%2
+	cp l
+;
+	jr %3
+	ld hl,%4
+=
+	ld a,%1
+	cp 0x%2
+	jr %3
+	ld hl,%4
+
+	ld l,%1
+	ld a,0x%2
+	cp l
+;
+	jr %3
+	ld hl,%4
+=
+	ld a,%1
+	cp 0x%2
+;
+	jr %3
+	ld hl,%4
+
+# Until we tidy up arg push logic
+	push i%1
+	pop hl
+	push hl
+;
+	call %2
+=
+	push i%1
+	call %2
+
+	push bc
+	pop hl
+	push hl
+;
+	call %2
+=
+	push bc
+	call %2
+
+# Bit op tidy - needs byte logic for byte ops and cc adding instead
+	ld h,0x0
+	bit %1, l
+	call __cctonot
+=
+	bit %1, l
+	call __cctonot
+
+	ld h,0x0
+	bit %1, l
+;
+	jr %2
+=
+	bit %1, l
+	jr %2
+
+	ld h,0x0
+	bit %1, l
+;
+	jr %2
+	ld h%3
+=
+	bit %1, l
+	jr %2
+	ld h%3
+
+# IX/IY and DE avoiding over the top stuff
+	push hl
+;
+	ld h,(i%1 + 1)
+	ld l,(i%1 + 0)
+	ex de,hl
+	pop hl
+=
+	ld d,(i%1 + 1)
+	ld e,(i%1 + 0)

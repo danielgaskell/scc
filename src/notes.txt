@@ -1,0 +1,6 @@
+{ .id = 1, .val = 2 } syntax for struct declarations doesn't work; instead use { 1, 2 } and indicate what you mean with comments.
+
+fcc seems to have trouble understanding values typed as pointers to typedef'd structs in certain contexts, such as static struct initializers. If you encounter problems, try defining the applicable variable as void* instead of (e.g.) WINDOW*.
+
+Sources:
+- cpp from MCPP 2.7.2
