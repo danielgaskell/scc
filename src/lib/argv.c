@@ -25,6 +25,7 @@ void _load_argv(void) {
                 _shellwidth = (ptr[5]-'0')*10 + (ptr[6]-'0');
                 _shellheight = (ptr[7]-'0')*10 + (ptr[8]-'0');
                 _shellver = (ptr[9]-'0')*10 + (ptr[10]-'0');
+                --_argc; // do not include this in the argument count
                 break;
             }
         } else {

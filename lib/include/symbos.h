@@ -431,9 +431,9 @@ extern unsigned char _shellver;
 extern int _argc;
 extern char* _argv[48];
 
-extern unsigned short Msg_Sleep(unsigned char rec_pid, unsigned char send_pid, char* msg);
-extern unsigned short Msg_Send(unsigned char rec_pid, unsigned char send_pid, char* msg);
-extern unsigned short Msg_Receive(unsigned char rec_pid, unsigned char send_pid, char* msg);
+extern unsigned short Msg_Sleep(char rec_pid, char send_pid, char* msg);
+extern unsigned short Msg_Send(char rec_pid, char send_pid, char* msg);
+extern unsigned short Msg_Receive(char rec_pid, char send_pid, char* msg);
 extern void Idle(void);
 
 extern unsigned long Mem_Free(void);
@@ -493,13 +493,6 @@ extern void Prog_End(char appID);
 extern unsigned short Prog_Search(char bank, char* idstring);
 extern unsigned short Prog_SearchStart(char bank, char* idstring);
 extern void Prog_Release(char bank, char* idstring);
-extern void Run_Dialogue(char appID);
-extern void Run_Control(char module);
-extern void Run_TaskMgr(void);
-extern void Run_Security(void);
-extern void Run_Shutdown(void);
-extern void Sys_Shutdown(void);
-extern void Sys_Config(char command);
 extern unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen,
                             unsigned char type, char* icon);
 extern unsigned char FileBox(unsigned char winID, unsigned char flags, unsigned char attribs,

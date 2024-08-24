@@ -1416,8 +1416,8 @@ static void write_binary(FILE * op, FILE *mp)
 	hdr.o_size[11] = size[11];
 
 	memset(&symhdr, 0, sizeof(symhdr));
-	symhdr.len_code = size[CODE] + size[DATA] + size[BSS] + size[LITERAL];
-	symhdr.len_data = size[SYMDATA];
+	symhdr.len_code = size[CODE] + size[DATA] + size[BSS];
+	symhdr.len_data = size[SYMDATA] + size[LITERAL];
 	symhdr.len_transfer = size[SYMTRANS];
     symhdr.origin = 0;
     strcpy(&symhdr.name[0], "Application");
@@ -1442,10 +1442,10 @@ static void write_binary(FILE * op, FILE *mp)
     if (ldmode != LD_FUZIX)
 		write_stream(op, ABSOLUTE);
 	write_stream(op, CODE);
-	if (ldmode == LD_FUZIX)
-		write_stream(op, LITERAL);
 	hdr.o_segbase[1] = ftell(op);
 	write_stream(op, DATA);
+	if (ldmode == LD_FUZIX)
+		write_stream(op, LITERAL);
 	if (ldmode == LD_FUZIX) {
         for (j = size[3]; j; --j) // output blank bss segment
             fputc(0, op);
