@@ -1,3 +1,6 @@
+#ifndef _SYMBOS
+#define _SYMBOS
+
 /* ========================================================================== */
 /* Useful codes and bitmasks                                                  */
 /* ========================================================================== */
@@ -382,7 +385,31 @@
 /* ========================================================================== */
 /* Internal features                                                          */
 /* ========================================================================== */
-#define HEAP_SIZE 1024
+#define HEAP_SIZE 4096
+#define HEAP_ALIGN 8
+
+typedef struct {
+    unsigned char bank;
+    char* addr;
+    unsigned short len;
+} _MEMORY;
+
+typedef struct {
+    unsigned short codelen;
+    unsigned short datalen;
+    unsigned short translen;
+    char* segdata;
+    char* segtrans;
+    unsigned char timers[4];
+    unsigned char bank;
+    _MEMORY memory[8];
+    unsigned char appid;
+    unsigned char pid;
+    char iconsmall[19];
+    char iconbig[147];
+} _SYMHEADER;
+
+extern _SYMHEADER _symheader;
 
 extern char* _symmsg;
 extern unsigned char _sympid;
@@ -747,7 +774,28 @@ typedef struct {
 typedef struct {
     unsigned short flags;
     char* text;
-} LIST_LINE; // note that this structure does not work well for multiple columns.
+} LIST_LINE;
+
+typedef struct {
+    unsigned short flags;
+    char* text1;
+    char* text2;
+} LIST_LINE2COL;
+
+typedef struct {
+    unsigned short flags;
+    char* text1;
+    char* text2;
+    char* text3;
+} LIST_LINE3COL;
+
+typedef struct {
+    unsigned short flags;
+    char* text1;
+    char* text2;
+    char* text3;
+    char* text4;
+} LIST_LINE4COL;
 
 typedef struct {
     unsigned short linecount;
@@ -773,3 +821,5 @@ extern unsigned char Shell_StringOut(unsigned char channel, unsigned char bank,
 extern void Shell_Exit(unsigned char type);
 extern void Shell_PathAdd(unsigned char bank, char* path, char* addition, char* dest);
 extern unsigned char Shell_CharTest(unsigned char lookahead);
+
+#endif

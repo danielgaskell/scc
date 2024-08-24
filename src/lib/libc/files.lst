@@ -17,7 +17,6 @@ bcmp.c
 bcopy.c
 bsearch.c
 bzero.c
-calloc.c
 cbrtf.c
 ceilf.c
 clock.c
@@ -122,7 +121,6 @@ putenv.c
 putw.c
 qsort.c
 rand.c
-realloc.c
 remainderf.c
 remquof.c
 rewind.c

@@ -1,12 +1,15 @@
+; constants
+_HEAP_SIZE .equ 4096
+
 	.code
 __codestart:
 	
 ; EXE header (256 bytes)
-.export __exehead
+.export __symheader
 .export __segcodelen
 .export __segdatalen
 .export __segtranslen
-__exehead:
+__symheader:
 __segcodelen:		.word 0
 __segdatalen:		.word 0
 __segtranslen:		.word 0
@@ -33,7 +36,7 @@ __exehead_exeid:		.byte 83	; SymExe10
 					.byte 101
 					.byte 49
 					.byte 48
-__exehead_extcode:	.word 0
+__exehead_extcode:	.word _HEAP_SIZE
 __exehead_extdata:	.word 0
 __exehead_exttrans:	.word 0
 					.ds 26
@@ -51,12 +54,25 @@ __segcode:
 
 ; entry point
 start2:
+	; initialize malloc heap
+	ld hl,__codestart
+	ld de,(__segcodelen)
+	add hl,de
+	ld (__malloc_heap),hl
+	ld (__malloc_top),hl
+	ld de,_HEAP_SIZE
+	add hl,de
+	ld (__malloc_max),hl
+	
+	; load argv and call main
 	call __load_argv
 	ld hl,__argv
 	push hl
 	ld hl,(__argc+0)
 	push hl
 	call _main		; go
+	
+	; exit on return
 	call _symexit
 
 ; exit code
@@ -74,13 +90,17 @@ _symexit:				; send MSC_SYS_PRGEND and idle until killed
 _symexit_loop:
 	rst #0x30
 	jr _symexit_loop
-
-.export __sighandler	; FIXME - currently only included for target resolution
-.export __text			; with unported system calls
-.export _environ
-__text:
-__sighandler:
-_environ:	.word 0
+	
+; some data
+.export __malloc_heap
+__malloc_heap:
+	.word 0
+.export __malloc_top
+__malloc_top:
+	.word 0
+.export __malloc_max
+__malloc_max:
+	.word 0
 
 ; start of SymbOS data area
 	.symdata

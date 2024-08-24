@@ -98,6 +98,13 @@ _transfer WINDOW form = {
     &ctrls};    // controls
 
 int main(int argc, char *argv[]) {
+    char* msg1 = (char*)malloc(16);
+    char* msg2 = (char*)malloc(16);
+    strcpy(msg1, "Hello");
+    strcpy(msg2, "World");
+
+    MsgBox(msg1, msg2, argv[0], COLOR_BLACK, BUTTON_OK, 0);
+
     strcpy(display, "0");
     strcpy(bits_str, "00000000 00000000 00000000 00000000");
 

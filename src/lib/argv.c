@@ -9,7 +9,7 @@ unsigned char _shellheight;
 unsigned char _shellver;
 
 void _load_argv(void) {
-    char* ptr = _segcode + _segcodelen + HEAP_SIZE - 0x100;
+    char* ptr = _segcode + _segcodelen - 0x100;
     _argc = 1;
     _argv[0] = ptr;
     _shellpid = 0;
