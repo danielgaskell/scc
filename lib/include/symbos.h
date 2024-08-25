@@ -241,7 +241,8 @@
 #define ALIGN_LEFT 0
 #define ALIGN_RIGHT 1
 #define ALIGN_CENTER 2
-#define AREA_FILL 64
+#define TEXT_FILL 64
+#define TEXT_16COLOR 128
 
 #define C_AREA 0
 #define C_TEXT 1
@@ -392,7 +393,7 @@ typedef struct {
     unsigned char bank;
     char* addr;
     unsigned short len;
-} _MEMORY;
+} _Memory;
 
 typedef struct {
     unsigned short codelen;
@@ -402,14 +403,14 @@ typedef struct {
     char* segtrans;
     unsigned char timers[4];
     unsigned char bank;
-    _MEMORY memory[8];
+    _Memory memory[8];
     unsigned char appid;
     unsigned char pid;
     char iconsmall[19];
     char iconbig[147];
-} _SYMHEADER;
+} _SymHeader;
 
-extern _SYMHEADER _symheader;
+extern _SymHeader _symheader;
 
 extern char* _symmsg;
 extern unsigned char _sympid;
@@ -429,7 +430,7 @@ extern unsigned char _shellwidth;
 extern unsigned char _shellheight;
 extern unsigned char _shellver;
 extern int _argc;
-extern char* _argv[48];
+extern char _argv[];
 
 extern unsigned short Msg_Sleep(char rec_pid, char send_pid, char* msg);
 extern unsigned short Msg_Send(char rec_pid, char send_pid, char* msg);
@@ -561,14 +562,14 @@ extern void Desk_Redraw_All(void);
 /* ========================================================================== */
 typedef struct {
     unsigned short entries;
-} MENU;
+} Menu;
 
 typedef struct {
     unsigned short flags;
     char* text;
     unsigned short value;
     unsigned short unused;
-} MENU_ENTRY;
+} Menu_Entry;
 
 typedef struct {
     unsigned short x;
@@ -583,7 +584,7 @@ typedef struct {
     unsigned short h;
     unsigned char hmult;
     unsigned char hdiv;
-} CALCRULE;
+} CalcRule;
 
 typedef struct {
     unsigned short value;
@@ -595,7 +596,7 @@ typedef struct {
     unsigned short w;
     unsigned short h;
     unsigned short unused;
-} CTRL;
+} Ctrl;
 
 typedef struct {
     unsigned char controls;
@@ -608,7 +609,7 @@ typedef struct {
     char reserved1[4];
     unsigned char focusctrl;
     unsigned char reserved2;
-} CTRL_GROUP;
+} Ctrl_Group;
 
 typedef struct {
     unsigned char state;
@@ -636,26 +637,26 @@ typedef struct {
     char reserved1[6];
     unsigned char modal;
     char reserved2[140];
-} WINDOW;
+} Window;
 
 typedef struct {
     char* text;
     unsigned char color;
     unsigned char flags;
-} CTRL_TEXT;
+} Ctrl_Text;
 
 typedef struct {
     char* text;
     unsigned char color;
     unsigned char color2;
-} CTRL_FRAME;
+} Ctrl_Frame;
 
 typedef struct {
     char* text;
     unsigned char color;
     unsigned char flags;
     char* font;
-} CTRL_TEXTFONT;
+} Ctrl_TextFont;
 
 typedef struct {
     char* text;
@@ -663,7 +664,7 @@ typedef struct {
     char* font;
     unsigned char color;
     unsigned char underline;
-} CTRL_TEXTCODE;
+} Ctrl_TextCode;
 
 typedef struct {
     char* icon;
@@ -672,13 +673,13 @@ typedef struct {
     unsigned char flags;
     unsigned char color16;
     unsigned char extflags;
-} CTRL_ICON;
+} Ctrl_Icon;
 
 typedef struct {
     char* status;
     char* text;
     unsigned char color;
-} CTRL_CHECK;
+} Ctrl_Check;
 
 typedef struct {
     char* status;
@@ -686,18 +687,18 @@ typedef struct {
     unsigned char color;
     unsigned char value;
     char* buffer;
-} CTRL_RADIO;
+} Ctrl_Radio;
 
 typedef struct {
     unsigned char tabs;
     unsigned char color;
     unsigned char selected;
-} CTRL_TABS;
+} Ctrl_Tabs;
 
 typedef struct {
     char* text;
     signed char width;
-} CTRL_TAB;
+} Ctrl_Tab;
 
 typedef struct {
     unsigned char type;
@@ -706,7 +707,7 @@ typedef struct {
     unsigned short maxvalue;
     unsigned char increment;
     unsigned char decrement;
-} CTRL_SLIDER;
+} Ctrl_Slider;
 
 typedef struct {
     void* controls;
@@ -715,7 +716,7 @@ typedef struct {
     unsigned short xscroll;
     unsigned short yscroll;
     unsigned char flags;
-} CTRL_COLLECTION;
+} Ctrl_Collection;
 
 typedef struct {
     char* text;
@@ -727,7 +728,7 @@ typedef struct {
     unsigned char flags;
     unsigned char textcolor;
     unsigned char linecolor;
-} CTRL_INPUT;
+} Ctrl_Input;
 
 typedef struct {
     char* text;
@@ -754,7 +755,7 @@ typedef struct {
     unsigned char wrapping;
     unsigned char tabwidth;
     char buf[8];
-} CTRL_TEXTBOX;
+} Ctrl_TextBox;
 
 typedef struct {
     unsigned char flags;
@@ -762,25 +763,25 @@ typedef struct {
     unsigned short width;
     char* text;
     unsigned short unused2;
-} LIST_COLUMN;
+} List_Column;
 
 typedef struct {
     unsigned short flags;
     char* text;
-} LIST_LINE;
+} List_Line;
 
 typedef struct {
     unsigned short flags;
     char* text1;
     char* text2;
-} LIST_LINE2COL;
+} List_Line2Col;
 
 typedef struct {
     unsigned short flags;
     char* text1;
     char* text2;
     char* text3;
-} LIST_LINE3COL;
+} List_Line3Col;
 
 typedef struct {
     unsigned short flags;
@@ -788,7 +789,7 @@ typedef struct {
     char* text2;
     char* text3;
     char* text4;
-} LIST_LINE4COL;
+} List_Line4Col;
 
 typedef struct {
     unsigned short linecount;
@@ -801,12 +802,12 @@ typedef struct {
     unsigned short clicked;
     unsigned char flags;
     unsigned char unused2;
-} LIST_TITLE;
+} List_Title;
 
 /* ========================================================================== */
 /* SymShell                                                                   */
 /* ========================================================================== */
-extern unsigned char Shell_CharIn(unsigned char channel);
+extern int Shell_CharIn(unsigned char channel);
 extern unsigned char Shell_StringIn(unsigned char channel, unsigned char bank, char* addr);
 extern unsigned char Shell_CharOut(unsigned char channel, unsigned char val);
 extern unsigned char Shell_StringOut(unsigned char channel, unsigned char bank,

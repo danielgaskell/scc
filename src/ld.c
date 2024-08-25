@@ -1447,8 +1447,7 @@ static void write_binary(FILE * op, FILE *mp)
 	if (ldmode == LD_FUZIX)
 		write_stream(op, LITERAL);
 	if (ldmode == LD_FUZIX) {
-        for (j = size[3]; j; --j) // output blank bss segment
-            fputc(0, op);
+        // It's not necessary to output a blank BSS section, because the file will automatically be extended to accommodate the data and transfer segments.
         write_stream(op, SYMDATA);
         write_stream(op, SYMTRANS);
 	}

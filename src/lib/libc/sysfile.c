@@ -3,7 +3,7 @@
 unsigned char _fileerr;
 
 /* ========================================================================== */
-/* File Manager                                                               */
+/* SymbOS File Manager calls                                                  */
 /* ========================================================================== */
 unsigned char File_Command(void) {
     _symmsg[0] = 26;

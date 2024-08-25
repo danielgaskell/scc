@@ -728,8 +728,8 @@ void link_phase(void)
 		add_argument(c);
 		append_obj(&libpathlist, l, 0);
 		append_obj(&libpathlist, ".", 0);
-		append_obj(&liblist, "c", TYPE_A);
 		append_obj(&liblist, "sym", TYPE_A);
+		append_obj(&liblist, "c", TYPE_A);
 	}
 	/* Will be <root>/8080/lib/lib8080.a etc */
 	append_obj(&liblist, make_lib_file("", "lib", cpulib), TYPE_A);

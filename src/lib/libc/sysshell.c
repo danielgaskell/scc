@@ -1,27 +1,29 @@
 #include <symbos.h>
 
 /* ========================================================================== */
-/* SymShell                                                                   */
+/* SymShell system calls                                                      */
 /* ========================================================================== */
 
-void _Shell_MsgWait(void)  {
+void _Shell_MsgWait(void) {
     unsigned char response = _symmsg[0] + 128;
     Msg_Send(_sympid, _shellpid, _symmsg);
     while (_symmsg[0] != response)
         Msg_Sleep(_sympid, _shellpid, _symmsg);
-    if (_symmsg[3] != 1)
+    if (_symmsg[3] > 1)
         _shellerr = _symmsg[3] + 16;
     else
         _shellerr = 0;
 }
 
-unsigned char Shell_CharIn(unsigned char channel) {
+int Shell_CharIn(unsigned char channel) {
     _symmsg[0] = 64;
     _symmsg[1] = channel;
     _Shell_MsgWait();
-    if (_symmsg[1])
-        return 0;
-    return _symmsg[2];
+    if (_symmsg[3] > 1) // error
+        return -2;
+    if (_symmsg[1])     // EOF
+        return -1;
+    return _symmsg[2];  // normal char
 }
 
 unsigned char Shell_StringIn(unsigned char channel, unsigned char bank, char* addr) {

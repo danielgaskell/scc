@@ -25,10 +25,10 @@ __exehead_name:		.byte 65	; App
 					.byte 112
 					.byte 112
 					.ds 22
-__exehead_flags:		.byte 0
+__exehead_flags:	.byte 0
 __exehead_icon16:	.word 0
 					.ds 5
-__exehead_exeid:		.byte 83	; SymExe10
+__exehead_exeid:	.byte 83	; SymExe10
 					.byte 121
 					.byte 109
 					.byte 69
@@ -73,14 +73,34 @@ start2:
 	call _main		; go
 	
 	; exit on return
-	call _symexit
+	call _exit
 
 ; exit code
-_symexit:				; send MSC_SYS_PRGEND and idle until killed
-    ld a,(__sympid)
+.export _exit
+_exit:
+	; close all open files
+	call ___stdio_close_all
+	; if a shell is open, close it
+	ld a,(__shellpid)
+	and a
+	jr z,_symexit1
+	; send MSC_SHL_EXIT
+	ld a,(__sympid)
 	.byte #0xDD			; ld ixl,a
 	ld l,a
+	ld a,(__shellpid)
 	.byte #0xDD			; ld ixh,a
+	ld h,a
+	ld iy,__symmsgbuf
+	ld (iy+0),#0x44
+	ld (iy+1),#0x00
+	rst #0x10
+_symexit1:
+    ; send MSC_SYS_PRGEND and idle until killed
+	ld a,(__sympid)
+	.byte #0xDD			; ld ixl,a
+	ld l,a
+	.byte #0xDD			; ld ixh,3
 	ld h,3
 	ld iy,__symmsgbuf
     ld a,(__symappid)
@@ -90,7 +110,79 @@ _symexit:				; send MSC_SYS_PRGEND and idle until killed
 _symexit_loop:
 	rst #0x30
 	jr _symexit_loop
+
+; Message_Sleep_And_Receive
+.export _Msg_Sleep
+_Msg_Sleep:
+	push ix
+	push iy
+	ld ix,0
+	add ix,sp
+	ld l,(ix+6)
+	ld h,(ix+8)
+	push hl
+	ld l,(ix+10)
+	ld h,(ix+11)
+	push hl
+	pop iy
+	pop ix
+	rst #0x08
+	push ix
+	pop hl
+	pop iy
+	pop ix
+	ret
 	
+; Message_Send
+.export _Msg_Send
+_Msg_Send:
+	push ix
+	push iy
+	ld ix,0
+	add ix,sp
+	ld l,(ix+6)
+	ld h,(ix+8)
+	push hl
+	ld l,(ix+10)
+	ld h,(ix+11)
+	push hl
+	pop iy
+	pop ix
+	rst #0x10
+	push ix
+	pop hl
+	pop iy
+	pop ix
+	ret
+
+; Message_Receive
+.export _Msg_Receive
+_Msg_Receive:
+	push ix
+	push iy
+	ld ix,0
+	add ix,sp
+	ld l,(ix+6)
+	ld h,(ix+8)
+	push hl
+	ld l,(ix+10)
+	ld h,(ix+11)
+	push hl
+	pop iy
+	pop ix
+	rst #0x18
+	push ix
+	pop hl
+	pop iy
+	pop ix
+	ret
+
+; Multitasking_SoftInterrupt
+.export _Idle
+_Idle:
+	rst #0x30
+	ret
+
 ; some data
 .export __malloc_heap
 __malloc_heap:

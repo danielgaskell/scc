@@ -5,10 +5,10 @@
 #endif
 #include <stdarg.h>
 
-#define BUFSIZE 	512	/* uzix buffer/block size */
+#define BUFSIZE 	256	/* uzix buffer/block size */
 #define BUFSIZELOG	9	/* uzix buffer/block size log2 */
 #define BUFSIZ		256
-#define PATHLEN 	512
+#define PATHLEN 	256
 
 #ifndef SEEK_SET
 #define SEEK_SET 0
@@ -60,9 +60,9 @@ struct __stdio_file {
 
 typedef struct __stdio_file FILE;
 
-extern FILE stdin[1];
-extern FILE stdout[1];
-extern FILE stderr[1];
+extern FILE* stdin;
+extern FILE* stdout;
+extern FILE* stderr;
 
 #define putc(c, stream)	fputc((c), stream)
 #define getc(stream)	fgetc(stream)

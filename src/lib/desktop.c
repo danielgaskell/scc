@@ -14,9 +14,9 @@ void _Desk_Service(char id) {
 }
 
 char Win_Open(unsigned char bank, void* addr) {
-    ((WINDOW*)addr)->pid = _sympid;
-    if (((WINDOW*)addr)->controls != 0)
-        ((CTRL_GROUP*)(((WINDOW*)addr)->controls))->pid = _sympid;
+    ((Window*)addr)->pid = _sympid;
+    if (((Window*)addr)->controls != 0)
+        ((Ctrl_Group*)(((Window*)addr)->controls))->pid = _sympid;
     _symmsg[0] = 32;
     _symmsg[1] = bank;
     *((char**)(_symmsg + 2)) = addr;

@@ -26,7 +26,7 @@ extern char *strchr(const char *__s, int __c);
 extern char *strrchr(const char *__s , int __c);
 extern char *strdup(const char *__s);
 /* FIXME: missing but in POSIX */
-extern char *strndup(const char *__s, int __n);
+//extern char *strndup(const char *__s, int __n);
 
 /* Basic mem functions */
 extern void *memcpy(void *__dest, const void *__src, size_t __n);
@@ -65,6 +65,6 @@ extern size_t strxfrm(char *__dest, const char *__src, size_t __n);
 extern int strcoll(const char *__s1, const char *__s2);
 
 //extern const char *strsignal(int __sig);
-extern char *strerror(int __errno);
+//extern char *strerror(int __errno);
 
 #endif		/* END OF DEFINITION	STRING.H */

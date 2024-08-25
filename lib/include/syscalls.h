@@ -106,97 +106,97 @@ struct utsname;
 struct rlimit;
 
 extern void _exit(int code);
-extern int open(const char *path, int flags, ...);
-extern int close(int fd);
-extern int creat(const char *path, mode_t mode);
-extern int mknod(const char *path, mode_t mode, dev_t dev);
-extern int link(const char *path, const char *path2);
-extern int unlink(const char *path);
-extern ssize_t read(int fd, void *buf, int len);
-extern ssize_t write(int fd, const void *buf, int len);
-extern int chdir(const char *path);
-extern void sync(void);
-extern int access(const char *path, int way);
-extern int chmod(const char *path, mode_t mode);
-extern int chown(const char *path, uid_t owner, gid_t group);
-extern int dup(int fd);
-extern pid_t getpid(void);
-extern pid_t getppid(void);
-extern uid_t getuid(void);
-extern mode_t umask(mode_t);
-extern int execve(const char *path, char * const argv[], char *const envp[]);
-extern pid_t wait(int *status);
-extern int setuid(uid_t uid);
-extern int setgid(gid_t gid);
-extern int ioctl(int fd, int request,...);
-extern int brk(void *addr);
-extern void *sbrk(intptr_t increment);
-extern pid_t _fork(uint16_t flags, void *addr);
-extern int mount(const char *dev, const char *path, int flags);
-extern int _umount(const char *dev, int flags);
-extern sighandler_t signal(int signum, sighandler_t sighandler);
-extern int dup2(int oldfd, int newfd);
-extern int _pause(unsigned int dsecs);
-extern int kill(pid_t pid, int sig);
-extern int pipe(int *pipefds);
-extern gid_t getgid(void);
-extern uid_t geteuid(void);
-extern gid_t getegid(void);
-extern int chroot(const char *path);
-extern int fcntl(int fd, int cmd, ...);
-extern int fchdir(int fd);
-extern int fchmod(int fd, mode_t mode);
-extern int fchown(int fd, uid_t owner, gid_t group);
-extern int mkdir(const char *path, mode_t mode);
-extern int rmdir(const char *path);
-extern pid_t setpgrp(void);
-extern pid_t waitpid(pid_t pid, int *status, int options);
-extern int uadmin(int cmd, int ctrl, void *ptr);
-extern int nice(int prio);
-extern int rename(const char *path, const char *newpath);
-extern int flock(int fd, int op);
-extern pid_t getpgrp(void);
-extern int sched_yield(void);
-extern int acct(const char *filename);
-extern int setgroups(size_t size, const gid_t *groups);
-extern int getgroups(int size, gid_t *groups);
-extern int getrlimit(int resource, struct rlimit *rlim);
-extern int setrlimit(int resource, const struct rlimit *rlim);
-extern int setpgid(pid_t pid, pid_t pgrp);
-extern pid_t setsid(void);
-extern pid_t getsid(pid_t pid);
-extern unsigned int _alarm(unsigned int);
+extern int open(const char *path, int flags, ...); /* FIXME */
+extern int close(int fd); /* FIXME */
+extern int creat(const char *path, mode_t mode); /* FIXME */
+extern int mknod(const char *path, mode_t mode, dev_t dev); /* FIXME */
+extern int link(const char *path, const char *path2); /* FIXME */
+extern int unlink(const char *path); /* FIXME */
+extern ssize_t read(int fd, void *buf, int len); /* FIXME */
+extern ssize_t write(int fd, const void *buf, int len); /* FIXME */
+extern int chdir(const char *path); /* FIXME */
+extern void sync(void); /* FIXME */
+extern int access(const char *path, int way); /* FIXME */
+extern int chmod(const char *path, mode_t mode); /* FIXME */
+extern int chown(const char *path, uid_t owner, gid_t group); /* FIXME */
+extern int dup(int fd); /* FIXME */
+extern pid_t getpid(void); /* FIXME */
+extern pid_t getppid(void); /* FIXME */
+extern uid_t getuid(void); /* FIXME */
+extern mode_t umask(mode_t); /* FIXME */
+extern int execve(const char *path, char * const argv[], char *const envp[]); /* FIXME */
+extern pid_t wait(int *status); /* FIXME */
+extern int setuid(uid_t uid); /* FIXME */
+extern int setgid(gid_t gid); /* FIXME */
+extern int ioctl(int fd, int request,...); /* FIXME */
+extern int brk(void *addr); /* FIXME */
+extern void *sbrk(intptr_t increment); /* FIXME */
+extern pid_t _fork(uint16_t flags, void *addr); /* FIXME */
+extern int mount(const char *dev, const char *path, int flags); /* FIXME */
+extern int _umount(const char *dev, int flags); /* FIXME */
+extern sighandler_t signal(int signum, sighandler_t sighandler); /* FIXME */
+extern int dup2(int oldfd, int newfd); /* FIXME */
+extern int _pause(unsigned int dsecs); /* FIXME */
+extern int kill(pid_t pid, int sig); /* FIXME */
+extern int pipe(int *pipefds); /* FIXME */
+extern gid_t getgid(void); /* FIXME */
+extern uid_t geteuid(void); /* FIXME */
+extern gid_t getegid(void); /* FIXME */
+extern int chroot(const char *path); /* FIXME */
+extern int fcntl(int fd, int cmd, ...); /* FIXME */
+extern int fchdir(int fd); /* FIXME */
+extern int fchmod(int fd, mode_t mode); /* FIXME */
+extern int fchown(int fd, uid_t owner, gid_t group); /* FIXME */
+extern int mkdir(const char *path, mode_t mode); /* FIXME */
+extern int rmdir(const char *path); /* FIXME */
+extern pid_t setpgrp(void); /* FIXME */
+extern pid_t waitpid(pid_t pid, int *status, int options); /* FIXME */
+extern int uadmin(int cmd, int ctrl, void *ptr); /* FIXME */
+extern int nice(int prio); /* FIXME */
+extern int rename(const char *path, const char *newpath); /* FIXME */
+extern int flock(int fd, int op); /* FIXME */
+extern pid_t getpgrp(void); /* FIXME */
+extern int sched_yield(void); /* FIXME */
+extern int acct(const char *filename); /* FIXME */
+extern int setgroups(size_t size, const gid_t *groups); /* FIXME */
+extern int getgroups(int size, gid_t *groups); /* FIXME */
+extern int getrlimit(int resource, struct rlimit *rlim); /* FIXME */
+extern int setrlimit(int resource, const struct rlimit *rlim); /* FIXME */
+extern int setpgid(pid_t pid, pid_t pgrp); /* FIXME */
+extern pid_t setsid(void); /* FIXME */
+extern pid_t getsid(pid_t pid); /* FIXME */
+extern unsigned int _alarm(unsigned int); /* FIXME */
 
 /* asm syscall hooks with C wrappers */
-extern int _getdirent(int fd, void *buf, int len);
-extern int _stat(const char *path, struct _uzistat *s);
-extern int _fstat(int fd, struct _uzistat *s);
-extern int _statfs(const char *path, uint8_t *fs);
-extern int _time(__ktime_t *t, uint16_t clock);
-extern int _stime(const __ktime_t *t, uint16_t clock);
-extern int _times(struct tms *t);
-extern int _utime(const char *file, __ktime_t *buf);
-extern int _uname(struct _uzisysinfoblk *uzib, int len);
-extern int _profil(void *samples, uint16_t offset, uint16_t size, int16_t scale);
-extern int _lseek(int fd, off_t *offset, int mode);
-extern int _select(int nfd, uint16_t *base);
-extern int _ftruncate(int fd, off_t *offset);
+extern int _getdirent(int fd, void *buf, int len); /* FIXME */
+extern int _stat(const char *path, struct _uzistat *s); /* FIXME */
+extern int _fstat(int fd, struct _uzistat *s); /* FIXME */
+extern int _statfs(const char *path, uint8_t *fs); /* FIXME */
+extern int _time(__ktime_t *t, uint16_t clock); /* FIXME */
+extern int _stime(const __ktime_t *t, uint16_t clock); /* FIXME */
+extern int _times(struct tms *t); /* FIXME */
+extern int _utime(const char *file, __ktime_t *buf); /* FIXME */
+extern int _uname(struct _uzisysinfoblk *uzib, int len); /* FIXME */
+extern int _profil(void *samples, uint16_t offset, uint16_t size, int16_t scale); /* FIXME */
+extern int _lseek(int fd, off_t *offset, int mode); /* FIXME */
+extern int _select(int nfd, uint16_t *base); /* FIXME */
+extern int _ftruncate(int fd, off_t *offset); /* FIXME */
 
 /* C library provided syscall emulation */
-extern int stat(const char *path, struct stat *s);
-extern int fstat(int fd, struct stat *s);
-extern unsigned int alarm(unsigned int seconds);
-extern time_t time(time_t *t);
-extern int stime(const time_t *t);
-extern int times(struct tms *tms);
-extern int utime(const char *filename, const struct utimbuf *utim);
-extern int uname(struct utsname *buf);
-extern int profil(unsigned short *bufbase, size_t bufsize, unsigned long offset,
+extern int stat(const char *path, struct stat *s); /* FIXME */
+extern int fstat(int fd, struct stat *s); /* FIXME */
+extern unsigned int alarm(unsigned int seconds); /* FIXME */
+extern time_t time(time_t *t); /* FIXME */
+extern int stime(const time_t *t); /* FIXME */
+extern int times(struct tms *tms); /* FIXME */
+extern int utime(const char *filename, const struct utimbuf *utim); /* FIXME */
+extern int uname(struct utsname *buf); /* FIXME */
+extern int profil(unsigned short *bufbase, size_t bufsize, unsigned long offset, /* FIXME */
                   unsigned int scale);
-extern int ftruncate(int fd, off_t offset);
+extern int ftruncate(int fd, off_t offset); /* FIXME */
 
 /* Networking */
-extern int __netcall(void *argbuf);
+extern int __netcall(void *argbuf); /* FIXME */
 
 #endif	/* __SYSCALLS_H */
 

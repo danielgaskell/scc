@@ -16,6 +16,6 @@
 
 extern FILE *__IO_list;         /* For fflush at exit */
 
-void __stdio_init_vars(void);
+//void __stdio_init_vars(void);
 
 #endif

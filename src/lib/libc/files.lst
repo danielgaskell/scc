@@ -23,6 +23,7 @@ clock.c
 clock_getres.c
 clock_gettime.c
 clock_settime.c
+close.c
 copysignf.c
 cosf.c
 coshf.c
@@ -32,7 +33,7 @@ ctime.c
 ctime_r.c
 drand48.c
 erff.c
-exit.c
+errno.c
 expf.c
 expm1f.c
 fabsf.c
@@ -66,6 +67,7 @@ index.c
 isalnum.c
 isalpha.c
 isascii.c
+isatty.c
 isblank.c
 iscntrl.c
 isdigit.c
@@ -96,6 +98,7 @@ logf.c
 lrintf.c
 lroundf.c
 lsearch.c
+lseek.c
 ltoa.c
 ltostr.c
 malloc.c
@@ -121,6 +124,7 @@ putenv.c
 putw.c
 qsort.c
 rand.c
+read.c
 remainderf.c
 remquof.c
 rewind.c
@@ -134,10 +138,16 @@ setenv.c
 setlocale.c
 setvbuf.c
 sprintf.c
+stdio0.c
 strcasecmp.c
 strcasestr.c
+strcat.c
+strchr.c
 strcmp.c
+strcoll.c
 strcpy.c
+strcspn.c
+strdup.c
 stricmp.c
 strlcpy.c
 strlen.c
@@ -146,12 +156,20 @@ strncat.c
 strncmp.c
 strncpy.c
 strnicmp.c
+strnlen.c
+strpbrk.c
+strrchr.c
 strsep.c
 strspn.c
+strstr.c
 strtod.c
+strtok.c
+strtok_r.c
 strtol.c
 strxfrm.c
 swab.c
+sysfile.c
+sysshell.c
 tgammaf.c
 tmpfile.c
 tmpnam.c
@@ -167,6 +185,7 @@ vprintf.c
 vscanf.c
 vsscanf.c
 wait.c
+write.c
 xitoa.c
 __cos.c
 __cosdf.c

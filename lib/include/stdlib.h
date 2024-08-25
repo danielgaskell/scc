@@ -100,7 +100,7 @@ extern void qsort(void *__base, size_t __num, size_t __size, cmp_func_t __cmp);
 //extern char *getpass(char *__prompt);
 
 extern int _argc;
-extern char **_argv;
+extern char _argv[];
 
 //extern int getloadavg(unsigned int __loadavg[], int __nelem);
 
