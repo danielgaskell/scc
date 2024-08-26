@@ -7,7 +7,7 @@ unsigned char _fileerr;
 /* ========================================================================== */
 unsigned char File_Command(void) {
     _symmsg[0] = 26;
-    Msg_Send (_sympid, 3, _symmsg);
+    Msg_Send(_sympid, 3, _symmsg);
     while (_symmsg[0] != 154)
         Msg_Sleep(_sympid, 3, _symmsg);
     if (_symmsg[2] & 0x01) {
@@ -35,7 +35,7 @@ unsigned char File_Open(unsigned char bank, char* path) {
     result = File_Command();
     if (result)
         return result;
-    return _symmsg[2]; // file ID
+    return _symmsg[3]; // file ID
 }
 
 unsigned char File_Close(unsigned char id) {

@@ -521,6 +521,7 @@ extern unsigned char Dir_ReadExt(unsigned char bank, char* path, unsigned char a
 extern unsigned char Dir_Delete(unsigned char bank, char* path);
 extern unsigned char Dir_DeleteDir(unsigned char bank, char* path);
 extern unsigned char Dir_Move(unsigned char bank, char* pathSrc, char* pathDst);
+extern char* Dir_PathAdd(char* path, char* addition, char* dest);
 
 /* ========================================================================== */
 /* Desktop Manager                                                            */
@@ -808,12 +809,12 @@ typedef struct {
 /* SymShell                                                                   */
 /* ========================================================================== */
 extern int Shell_CharIn(unsigned char channel);
-extern unsigned char Shell_StringIn(unsigned char channel, unsigned char bank, char* addr);
+extern signed char Shell_StringIn(unsigned char channel, unsigned char bank, char* addr);
 extern unsigned char Shell_CharOut(unsigned char channel, unsigned char val);
 extern unsigned char Shell_StringOut(unsigned char channel, unsigned char bank,
                                      char* addr, unsigned short len);
 extern void Shell_Exit(unsigned char type);
 extern void Shell_PathAdd(unsigned char bank, char* path, char* addition, char* dest);
-extern unsigned char Shell_CharTest(unsigned char lookahead);
+extern int Shell_CharTest(unsigned char channel, unsigned char lookahead);
 
 #endif

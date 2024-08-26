@@ -70,7 +70,7 @@ For the most part, console applications meant to run in SymShell can be written 
 ```bash
 cc -o file.com file.c
 ```
-While SCC's `stdio` functions are meant to work relatively seamlessly in SymShell, they are not entirely optimized for SymShell's display model. In particular, SymShell is much faster at displaying long strings in one go than a series of individual characters. When writing code from scratch for SymbOS, consider designing it around the system shell functions (`Shell_StringOut()`, `Shell_CharIn()`, etc.) rather than the standard `stdio` functions.
+While SCC's `stdio` functions are meant to work relatively seamlessly in SymShell, they are somewhat slow and bulky and are not entirely optimized for SymShell's display model. When writing code from scratch for SymbOS, consider designing it around the system shell functions (`Shell_StringOut()`, `Shell_CharIn()`, etc.) rather than the standard `stdio` functions.
 
 ## Windowed applications
 

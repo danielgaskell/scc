@@ -15,16 +15,26 @@ char *fgets(char *s, size_t count, FILE * f)
 	register int ch;
 	char *ret = s;
 
-	while (i-- != 0) {
-		if ((ch = getc(f)) == EOF) {
-			if (s == ret)
-				return NULL;
-			break;
-		}
-		*s++ = (char) ch;
-		if (ch == '\n')
-			break;
-	}
-	*s = 0;
-	return ferror(f) ? NULL : ret;
-}
+	if (f == stdin) {
+        // defer to the gets_s implementation of console input, except that
+        // we need the trailing newline included by fgets() but not by gets()
+        ret = gets_s(s, count);
+        if (ret)
+            ret[strlen(ret)] = '\n';
+        return ret;
+
+	} else {
+        while (i-- != 0) {
+            if ((ch = getc(f)) == EOF) {
+                if (s == ret)
+                    return NULL;
+                break;
+            }
+            *s++ = (char) ch;
+            if (ch == '\r' || ch == '\n')
+                break;
+        }
+        *s = 0;
+        return ferror(f) ? NULL : ret;
+}	}
+

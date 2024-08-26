@@ -2,56 +2,48 @@
  * Copyright (C) 1996 Robert de Bath <rdebath@cix.compulink.co.uk>
  * This file is part of the Linux-8086 C library and is distributed
  * under the GNU Library General Public License.
+ *
+ * Substantially rewritten 2024 by Daniel E. Gaskell.
  */
 
 /* This is an implementation of the C standard IO package. */
 
 #include "stdio-l.h"
 #include <errno.h>
+#include <symbos.h>
+#include <string.h>
+#include "iobuf.h"
 
-char *gets(char *str)
-{				/* BAD function; DON'T use it! */
-	/* Auwlright it will work but of course _your_ program will crash */
-	/* if it's given a too long line */
-	register int c;
-	register char *p = str;
-
-	while (((c = getc(stdin)) != EOF) && (c != '\n'))
-		*p++ = c;
-	*p = '\0';
-	return (((c == EOF) && (p == str)) ? NULL : str);	/* NULL == EOF */
+// Using Shell_StringIn gives a much nicer experience on the console, but has
+// a max length of 255 characters. This is fine for normal usage. Taking
+// advantage of this limitation, we avoid the infamous gets() buffer overrun
+// problem by reading into the known-good 256-byte _io_buf as an intermediate.
+char *gets_s(char *str, size_t maxlen) {
+    signed char result;
+    if (str == NULL || maxlen == 0) {
+        errno = ERANGE;
+        return 0;
+    }
+    fflush(stdout);
+    result = Shell_StringIn(0, _symbank, _io_buf);
+    if (result == -1) {
+        stdin->mode |= __MODE_EOF;
+        return 0;
+    } else if (result == -2) {
+        stdin->mode |= __MODE_ERR;
+        return 0;
+    }
+    if (strlen(_io_buf) > maxlen)
+        return 0;
+    memcpy(str, _io_buf, strlen(_io_buf) + 1);
+    return str;
 }
 
-char *gets_s(char *str, size_t maxlen)
-{
-	register int c;
-	register char *p = str;
-	char *end = p + maxlen - 1;
-	uint8_t over = 0;
-
-	/* NULL is defined as an error so we don't need to consume data */
-	if (str == NULL || maxlen == 0)
-		goto fail;
-
-	while (((c = getc(stdin)) != EOF) && (c != '\n')) {
-		/* < because we need space for the \0 */
-		if (p < end)
-			*p++ = c;
-		else
-			over = 1;
-	}
-	*p = '\0';
-
-	/* NULL == EOF */
-	if (!over)
-		return (((c == EOF) && (p == str)) ? NULL : str);
-fail:
-	errno = ERANGE;
-	return NULL;
+char *gets(char *str) {
+    return gets_s(str, 255);
 }
 
-int puts(const char *str)
-{
+int puts(const char *str) {
 	register int n;
 	if (((n = fputs(str, stdout)) == EOF)
 	    || (putc('\n', stdout) == EOF))

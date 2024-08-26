@@ -2,8 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-
-char _write_buf[256];
+#include "iobuf.h"
 
 ssize_t write(int fd, const void *buf, int len) {
     char* ptr_in;
@@ -19,29 +18,32 @@ ssize_t write(int fd, const void *buf, int len) {
     case 1: case 2: // stdout, stderr (no distinction currently)
         if (_shellpid) {
             // shell is registered, send it there in chunks
-            writelen = strlen(buf);
+            writelen = len;
             ptr_in = buf;
-            ptr_out = _write_buf;
-            this_len = writelen > 255 ? 255 : writelen;
+            ptr_out = _io_buf;
+            this_len = 0;
             while (writelen > 0) {
                 if (*ptr_in == '\n') { // convert \n to \r\n
                     *ptr_out++ = '\r';
                     *ptr_out++ = '\n';
-                    ++ptr_in;
+                    ++this_len;
+                } else if (*ptr_in == '\t') { // convert \t to SymShell tab character
+                    *ptr_out++ = 25;
                 } else {
-                    *ptr_out++ = *ptr_in++;
+                    *ptr_out++ = *ptr_in;
                 }
-                --this_len;
-                if (this_len == 0) {
+                ++ptr_in;
+                ++this_len;
+                if (this_len >= 254) {
                     *ptr_out = 0;
-                    Shell_StringOut(0, _symbank, _write_buf, 255);
-                    ptr_out = _write_buf;
-                    this_len = 255;
+                    Shell_StringOut(0, _symbank, _io_buf, this_len);
+                    ptr_out = _io_buf;
+                    this_len = 0;
                 }
                 --writelen;
             }
             *ptr_out = 0;
-            Shell_StringOut(0, _symbank, _write_buf, 255 - this_len);
+            Shell_StringOut(0, _symbank, _io_buf, this_len);
             return len;
         } else {
             errno = ENXIO;

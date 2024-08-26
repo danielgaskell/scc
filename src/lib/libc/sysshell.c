@@ -26,13 +26,17 @@ int Shell_CharIn(unsigned char channel) {
     return _symmsg[2];  // normal char
 }
 
-unsigned char Shell_StringIn(unsigned char channel, unsigned char bank, char* addr) {
+signed char Shell_StringIn(unsigned char channel, unsigned char bank, char* addr) {
     _symmsg[0] = 65;
     _symmsg[1] = channel;
     _symmsg[2] = bank;
     *((char**)(_symmsg + 3)) = addr;
     _Shell_MsgWait();
-    return _symmsg[1];
+    if (_symmsg[3] > 1) // error
+        return -2;
+    if (_symmsg[1])     // EOF
+        return -1;
+    return 0;           // normal string
 }
 
 unsigned char Shell_CharOut(unsigned char channel, unsigned char val) {
@@ -72,15 +76,15 @@ void Shell_PathAdd(unsigned char bank, char* path, char* addition, char* dest) {
     _Shell_MsgWait();
 }
 
-unsigned char Shell_CharTest(unsigned char lookahead) {
+int Shell_CharTest(unsigned char channel, unsigned char lookahead) {
     _symmsg[0] = 70;
-    _symmsg[1] = 1;
+    _symmsg[1] = channel;
     _symmsg[2] = lookahead;
     _Shell_MsgWait();
-    if (_symmsg[3] != 1)
-        return 0;
-    if (_symmsg[1] == 2)
+    if (_symmsg[3] > 1)   // error
+        return -2;
+    if (_symmsg[1] == 2)  // normal char
         return _symmsg[2];
-    return 0;
+    return -1;            // else EOF
 }
 

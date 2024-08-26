@@ -3,11 +3,10 @@
 #include <stdio.h>
 #include <errno.h>
 
-// FIXME handle EOF throughout?
 ssize_t read(int fd, void *buf, int len) {
     char* ptr;
     int c;
-    ssize_t readlen;
+    int readlen;
 
     switch (fd) {
     case 0: // stdin
@@ -18,13 +17,18 @@ ssize_t read(int fd, void *buf, int len) {
                 c = Shell_CharIn(0);
                 if (c == -1) {
                     break;
-                } else if (_shellerr) {
+                } else if (c == -2) {
                     errno = EIO;
                     return -1;
                 } else {
                     *ptr++ = (char)c;
                     ++readlen;
+                    if (fd == 0)
+                        Shell_CharOut(0, c); // FIXME: only echo for keyboard in, not pipe
                 }
+                break;  // FIXME: currently only returns one character - if there's
+                        // a way to distinguish the keyboard from a pipe, can
+                        // improve edge cases by reading more
             }
             return readlen;
         } else {

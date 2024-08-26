@@ -106,14 +106,14 @@ struct utsname;
 struct rlimit;
 
 extern void _exit(int code);
-extern int open(const char *path, int flags, ...); /* FIXME */
-extern int close(int fd); /* FIXME */
-extern int creat(const char *path, mode_t mode); /* FIXME */
+extern int open(const char *path, int flags, ...);
+extern int close(int fd);
+extern int creat(const char *path, mode_t mode);
 extern int mknod(const char *path, mode_t mode, dev_t dev); /* FIXME */
 extern int link(const char *path, const char *path2); /* FIXME */
 extern int unlink(const char *path); /* FIXME */
-extern ssize_t read(int fd, void *buf, int len); /* FIXME */
-extern ssize_t write(int fd, const void *buf, int len); /* FIXME */
+extern ssize_t read(int fd, void *buf, int len);
+extern ssize_t write(int fd, const void *buf, int len);
 extern int chdir(const char *path); /* FIXME */
 extern void sync(void); /* FIXME */
 extern int access(const char *path, int way); /* FIXME */
