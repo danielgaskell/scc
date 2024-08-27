@@ -1,4 +1,5 @@
 
+
 # Introduction
 
 Writing C will rot your brain. Only a true C programmer would look at the following code fragment and think it was an "elegant" solution to anything:
@@ -32,7 +33,7 @@ cc -c file2.c
 ld -o file.exe -R file.rel ..\lib\crt0.o file1.o file2.o ..\lib\libc.a ..\lib\libsym.a ..\lib\libz80.a
 reloc file.exe file.rel
 ```
-In the C world this type of modular build is usually done with a Makefile. SCC does not currently have its own`make` utility, but we can use the one from MinGW (not documented here). In practice SymbOS projects are usually small enough that we can just maintain a single main source file (potentially with `#include` directives to merge in subsidiary files) and compile it directly with `cc`.
+In the C world this type of modular build is usually done with a Makefile. SCC does not currently have its own `make` utility, but we can use the one from MinGW (not documented here). In practice SymbOS projects are usually small enough that we can just maintain a single main source file (potentially with `#include` directives to merge in subsidiary files) and compile it directly with `cc`.
 
 A good way to determine what `cc` is doing under the hood (particularly for linking) is to run it with the `-V` option, which outputs each command as it is run.
 
@@ -70,7 +71,7 @@ For the most part, console applications meant to run in SymShell can be written 
 ```bash
 cc -o file.com file.c
 ```
-While SCC's `stdio` functions are meant to work relatively seamlessly in SymShell, they are somewhat slow and bulky and are not entirely optimized for SymShell's display model. When writing code from scratch for SymbOS, consider designing it around the system shell functions (`Shell_StringOut()`, `Shell_CharIn()`, etc.) rather than the standard `stdio` functions.
+While SCC's `stdio` functions are meant to work relatively seamlessly in SymShell, they are somewhat slow and bulky and are not entirely optimized for SymShell's display model. When writing code from scratch for SymbOS, consider designing it around the [system shell functions](#system-call-reference) (`Shell_StringOut()`, `Shell_CharIn()`, etc.) rather than the standard `stdio` functions.
 
 ## Windowed applications
 
@@ -86,7 +87,7 @@ We first need to include the header file `symbos.h`, which defines many of the f
 
 ### Memory segments
 
-A SymbOS executable is divided into three memory segments. For console apps written with normal libc functionality, it is not generally necessary to think about this, but many SymbOS system functions make important distinctions between memory segments:
+A SymbOS executable is divided into three memory segments. For console apps written with normal libc functionality, it is not generally necessary to think about this, but many SymbOS system calls make important distinctions between memory segments:
 
 1. **Code**: Contains code and globals (unless manually placed into a different segment - see below). Can contain up to 64KB of code and data.
 2. **Data**: Stores data that must not cross a 16KB page boundary. This is required by many system functions, particularly those dealing with text or image data, so SCC places string literals in this segment by default. Can contain up to 16KB of data.
@@ -97,6 +98,11 @@ Globals are placed in the **code** segment by default, but we can manually assig
 ```c
 _transfer char imgdata[256];
 ```
+
+Many system calls also make important distinctions between memory *banks*. Because the Z80 can only address 64KB of memory at a time, extended memory (up to 1MB) is divided into multiple "banks" of 64KB each. We do not generally need to worry about this because all three segments of the executable will be loaded into the same bank. However, there are two exceptions:
+
+1. Some system calls will need to know which bank an address is in. In most cases, this is just the application's main bank (stored in the `_symbank` global).
+2. If we need to handle more than 64KB of data in our application, it is possible to [reserve and indirectly address](#memory-management) memory in other banks.
 
 ### Windows
 
@@ -261,7 +267,7 @@ _transfer Ctrl_Group ctrls = {
 
 ### Desktop commands
 
-To display a window, we need to tell the desktop manager to open it. `symbos.h` provides a number of helper functions for making system calls; the first one we need is `Win_Open()`:
+To display a window, we need to tell the desktop manager to open it. `symbos.h` provides a number of helper functions for making system calls (see the [reference list of all functions](#system-call-reference)); the first one we need is `Win_Open()`:
 
 ```c
 extern char Win_Open(char bank, void* addr);
@@ -281,8 +287,6 @@ extern void Win_Close(char winID);
 ```
 
 Windows will also be closed automatically on app exit.
-
-(Additional calls are [documented below](#command-reference).)
 
 ### Handling events
 
@@ -362,8 +366,6 @@ int main(int argc, char *argv[]) {
 
 ### Event reference
 
-### Command reference
-
 ### Menus
 
 ### Lists
@@ -372,9 +374,640 @@ int main(int argc, char *argv[]) {
 
 ### Modal windows
 
+## System call reference
+
+The following calls are all available after including `symbos.h`:
+
+```c
+#include <symbos.h>
+```
+
+These headers are not 100% comprehensive; SymbOS provides some additional system calls not implemented in `symbos.h`, mainly low-level calls for dealing with storage devices, system configuration, and complicated applications that alter system functionality or execute code in multiple banks (SCC is not well-suited for this). These calls are discussed in the [SymbOS developer documentation](https://symbos.org/download.htm). It is assumed that, if you need these calls, you are probably already doing something complicated enough that a few extra wrapper functions won't be useful.
+
+## System variables
+
+```c
+char* _symmsg;
+```
+A 14-byte buffer for sending messages. This is used internally by most system calls, but can be used for our own purposes when manually sending messages with `Msg_Send()` and similar functions.
+
+```c
+unsigned char _sympid;	     // process ID of the current app
+unsigned char _symappid;     // application ID of the current app
+unsigned char _symbank;      // main bank number of the current app
+char* _segcode;              // start address of the code segment + 0x100
+char* _segdata;              // start address of the data segment
+char* _segtrans;             // start address of the transfer segment
+unsigned short _segcodelen;  // length of the code segment
+unsigned short _segdatalen;  // length of the data segment
+unsigned short _segtranslen; // length of the transfer segment
+```
+
+The other contents of the application header can be accessed directly with the struct `_symheader`, not documented here (see definition in `symbos.h`).
+
+### Messaging
+
+#### Msg_Send()
+```c
+unsigned char Msg_Send(char rec_pid, char send_pid, char* msg);
+```
+
+Sends the message in `*msg` to process ID `send_pid`. `rec_pid` is the process ID that should receive the response, if any; usually this should be our own process ID (`_sympid`). `*msg` must be in the **transfer** segment.
+
+*Return value*: 0 = message queue is full; 1 = message sent successfully; 2 = receiver process does not exist.
+
+*SymbOS name*: `Message_Send` (`MSGSND`).
+
+#### Msg_Receive()
+
+```c
+unsigned short Msg_Receive(char rec_pid, char send_pid, char* msg);
+```
+Checks for a message sent from process ID `send_pid` to process ID `rec_pid` and, if one is waiting, stores it in `*msg`. Usually `rec_pid` should be our own process ID (`_sympid`). If `send_pid` is -1, checks for messages from any process. `*msg` must be in the **transfer** segment.
+
+*Return value*: Low byte: 0 = no message available, 1 = message received. High byte: sender process ID. Extract with, e.g.,
+
+```c
+rec = result & 0xFF;
+pid = result >> 8;
+```
+
+*SymbOS name*: `Message_Receive` (`MSGGET`).
+
+#### Msg_Sleep()
+
+```c
+unsigned short Msg_Sleep(char rec_pid, char send_pid, char* msg);
+```
+Checks for a message sent from process ID `send_pid` to process ID `rec_pid`. If one is waiting, stores it in `*msg`. If there is no message, returns CPU time to SymbOS and waits until a message is available or the process is woken up for another reason. Usually `rec_pid` should be our own process ID (`_sympid`). If `send_pid` is -1, checks for messages from any process. `*msg` must be in the **transfer** segment.
+
+
+*Return value*: Low byte: 0 = no message available, 1 = message received. High byte: sender process ID. Extract with, e.g.,
+
+```c
+rec = result & 0xFF;
+pid = result >> 8;
+```
+
+Note that processes can be "woken up" for multiple reasons, so returning from `Msg_Sleep()` does not necessarily mean that the desired message has been received. We must check the return value or the contents of `*msg` to be sure. For example, to loop until a message is actually received:
+
+```c
+while (!(Msg_Sleep(_sympid, -1, _symmsg) & 0x01));
+```
+
+*SymbOS name*: `Message_Sleep_And_Receive` (`MSGSLP`).
+
+#### Idle()
+
+```c
+void Idle(void);
+```
+Return CPU time to SymbOS and idle until something wakes it up---for example, an incoming message.
+
+*SymbOS name*: `Multitasking_SoftInterrupt` (`RST #30`).
+
+### Memory management
+
+Applications are able to address more that 64KB of memory by reserving additional blocks of banked memory. These blocks cannot be addressed directly using C pointers and variables, but we can read/write/copy data to them using system functions.
+
+#### Mem_Reserve()
+
+```c
+unsigned char Mem_Reserve(unsigned char bank, unsigned char type, unsigned short len, unsigned char* bankVar, char** addrVar);
+```
+
+Reserve a block of banked memory in bank `bank` of length `len`, in bytes. `bank` may be from 0 to 15; 0 means "any bank can be used." `type` may be one of: 0 = located anywhere; 1 = reserve within a 16KB address block (like the **data** segment); 2 = reserve within the last 16KB address block (like the **transfer** segment).
+
+Two variables must be passed by reference to store the address of the resulting block of banked memory: `bankVar` (type `unsigned char`), which stores the bank, and `addrVar` (type `char*`), which stores the address.
+
+**Note that, to avoid memory leaks, memory reserved with `Mem_Reserve()` ***must*** be manually released with `Mem_Release()` before program exit!** SymbOS does not have the resources to track this automatically; it is up to us.
+
+*Return value*: 0 = success, 1 = out of memory.
+
+*SymbOS name*: `Memory_Get` (`MEMGET`).
+
+#### Mem_Release()
+
+```c
+void Mem_Release(unsigned char bank, char* addr, unsigned short len);
+```
+
+Releases a block of banked memory previously reserved with `Mem_Reserve()`. `bank` is the bank of the reserved memory, which must be from 1 to 15; `addr` is the address; and `len` is the length of the reserved block, in bytes.
+
+**Be careful to ensure that `bank`, `addr`, and `len` exactly match a contiguous block of memory that was previously reserved with `Mem_Reserve()`!** SymbOS does not keep track of this independently, so we can corrupt memory if we pass invalid information.
+
+*SymbOS name*: `Memory_Free` (`MEMFRE`).
+
+#### Mem_Resize()
+
+```c
+unsigned char Mem_Resize(unsigned char bank, char* addr, unsigned short oldlen, unsigned short newlen);
+```
+
+Attempts to resize a block of banked memory previously reserved with `Mem_Reserve()`. `bank` is the bank of the reserved memory, which must be from 1 to 15; `addr` is the address; `oldlen` is the previous length of the reserved block, in bytes; and `newlen` is the requested new length, in bytes.
+
+Shortening a block will always work. Lengthening a block will only work if the required addresses (immediately after the end of the old block) are available, which is unlikely if the user has started any new applications since the block was reserved. A more robust alternative is the SCC-specific helper function `Mem_ResizeX()` (see below).
+
+*Return value*: 0 = success, 1 = out of memory.
+
+*SymbOS name*: `Memory_Resize` (`MEMSIZ`).
+
+#### Mem_ResizeX()
+
+```c
+unsigned char Mem_ResizeX(unsigned char bank, unsigned char type, char* addr,
+                          unsigned short oldlen, unsigned short newlen,
+                          unsigned char* bankVar, char** addrVar);
+```
+
+A more robust SCC extension to `Mem_Resize()`, above. Attempts to resize a block of banked memory previously reserved with `Mem_Reserve()` by first trying calling `Mem_Resize()`; if this does not succeed, it tries again by reserving a new block of the desired size, copying the old block to the new block, and releasing the old block.  `bank` is the bank of the reserved memory, which must be from 1 to 15. `type` may be one of: 0 = located anywhere; 1 = only move within a 16KB address block (like the **data** segment); 2 = only move within the last 16KB address block (like the **transfer** segment). `addr` is the previous address; `oldlen` is the previous length of the reserved block, in bytes; and `newlen` is the requested new length, in bytes.
+
+Two variables must be passed by reference to store the address of the resulting block: `bankVar` (type `unsigned char`), which stores the bank, and `addrVar` (type `char*`), which stores the address. Note that a moved block may be in any bank, not just the same bank as the previous block.
+
+*Return value*: 0 = success, 1 = out of memory.
+
+*SymbOS name*: N/A
+
+#### Mem_Longest()
+
+```c
+unsigned short Mem_Longest(unsigned char bank, unsigned char type);
+```
+
+Returns (in bytes) the longest area of contiguous memory within bank `bank` that could be reserved with `Mem_Reserve()`. `bank` may be from 0 to 15; 0 means "any bank can be used." `type` may be one of: 0 = located anywhere; 1 = reserve within a 16KB address block (like the **data** segment); 2 = reserve within the last 16KB address block (like the **transfer** segment).
+
+*SymbOS name*: `Memory_Information` (`MEMINF`).
+
+#### Mem_Free()
+
+```c
+unsigned long Mem_Free(void);
+```
+
+Returns the total amount of free memory, in bytes.
+
+*SymbOS name*: `Memory_Summary` (`MEMSUM`).
+
+#### Mem_Banks()
+
+```c
+unsigned char Mem_Banks(void);
+```
+
+Returns the total number of existing 64KB extended RAM banks.
+
+*SymbOS name*: `Memory_Summary` (`MEMSUM`).
+
+### Memory read/write
+
+#### Bank_ReadWord()
+
+```c
+unsigned short Bank_ReadWord(unsigned char bank, char* addr);
+```
+
+Returns the two-byte word at bank `bank`, address `addr`. `bank` must be from 1 to 15.
+
+*SymbOS name*: `Banking_ReadWord` (`BNKRWD`).
+
+#### Bank_WriteWord()
+
+```c
+void Bank_WriteWord(unsigned char bank, char* addr, unsigned short val);
+```
+
+Writes the two-byte word `val` to memory at bank `bank`, address `addr`. `bank` must be from 1 to 15.
+
+*SymbOS name*: `Banking_WriteWord` (`BNKWWD`).
+
+
+#### Bank_ReadByte()
+
+```c
+unsigned char Bank_ReadByte(unsigned char bank, char* addr);
+```
+
+Returns the byte at bank `bank`, address `addr`. `bank` must be from 1 to 15.
+
+*SymbOS name*: `Banking_ReadByte` (`BNKRBT`).
+
+#### Bank_WriteByte()
+
+```c
+void Bank_WriteByte(unsigned char bank, char* addr, unsigned char val);
+```
+
+Writes the byte `val` to memory at bank `bank`, address `addr`. `bank` must be from 1 to 15.
+
+*SymbOS name*: `Banking_WriteByte` (`BNKWBT`).
+
+#### Bank_Copy()
+
+```c
+void Bank_Copy(unsigned char bankDst, char* addrDst, unsigned char bankSrc, char* addrSrc, unsigned short len);
+```
+
+Copies `len` bytes of memory from bank `bankSrc`, address `addrSrc` to bank `bankDst`, address `addrDst`.
+
+*SymbOS name*: `Banking_Copy` (`BNKCOP`).
+
+#### Bank_Get()
+
+```c
+unsigned char Bank_Get(void);
+```
+
+Returns the bank number in which the app's main process is running. (Normally it is easier to use the `_symbank` global for this purpose.)
+
+*SymbOS name*: `Banking_GetBank` (`BNKGET`).
+
+### Clipboard functions
+
+#### Clip_Put()
+
+```c
+unsigned char Clip_Put(unsigned char bank, char* addr, unsigned short len, unsigned char type);
+```
+
+Stores `len` bytes of data from bank `bank`, address `addr` into the system clipboard. `type` may be one of: 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut.
+
+*Return value*: 0 = success, 1 = out of memory.
+
+*SymbOS name*: `Clipboard_Put` (`BUFPUT`).
+
+#### Clip_Get()
+
+```c
+unsigned short Clip_Get(unsigned char bank, char* addr, unsigned short len, unsigned char type);
+```
+
+Retrieves up to `len` bytes of data from the system clipboard and stores it in bank `bank`, address `addr`. `type` may be one of: 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut. Data will only be retrieved if (1) the type of the data in the clipboard matches the requested type, and (2) the data length is not greater than `len`.
+
+*Return value*: length of received data, in bytes.
+
+*SymbOS name*: `Clipboard_Get` (`BUFGET`).
+
+#### Clip_Type()
+
+```c
+unsigned char Clip_Type(void);
+```
+
+Returns the type of data in the clipboard, if any (0 = empty, 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut).
+
+*SymbOS name*: `Clipboard_Status` (`BUFSTA`).
+
+#### Clip_Len()
+
+```c
+unsigned short Clip_Len(void);
+```
+
+Returns the length of data in the clipboard, in bytes.
+
+*SymbOS name*: `Clipboard_Status` (`BUFSTA`).
+
+### System status
+
+#### Sys_Counter()
+
+```c
+unsigned long Sys_Counter(void);
+```
+
+Returns the system counter, which increments 50 times per second. This can be used to calculate time elapsed for regulating framerates in games, etc.
+
+*SymbOS name*: `Multitasking_GetCounter` (`MTGCNT`).
+
+#### Sys_IdleCount()
+
+```c
+unsigned short Sys_IdleCount(void);
+```
+
+Returns the idle process counter, which increments every 64 microseconds. This can be used to calculate CPU usage.
+
+*SymbOS name*: `Multitasking_GetCounter` (`MTGCNT`).
+
+### Screen status
+
+#### Screen_Mode()
+
+```c
+unsigned char Screen_Mode(void);
+```
+
+Returns the current screen mode, which depends on the current platform:
+
+| Mode  | Platform  | Resolution | Colors  |
+| ------| --------- | ---------- | ------- |
+| 0     | PCW       | 720x255    | 2       |
+| 1     | CPC/EP    | 320x200    | 4       |
+| 2     | CPC/EP    | 640x200    | 2       |
+| 5     | MSX       | 256x212    | 16      |
+| 6     | MSX       | 512x212    | 4       |
+| 7     | MSX       | 512x212    | 16      |
+| 8     | G9K       | 384x240    | 16      |
+| 9     | G9K       | 512x212    | 16      |
+| 10    | G9K       | 768x240    | 16      |
+| 11    | G9K       | 1024x212   | 16      |
+
+*SymbOS name*: `Device_ScreenMode` (`SCRGET`).
+
+#### Screen_Colors()
+
+```c
+unsigned char Screen_Colors(void);
+```
+
+Returns the number of displayed colors in the current screen mode (2, 4, or 16).
+
+*SymbOS name*: `Device_ScreenMode` (`SCRGET`).
+
+#### Screen_Width()
+
+```c
+unsigned short Screen_Width(void);
+```
+
+Returns the horizontal width of the screen, in pixels.
+
+*SymbOS name*: `Device_ScreenMode` (`SCRGET`).
+
+#### Screen_Height()
+
+```c
+unsigned short Screen_Height(void);
+```
+
+Returns the vertical height of the screen, in pixels.
+
+*SymbOS name*: `Device_ScreenMode` (`SCRGET`).
+
+### Mouse status
+
+#### Mouse_X()
+
+```c
+unsigned short Mouse_X(void);
+```
+
+Returns the horizontal position of the mouse pointer, in pixels.
+
+*SymbOS name*: `Device_MousePosition` (`MOSGET`).
+
+#### Mouse_Y()
+
+```c
+unsigned short Mouse_Y(void);
+```
+
+Returns the vertical position of the mouse pointer, in pixels.
+
+*SymbOS name*: `Device_MousePosition` (`MOSGET`).
+
+#### Mouse_Buttons()
+
+```c
+unsigned char Mouse_Buttons(void);
+```
+
+Returns the current status of the mouse buttons as a bitmask. We can perform a binary AND of the return value with `BUTTON_LEFT`, `BUTTON_RIGHT`, and `BUTTON_MIDDLE` to determine whether the respective button is currently pressed:
+
+```c
+lbut = Mouse_Buttons() & BUTTON_LEFT;
+```
+
+*SymbOS name*: `Device_MouseKeyStatus` (`MOSKEY`).
+
+### Keyboard status
+
+#### Key_Down()
+
+```c
+unsigned char Key_Down(unsigned char scancode);
+```
+
+Returns 1 if the key specified by `scancode` is currently down, otherwise 0. **Note that keys are tested by *scancode*, not by their ASCII value!** A set of [scancode constants](#keyboard-scancodes) are provided for convenience.
+
+*SymbOS name*: `Device_KeyTest` (`KEYTST`).
+
+#### Key_Status()
+
+```c
+unsigned short Key_Status(void);
+```
+
+Returns the status of the modifier keys as a bitmask. We can perform a binary AND of the return value with `SHIFT_DOWN`, `CTRL_DOWN`, `ALT_DOWN`, and `CAPSLOCK_DOWN` to determine whether the respective modifier key is currently applied:
+
+```c
+caps = Key_Status() & CAPSLOCK_DOWN;
+```
+
+*SymbOS name*: `Device_KeyStatus` (`KEYSTA`).
+
+#### Key_Put()
+
+```c
+void Key_Put(unsigned char keychar);
+```
+
+Pushes the ASCII code `keychar` into the keyboard buffer as if it had been pressed on the keyboard.
+
+*SymbOS name*: `Device_KeyPut` (`KEYPUT`).
+
+#### Key_Multi()
+
+```c
+unsigned char Key_Multi(unsigned char scancode1, unsigned char scancode2,
+                        unsigned char scancode3, unsigned char scancode4,
+                        unsigned char scancode5, unsigned char scancode6);
+```
+
+
+Like `Key_Test()`, but tests up to six keys simultaneously. This may save time when testing large numbers of keys for (e.g.) a game. The return value is a bitmask:
+
+* Bit 0: set if key `scancode1` is pressed
+* Bit 1: set if key `scancode2` is pressed
+* Bit 2: set if key `scancode3` is pressed
+* Bit 3: set if key `scancode4` is pressed
+* Bit 4: set if key `scancode5` is pressed
+* Bit 5: set if key `scancode6` is pressed
+
+**Note that keys are tested by *scancode*, not by their ASCII value!** A set of [scancode constants](#keyboard-scancodes) are provided for convenience.
+
+*SymbOS name*: `Device_KeyMulti` (`KEYMUL`).
+
+### Shell functions
+
+SymShell functions will only be available if the application is associated with a running instance of SymShell. To ensure that an application is started in SymShell, make sure that it has the file extension `.com` instead of `.exe`.
+
+Several globals provide useful information about the SymShell instance:
+
+```c
+extern unsigned char _shellpid;    // SymShell process ID
+extern unsigned char _shellwidth;  // console width, in characters
+extern unsigned char _shellheight; // console height, in characters
+extern unsigned char _shellver;    // SymShell version
+extern unsigned char _shellerr;    // error code of last shell command
+```
+
+If `_shellpid` = 0, there is no SymShell instance. `_shellver` is a two-digit number where the tens digit is the major version and the ones digit is the minor version, e.g., 21 = 2.1.
+
+Most shell functions allow specifying a *channel*. In general, channel 0 is the standard input/output, which is usually the keyboard (in) and text window (out) but may also be a file or stream if some type of redirection is active. This is similar to the behavior of stdin/stdout in standard C (there is no direct equivalent to stderr). Channel 1 is always the physical keyboard (in) or text window (out), even if redirection is active on channel 0. Usually we want channel 0.
+
+Note that SymShell returns the Windows-style ASCII character 13 (`\r`) for the "Enter" key, *not* the Unix-style ASCII character 10 (`\n`), as is more common in C. Likewise, when sending text to the console, note that SymShell expects the Windows-style line terminator `\r\n` rather than the Unix-style `\n` that is more common in C. If we only send `\n`, SymShell will take this literally, only performing a line feed (`\n`, going down a line) but not a carriage return (`\r`, going back to the start of the next line)! The stdio implementation (`printf()`, etc.) includes some logic to paper over these differences and understand the Unix-style convention, but when working with SymShell functions directly, we will need to be more careful.
+
+#### Shell_CharIn()
+
+```c
+int Shell_CharIn(unsigned char channel);
+```
+
+Requests an input character from the specified  `channel`. If this is the console keyboard and there is no character waiting in the keybuffer, SymShell will pause until the user presses a key.
+
+*Return value*: On success, returns the ASCII value of the character (including [extended ASCII codes](#extended-ascii-codes) for special keys). If we have hit EOF on an input stream, returns -1. If another error has occurred, returns -2 and sets `_shellerr`.
+
+*SymbOS name*: `SymShell_CharInput_Command` (`MSC_SHL_CHRINP`).
+
+#### Shell_CharOut()
+
+```c
+signed char Shell_CharOut(unsigned char channel, unsigned char val);
+```
+
+Sends ASCII character `val` to the specified  `channel`.
+
+While this is the standard way to output a single character to the console, note that outputting long strings by repeatedly calling `Shell_CharOut()` will be very slow, because for every character sent, SymShell must (1) receive the message, (2) redraw the screen, and (3) send a response message. Sending a single longer string with `Shell_StringOut()` only requires one set of messages and one redraw and is therefore  much more efficient.
+
+*Return value*: On success, returns 0. If another error has occurred, returns -2 and sets `_shellerr`.
+
+*SymbOS name*: `SymShell_CharOutput_Command` (`MSC_SHL_CHROUT`).
+
+#### Shell_CharTest()
+
+```c
+int Shell_CharTest(unsigned char channel, unsigned char lookahead);
+```
+
+Behaves like `Shell_CharIn()`, except that if there is no character waiting in the keybuffer, it will return 0 immediately without waiting for input. If `lookahead` = 0, any character found will be returned but left in the keybuffer; if `lookahead` = 1, the character will be removed from the keybuffer.
+
+This function requires SymShell 2.3 or greater and will always return -1 (EOF) on earlier versions. This function currently only works for physical keyboard input, not redirected streams.
+
+*Return value*: On success, returns the ASCII value of the character (including [extended ASCII codes](#extended-ascii-codes) for special keys). If another error has occurred, returns -2 and sets `_shellerr`.
+
+*SymbOS name*: `SymShell_CharTest_Command` (`MSC_SHL_CHRTST`).
+
+#### Shell_StringIn()
+
+```c
+signed char Shell_StringIn(unsigned char channel, unsigned char bank, char* addr);
+```
+
+Requests a line of input from the specified  `channel`, terminated by the Enter key. If this is the console keyboard, SymShell will pause and accept input until the user presses Enter. The input will be written to memory (zero-terminated) at bank `bank`, address `addr`.
+
+Input may be up to 255 characters in length, plus a zero-terminator, so the write buffer should always be at least 256 bytes long.
+
+*Return value*: On success, returns 0. If we have hit EOF on an input stream, returns -1. If another error has occurred, returns -2 and sets `_shellerr`.
+
+*SymbOS name*: `SymShell_StringInput_Command` (`MSC_SHL_STRINP`).
+
+#### Shell_StringOut()
+
+```c
+signed char Shell_StringOut(unsigned char channel, unsigned char bank,
+                            char* addr, unsigned char len);
+```
+
+Sends the string at bank `bank`, address `addr` to the specified  `channel`. The string can be up to 255 bytes long and must be zero-terminated. `len` must contain the length of the string (without the zero-terminator); the `string.h` function `strlen()` is a good way to determine this.
+
+*Return value*: On success, returns 0. If another error has occurred, returns -2 and sets `_shellerr`.
+
+*SymbOS name*: `SymShell_StringOutput_Command` (`MSC_SHL_STROUT`).
+
+#### Shell_Exit()
+
+```c
+void Shell_Exit(unsigned char type);
+```
+
+Informs SymShell that the app is closing down, so it can stop waiting for input/output messages from the app. (Normally this is handled automatically by `exit()`, but we can also do it manually.) If `type` = 0, the app is exiting normally and should be unregistered with SymShell. If `type` = 1, the app is going into "blur" mode: it is still running in the background, but no longer plans to output anything to the shell.
+
+*SymbOS name*: `SymShell_Exit_Command` (`MSC_SHL_EXIT`).
+
+#### Shell_PathAdd()
+
+```c
+void Shell_PathAdd(unsigned char bank, char* path, char* addition, char* dest);
+```
+
+A utility function that constructs an absolute file path from a base path (at bank `bank`, address `path`) and a relative path addition (at bank `bank`, address `addition`), storing the result in bank `bank`, address `dest`. This is mainly used to turn relative paths into absolute paths for the file manager functions.
+
+Any relative path elements in the addition (`..\`, etc.) will be resolved. If `path` = 0, the absolute path will be relative to the current shell path (i.e., the path set by the CD command). The base path should not end with a slash or backslash.
+
+Examples:
+```c
+char abspath[256];
+
+Shell_PathAdd(_symbank, "C:\SYMBOS\APPS", "..\MUSIC\MP3\LALALA.MP3", abspath);
+// yields: C:\SYMBOS\MUSIC\MP3\LALALA.MP3
+
+Shell_PathAdd(_symbank, "A:\GRAPHICS\NATURE", "\SYMBOS", abspath);
+// yields: A:\SYMBOS
+
+Shell_PathAdd(_symbank, "C:\ARCHIVE", "*.ZIP", abspath);
+// yields: C:\ARCHIVE\*.ZIP
+
+Shell_PathAdd(_symbank, "A:\ARCHIVE", "C:\SYMBOS", abspath);
+// yields: C:\SYMBOS
+```
+
+*SymbOS name*: `SymShell_PathAdd_Command` (`MSC_SHL_PTHADD`).
+
 ## Other considerations
 
 ### The `malloc()` heap
+
+### Keyboard scancodes
+
+| Code | Code | Code | Code | Code | 
+| ---- | ---- | ---- | ---- | ---- |
+| `SCAN_0` | `SCAN_G` | `SCAN_W` | `SCAN_UP` | `SCAN_FIRE_1` |
+| `SCAN_1` | `SCAN_H` | `SCAN_X` | `SCAN_DOWN` | `SCAN_FIRE_2` |
+| `SCAN_2` | `SCAN_I` | `SCAN_Y` | `SCAN_LEFT` | `SCAN_JOY_DOWN` |
+| `SCAN_3` | `SCAN_J` | `SCAN_Z` | `SCAN_RIGHT` | `SCAN_JOY_LEFT` |
+| `SCAN_4` | `SCAN_K` | `SCAN_F0` | `SCAN_ALT` | `SCAN_JOY_RIGHT` |
+| `SCAN_5` | `SCAN_L` | `SCAN_F1` | `SCAN_AT` | `SCAN_JOY_UP` |
+| `SCAN_6` | `SCAN_M` | `SCAN_F2` | `SCAN_BSLASH` | `SCAN_LBRACKET` |
+| `SCAN_7` | `SCAN_N` | `SCAN_F3` | `SCAN_CAPSLOCK` | `SCAN_MINUS` |
+| `SCAN_8` | `SCAN_O` | `SCAN_F4` | `SCAN_CARET` | `SCAN_PERIOD` |
+| `SCAN_9` | `SCAN_P` | `SCAN_F5` | `SCAN_CLR` | `SCAN_RBRACKET` |
+| `SCAN_A` | `SCAN_Q` | `SCAN_F6` | `SCAN_COLON` | `SCAN_RETURN` |
+| `SCAN_B` | `SCAN_R` | `SCAN_F7` | `SCAN_COMMA` | `SCAN_SEMICOLON` |
+| `SCAN_C` | `SCAN_S` | `SCAN_F8` | `SCAN_CTRL` | `SCAN_SHIFT` |
+| `SCAN_D` | `SCAN_T` | `SCAN_F9` | `SCAN_DEL` | `SCAN_SLASH` |
+| `SCAN_E` | `SCAN_U` | `SCAN_FDOT` | `SCAN_ENTER` | `SCAN_SPACE` |
+| `SCAN_F` | `SCAN_V` | `SCAN_ESC` | `SCAN_TAB` | |
+
+### Extended ASCII codes
+
+| Code | Code | Code | Code |
+| ---- | ---- | ---- | ---- |
+| `KEY_UP` | `KEY_FDOT` | `KEY_ALT_M` | `KEY_ALT_0` |
+| `KEY_DOWN` | `KEY_ALT_AT` | `KEY_ALT_N` | `KEY_ALT_1` |
+| `KEY_LEFT` | `KEY_ALT_A` | `KEY_ALT_O` | `KEY_ALT_2` |
+| `KEY_RIGHT` | `KEY_ALT_B` | `KEY_ALT_P` | `KEY_ALT_3` |
+| `KEY_F0` | `KEY_ALT_C` | `KEY_ALT_Q` | `KEY_ALT_4` |
+| `KEY_F1` | `KEY_ALT_D` | `KEY_ALT_R` | `KEY_ALT_5` |
+| `KEY_F2` | `KEY_ALT_E` | `KEY_ALT_S` | `KEY_ALT_6` |
+| `KEY_F3` | `KEY_ALT_F` | `KEY_ALT_T` | `KEY_ALT_7` |
+| `KEY_F4` | `KEY_ALT_G` | `KEY_ALT_U` | `KEY_ALT_8` |
+| `KEY_F5` | `KEY_ALT_H` | `KEY_ALT_V` | `KEY_ALT_9` |
+| `KEY_F6` | `KEY_ALT_I` | `KEY_ALT_W` |  |
+| `KEY_F7` | `KEY_ALT_J` | `KEY_ALT_X` |  |
+| `KEY_F8` | `KEY_ALT_K` | `KEY_ALT_Y` |  |
+| `KEY_F9` | `KEY_ALT_L` | `KEY_ALT_Z` |  |
+
 
 ### Building SCC
 

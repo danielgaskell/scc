@@ -24,13 +24,15 @@ echo file.c
 ..\..\bin\cc -c filebox.c
 echo kernel.c
 ..\..\bin\cc -c kernel.c
+echo memsizex.c
+..\..\bin\cc -c memsizex.c
 echo msgbox.c
 ..\..\bin\cc -c msgbox.c
 echo system.c
 ..\..\bin\cc -c system.c
 
 echo Building libsym.a...
-ar rc libsym.a kernbank.o kernclip.o kerndev.o kernmem.o kernmult.o argv.o desktop.o dir.o filebox.o kernel.o msgbox.o system.o
+ar rc libsym.a kernbank.o kernclip.o kerndev.o kernmem.o kernmult.o argv.o desktop.o dir.o filebox.o kernel.o msgbox.o memsizex.o system.o
 
 copy /Y crt0.o ..\..\lib\crt0.o
 copy /Y libsym.a ..\..\lib\libsym.a

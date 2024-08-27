@@ -216,6 +216,7 @@
 #define ERR_DEVFULL 13
 #define ERR_RINGFULL 12
 #define ERR_MOREPROC 11
+#define ERR_NOSHELL 10
 
 #define WIN_CLOSED 0
 #define WIN_NORMAL 1
@@ -433,7 +434,7 @@ extern int _argc;
 extern char _argv[];
 
 extern unsigned short Msg_Sleep(char rec_pid, char send_pid, char* msg);
-extern unsigned short Msg_Send(char rec_pid, char send_pid, char* msg);
+extern unsigned char Msg_Send(char rec_pid, char send_pid, char* msg);
 extern unsigned short Msg_Receive(char rec_pid, char send_pid, char* msg);
 extern void Idle(void);
 
@@ -443,6 +444,9 @@ extern unsigned short Mem_Longest(unsigned char bank, unsigned char type);
 extern unsigned char Mem_Reserve(unsigned char bank, unsigned char type, unsigned short len, unsigned char* bankVar, char** addrVar);
 extern void Mem_Release(unsigned char bank, char* addr, unsigned short len);
 extern unsigned char Mem_Resize(unsigned char bank, char* addr, unsigned short oldlen, unsigned short newlen);
+extern unsigned char Mem_ResizeX(unsigned char bank, unsigned char type, char* addr,
+                                 unsigned short oldlen, unsigned short newlen,
+                                 unsigned char* bankVar, char** addrVar);
 
 extern unsigned short Bank_ReadWord(unsigned char bank, char* addr);
 extern void Bank_WriteWord(unsigned char bank, char* addr, unsigned short val);
@@ -810,9 +814,9 @@ typedef struct {
 /* ========================================================================== */
 extern int Shell_CharIn(unsigned char channel);
 extern signed char Shell_StringIn(unsigned char channel, unsigned char bank, char* addr);
-extern unsigned char Shell_CharOut(unsigned char channel, unsigned char val);
-extern unsigned char Shell_StringOut(unsigned char channel, unsigned char bank,
-                                     char* addr, unsigned short len);
+extern signed char Shell_CharOut(unsigned char channel, unsigned char val);
+extern signed char Shell_StringOut(unsigned char channel, unsigned char bank,
+                                   char* addr, unsigned char len);
 extern void Shell_Exit(unsigned char type);
 extern void Shell_PathAdd(unsigned char bank, char* path, char* addition, char* dest);
 extern int Shell_CharTest(unsigned char channel, unsigned char lookahead);
