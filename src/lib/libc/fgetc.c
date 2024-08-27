@@ -7,23 +7,29 @@
 /* This is an implementation of the C standard IO package. */
 
 #include "stdio-l.h"
+#include <symbos.h>
 
 int fgetc(FILE * fp)
 {
 	int ch;
 
+    Shell_CharOut(0, 'e');
 	if (fp->mode & __MODE_WRITING)
 		fflush(fp);
 	/* Can't read or there's been an EOF or error then return EOF */
+    Shell_CharOut(0, 'f');
 	if ((fp->mode & (__MODE_READ | __MODE_EOF | __MODE_ERR)) !=
 	    __MODE_READ)
 		return EOF;
 	/* Nothing in the buffer - fill it up */
+    Shell_CharOut(0, 'g');
 	if (fp->bufpos >= fp->bufread) {
 		fp->bufpos = fp->bufread = fp->bufstart;
 		ch = fread(fp->bufpos, 1, fp->bufend - fp->bufstart, fp);
+        Shell_CharOut(0, 'h');
 		if (ch == 0)
 			return EOF;
+        Shell_CharOut(0, 'i');
 		fp->bufread += ch;
 		fp->mode |= __MODE_READING;
 		fp->mode &= ~__MODE_UNGOT;

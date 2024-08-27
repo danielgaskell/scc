@@ -7,6 +7,7 @@
 /* This is an implementation of the C standard IO package. */
 
 #include "stdio-l.h"
+#include <symbos.h>
 
 /* Nothing special here ... */
 char *fgets(char *s, size_t count, FILE * f)
@@ -25,7 +26,9 @@ char *fgets(char *s, size_t count, FILE * f)
 
 	} else {
         while (i-- != 0) {
+            Shell_CharOut(0, 'c');
             if ((ch = getc(f)) == EOF) {
+                Shell_CharOut(0, 'd');
                 if (s == ret)
                     return NULL;
                 break;

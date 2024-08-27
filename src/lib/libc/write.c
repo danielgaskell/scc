@@ -10,8 +10,10 @@ ssize_t write(int fd, const void *buf, int len) {
     ssize_t writelen;
     unsigned char this_len;
 
+    Shell_CharOut(0, 'p');
     switch (fd) {
     case 0: // stdin (invalid)
+        Shell_CharOut(0, 'q');
         errno = ENXIO;
         return -1;
 
@@ -44,18 +46,23 @@ ssize_t write(int fd, const void *buf, int len) {
             }
             *ptr_out = 0;
             Shell_StringOut(0, _symbank, _io_buf, this_len);
+            Shell_CharOut(0, 'r');
             return len;
         } else {
             errno = ENXIO;
+            Shell_CharOut(0, 's');
             return -1;
         }
 
     default: // normal file
+        Shell_CharOut(0, 't');
         writelen = File_Write(fd - 3, _symbank, buf, len);
         if (_fileerr) {
             errno = EIO; // FIXME more specific errors?
+            Shell_CharOut(0, 'u');
             return -1;
         } else {
+            Shell_CharOut(0, 'v');
             return writelen;
         }
     }
