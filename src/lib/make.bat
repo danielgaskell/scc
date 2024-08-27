@@ -20,6 +20,8 @@ echo desktop.c
 ..\..\bin\cc -c desktop.c
 echo dir.c
 ..\..\bin\cc -c dir.c
+echo dirfmt.c
+..\..\bin\cc -c dirfmt.c
 echo file.c
 ..\..\bin\cc -c filebox.c
 echo kernel.c
@@ -32,7 +34,7 @@ echo system.c
 ..\..\bin\cc -c system.c
 
 echo Building libsym.a...
-ar rc libsym.a kernbank.o kernclip.o kerndev.o kernmem.o kernmult.o argv.o desktop.o dir.o filebox.o kernel.o msgbox.o memsizex.o system.o
+ar rc libsym.a kernbank.o kernclip.o kerndev.o kernmem.o kernmult.o argv.o desktop.o dir.o dirfmt.o filebox.o kernel.o msgbox.o memsizex.o system.o
 
 copy /Y crt0.o ..\..\lib\crt0.o
 copy /Y libsym.a ..\..\lib\libsym.a

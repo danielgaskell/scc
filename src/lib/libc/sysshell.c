@@ -110,7 +110,7 @@ int Shell_CharTest(unsigned char channel, unsigned char lookahead) {
             if (_symmsg[1] == 2)  // normal char
                 return _symmsg[2];
         }
-        return -1;            // else EOF
+        return 0;                 // else no char
     }
     _shellerr = ERR_NOSHELL;
     return -2;

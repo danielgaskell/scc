@@ -20,11 +20,15 @@ unsigned char File_Command(void) {
 }
 
 unsigned char File_New(unsigned char bank, char* path, unsigned char attrib) {
+    unsigned char result;
     _symmsg[1] = 17;
     _symmsg[3] = attrib;
     *((char**)(_symmsg + 8)) = path;
     _symmsg[11] = bank;
-    return File_Command();
+    result = File_Command();
+    if (result)
+        return result;
+    return _symmsg[3]; // file ID
 }
 
 unsigned char File_Open(unsigned char bank, char* path) {

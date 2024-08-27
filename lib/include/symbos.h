@@ -502,6 +502,7 @@ extern unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int 
                             unsigned char type, char* icon);
 extern unsigned char FileBox(unsigned char winID, unsigned char flags, unsigned char attribs,
                              unsigned char bank, char* buffer);
+
 extern unsigned char File_Command(void);
 extern unsigned char File_New(unsigned char bank, char* path, unsigned char attrib);
 extern unsigned char File_Open(unsigned char bank, char* path);
@@ -510,22 +511,31 @@ extern unsigned short File_Read(unsigned char id, unsigned char bank, char* addr
 extern unsigned char File_ReadLine(unsigned char id, unsigned char bank, char* addr);
 extern unsigned short File_Write(unsigned char id, unsigned char bank, char* addr, unsigned short len);
 extern long File_Seek(unsigned char id, long offset, unsigned char ref);
-extern unsigned char Dir_Drive(unsigned char drive);
-extern unsigned char Dir_Path(unsigned char bank, char* path);
+
+typedef struct {
+    long len;
+    unsigned short date;
+    unsigned short time;
+    unsigned char attrib;
+    char name[13];
+} DirEntry;
+
 extern unsigned char Dir_SetAttrib(unsigned char bank, char* path, unsigned char attrib);
-extern char Dir_GetAttrib(unsigned char bank, char* path);
+extern signed char Dir_GetAttrib(unsigned char bank, char* path);
 extern unsigned char Dir_Rename(unsigned char bank, char* path, char* newname);
 extern unsigned char Dir_New(unsigned char bank, char* path);
-extern unsigned char Dir_Read(unsigned char bank, char* path, unsigned char attrib,
-                              unsigned char bufbank, char* addr, unsigned short len,
-                              unsigned short skip);
-extern unsigned char Dir_ReadExt(unsigned char bank, char* path, unsigned char attrib,
-                                 unsigned char bufbank, char* addr, unsigned short len,
-                                 unsigned short skip, unsigned char cols);
+extern int Dir_Read(unsigned char bank, char* path, unsigned char attrib,
+                    unsigned char bufbank, void* addr, unsigned short len,
+                    unsigned short skip);
+extern int Dir_ReadExt(unsigned char bank, char* path, unsigned char attrib,
+                    unsigned char bufbank, void* addr, unsigned short len,
+                    unsigned short skip, unsigned char cols);
 extern unsigned char Dir_Delete(unsigned char bank, char* path);
 extern unsigned char Dir_DeleteDir(unsigned char bank, char* path);
 extern unsigned char Dir_Move(unsigned char bank, char* pathSrc, char* pathDst);
+
 extern char* Dir_PathAdd(char* path, char* addition, char* dest);
+extern void Dir_ReadFmt(void* buf, unsigned short len, unsigned short count);
 
 /* ========================================================================== */
 /* Desktop Manager                                                            */

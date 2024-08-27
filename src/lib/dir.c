@@ -3,19 +3,6 @@
 /* ========================================================================== */
 /* File Manager                                                               */
 /* ========================================================================== */
-unsigned char Dir_Drive(unsigned char drive) {
-    _symmsg[1] = 32;
-    _symmsg[3] = drive;
-    return File_Command();
-}
-
-unsigned char Dir_Path(unsigned char bank, char* path) {
-    _symmsg[1] = 33;
-    *((char**)(_symmsg + 8)) = path;
-    _symmsg[11] = bank;
-    return File_Command();
-}
-
 unsigned char Dir_SetAttrib(unsigned char bank, char* path, unsigned char attrib) {
     _symmsg[1] = 34;
     _symmsg[3] = 0;
@@ -25,7 +12,7 @@ unsigned char Dir_SetAttrib(unsigned char bank, char* path, unsigned char attrib
     return File_Command();
 }
 
-char Dir_GetAttrib(unsigned char bank, char* path) {
+signed char Dir_GetAttrib(unsigned char bank, char* path) {
     _symmsg[1] = 35;
     _symmsg[3] = 0;
     *((char**)(_symmsg + 8)) = path;
@@ -50,7 +37,8 @@ unsigned char Dir_New(unsigned char bank, char* path) {
     return File_Command();
 }
 
-unsigned char Dir_Read(unsigned char bank, char* path, unsigned char attrib, unsigned char bufbank, char* addr, unsigned short len, unsigned short skip) {
+int Dir_Read(unsigned char bank, char* path, unsigned char attrib, unsigned char bufbank, void* addr, unsigned short len, unsigned short skip) {
+    unsigned char result;
     _symmsg[1] = 38;
     _symmsg[3] = bufbank;
     *((unsigned short*)(_symmsg + 4)) = len;
@@ -59,10 +47,14 @@ unsigned char Dir_Read(unsigned char bank, char* path, unsigned char attrib, uns
     _symmsg[10] = attrib;
     _symmsg[11] = bank;
     *((unsigned short*)(_symmsg + 12)) = skip;
-    return File_Command();
+    result = File_Command();
+    if (result == 0)
+        return *((int*)(_symmsg + 8));
+    return -1;
 }
 
-unsigned char Dir_ReadExt(unsigned char bank, char* path, unsigned char attrib, unsigned char bufbank, char* addr, unsigned short len, unsigned short skip, unsigned char cols) {
+int Dir_ReadExt(unsigned char bank, char* path, unsigned char attrib, unsigned char bufbank, void* addr, unsigned short len, unsigned short skip, unsigned char cols) {
+    unsigned char result;
     _symmsg[1] = 13;
     _symmsg[3] = (bank << 4) | bufbank;
     *((unsigned short*)(_symmsg + 4)) = len;
@@ -71,7 +63,10 @@ unsigned char Dir_ReadExt(unsigned char bank, char* path, unsigned char attrib, 
     _symmsg[10] = attrib;
     _symmsg[11] = cols;
     *((unsigned short*)(_symmsg + 12)) = skip;
-    return File_Command();
+    result = File_Command();
+    if (result == 0)
+        return *((int*)(_symmsg + 8));
+    return -1;
 }
 
 unsigned char Dir_Delete(unsigned char bank, char* path) {

@@ -838,6 +838,306 @@ Like `Key_Test()`, but tests up to six keys simultaneously. This may save time w
 
 *SymbOS name*: `Device_KeyMulti` (`KEYMUL`).
 
+### File access
+
+File functions in SymbOS work using numerical file handles. Due to system limits only 8 files can be open at one time, so it is easy to run out of file handles if we are not careful. **Be careful to close any files you open before exiting!** Files opened with `stdio.h` functions (`fopen()`, etc.) will be closed automatically on exit, but files opened with direct system calls will not.
+
+SymbOS does not make a distinction between opening a file for reading or writing.
+
+**All file paths given to system calls must be absolute**, e.g., `A:\DIR\FILE.TXT`, not `FILE.TXT`. For a convenient way to convert relative paths into absolute paths, see [Dir_PathAdd()](#dir-pathadd).
+
+A quirk to know: Due to a limitation of the AMSDOS filesystem used by, e.g., CPC floppy disks, files on this filesystem only report their length to the nearest 128-byte block. The convention is to terminate the actual file with the AMSDOS EOF character (0x1A) and then pad out the file to the nearest 128-byte boundary with garbage.
+
+As usual, the `stdio.h` implementation includes some logic to paper over this issue when using functions such as `fgets()`, but when accessing files directly with system calls we will need to keep this in mind. Files stored on FAT filesystems (i.e., most mass storage devices) do not have this limitation, although any files copied from an AMSDOS filesystem to a FAT filesystem may retain their garbage padding at the end.
+
+#### File_Open()
+
+```c
+unsigned char File_Open(unsigned char bank, char* path);
+```
+
+Opens the file at the absolute path stored in bank `bank`, address `path` and returns the system file handle. The seek position will be set to the start of the file.
+
+*Return value*: On success, returns the file handle (0 to 7). On failure, sets and returns `_fileerr` (which will always be greater than 7).
+
+*SymbOS name*: `File_Open` (`FILOPN`).
+
+#### File_New()
+
+```c
+unsigned char File_New(unsigned char bank, char* path);
+```
+
+Creates a new file at the absolute path stored in bank `bank`, address `path` and returns the system file handle. If the file already existed, it will be emptied. The seek position will be set to the start of the file.
+
+*Return value*: On success, returns the file handle (0 to 7). On failure, sets and returns `_fileerr` (which will always be greater than 7).
+
+*SymbOS name*: `File_New` (`FILNEW`).
+
+#### File_Close()
+
+```c
+unsigned char File_Close(unsigned char id);
+```
+
+Closes the file handle `id`.
+
+*Return value*: On success, returns 0. On failure, sets and returns `_fileerr`.
+
+*SymbOS name*: `File_Close` (`FILCLO`).
+
+#### File_Read()
+
+```c
+unsigned short File_Read(unsigned char id, unsigned char bank, 
+                         char* addr, unsigned short len);
+```
+
+Reads `len` bytes from the open file handle `id` into a buffer at bank `bank`, address `addr`. The seek position will be moved forward by `len` bytes, so the next call to `File_Read()` will read the next part of the file.
+
+*Return value*: On success, returns the number of bytes read. On failure, sets `_fileerr` and returns 0.
+
+*SymbOS name*: `File_Input` (`FILINP`).
+
+#### File_ReadLine
+
+```c
+unsigned char File_ReadLine(unsigned char id, unsigned char bank, char* addr);
+```
+
+Reads a line of text (up to 254 bytes) from the open file handle `id` into a buffer at bank `bank`, address `addr`. Text lines can be terminated by character 13 (`\r`), character 10 (`\n`), a Windows-style combination of both (`\r\n`), or the AMSDOS EOF character 0x1A. To avoid overflow, the buffer should be at least 255 bytes long. The seek position will be moved forward to the start of the next line.
+
+*Return value*: On success, returns 0. On failure, sets and returns `_fileerr`.
+
+*SymbOS name*: `File_LineInput` (`FILLIN`).
+
+#### File_Write()
+
+```c
+unsigned short File_Write(unsigned char id, unsigned char bank,
+                          char* addr, unsigned short len)
+```
+
+Writes `len` bytes from the buffer at bank `bank`, address `addr` to open file handle `id`. The seek position will be moved forward by `len` bytes, so the next call to `File_Write()` will write to the next part of the file.
+
+*Return value*: On success, returns the number of bytes written. On failure, sets `_fileerr` and returns 0.
+
+*SymbOS name*: `File_Output` (`FILOUT`).
+
+#### File_Seek()
+
+```c
+long File_Seek(unsigned char id, long offset, unsigned char ref);
+```
+
+Sets the seek position of the open file handle `id` to `offset` bytes relative to the reference point `ref`, which may be one of:
+
+* `SEEK_SET`: relative to the start of the file
+* `SEEK_CUR`: relative to the current seek position
+* `SEEK_END`: relative to the end of the file
+
+For `SEEK_CUR` and `SEEK_END`, `offset` can be positive or negative. Some examples:
+
+```c
+File_Seek(f, 546, SEEK_SET);     // set seek position to byte 546
+File_Seek(f, -16, SEEK_CUR);     // move seek position backwards 16 bytes
+len = File_Seek(f, 0, SEEK_END); // get length by seeking to file end
+```
+
+(When using `File_Seek()` to determine the length of a file, as in the last example, note that the result may slightly overestimate the actual file length on AMSDOS filesystems---see the caveats at [the start of this chapter](#file-access).)
+
+*Return value*: On success, returns the new seek position. On failure, sets `_fileerr` and returns -1.
+
+*SymbOS name*: `File_Pointer` (`FILPOI`).
+
+### Directory access
+
+#### Dir_Read()
+
+```c
+int Dir_Read(unsigned char bank, char* path, unsigned char attrib,
+             unsigned char bufbank, void* addr, unsigned short len,
+             unsigned short skip);
+```
+
+Reads the contents of the directory indicated by the absolute path stored at bank `bank`, address `path`. This path may contain Windows-style wildcards (`*` and `?`, e.g., `*.txt`), in which case only matching filenames will be returned. `attrib` is a bitmask consisting of an OR'd list of attribute types that should *not* be included in the results:
+
+* `ATTRIB_READONLY`: do not include read-only files
+* `ATTRIB_HIDDEN`: do not include hidden files
+* `ATTRIB_SYSTEM`: do not include system files
+* `ATTRIB_VOLUME`: do not include volume information files (recommended)
+* `ATTRIB_DIR`: do not include directories
+* `ATTRIB_ARCHIVE`: do not include archived files
+
+The first `skip` entries will be skipped---this is useful for reading a large number of filenames by performing multiple calls to `Dir_Read()`. Filenames will not be sorted.
+
+The resulting directory information will be written to the buffer at bank `bufbank`, address `addr`, with a maximum length of `len` bytes. This buffer is structured in an irregular way, so a convenience function `Dir_ReadFmt()` is provided to regularize it into an array of `DirEntry` structs:
+
+```c
+typedef struct {
+    long len;             // file length in bytes
+    unsigned short date;  // system datestamp
+    unsigned short time;  // system timestamp
+    unsigned char attrib; // attribute bitmask
+    char name[13];        // filename (zero-terminated)
+} DirEntry;
+```
+
+An example of a complete call to `Dir_Read()`:
+
+```c
+DirEntry dirbuf[64];
+int count;
+char* name1;
+
+count = Dir_Read(_symbank, "A:\\FILES\\*.TXT", ATTRIB_VOLUME | ATTRIB_DIR,
+                 _symbank, dirbuf, sizeof(dirbuf), 0);
+Dir_ReadFmt(dirbuf, sizeof(dirbuf), count);
+
+name1 = dirbuf[0].name;
+```
+
+*Return value*: On success, returns the number of files found (which may be zero, if no matching files were found). On failure, sets `_fileerr` and returns -1.
+
+*SymbOS name*: `Directory_Input` (`DIRINP`).
+
+#### Dir_ReadFmt()
+
+```c
+void Dir_ReadFmt(void* buf, unsigned short len, unsigned short count);
+```
+
+An SCC convenience function that regularizes the output of `Dir_Read()` into an array of `DirEntry` structs (see [`Dir_Read()`](#dir-read) for details). `buf` is the address of the buffer written to by `Dir_Read()`, which must be in the application's main bank, `len` is the length of the buffer in bytes, and `count` is the number of entries read by `Dir_Read()`.
+
+#### Dir_ReadExt()
+
+```c
+int Dir_ReadExt(unsigned char bank, char* path, unsigned char attrib,
+                unsigned char bufbank, void* addr, unsigned short len,
+                unsigned short skip, unsigned char cols);
+```
+
+An extended version of `Dir_Read()` that automatically formats directory information into a set of list controls for the use of windowed file-manager-type applications. The behavior of this function is fairly complicated (and its uses are fairly esoteric), so see the [SymbOS developer documentation](https://symbos.org/download.htm) for further details.
+
+*SymbOS name*: `Directory_Input_Extended` (`DEVDIR`).
+
+#### Dir_New()
+
+```c
+unsigned char Dir_New(unsigned char bank, char* path);
+```
+
+Creates a new directory from the absolute path stored in bank `bank`, address `path`.
+
+*Return value*: On success, returns 0. On failure, sets and returns `_fileerr`.
+
+*SymbOS name*: `Directory_New` (`DIRNEW`).
+
+#### Dir_Rename()
+
+```c
+unsigned char Dir_Rename(unsigned char bank, char* path, char* newname);
+```
+
+Renames the file or directory indicated by the absolute path stored in bank `bank`, address `path` to the new name stored in bank `bank`, address `newname`. (The new name is just a name, e.g., `FILE.TXT`, and does not contain the full path.)
+
+*Return value*: On success, returns 0. On failure, sets and returns `_fileerr`.
+
+*SymbOS name*: `Directory_Rename` (`DIRREN`).
+
+#### Dir_Move()
+
+```c
+unsigned char Dir_Move(unsigned char bank, char* pathSrc, char* pathDst);
+```
+
+Moves the file indicated by the absolute path stored in bank `bank`, address `pathSrc` to the new absolute path stored in bank `bank`, address `pathDst`.
+
+*Return value*: On success, returns 0. On failure, sets and returns `_fileerr`.
+
+*SymbOS name*: `Directory_Move` (`DIRMOV`).
+
+#### Dir_Delete()
+
+```c
+unsigned char Dir_Delete(unsigned char bank, char* path);
+```
+
+Deletes the file indicated by the absolute path stored in bank `bank`, address `path`.
+
+*Return value*: On success, returns 0. On failure, sets and returns `_fileerr`.
+
+*SymbOS name*: `Directory_DeleteFile` (`DIRDEL`).
+
+#### Dir_DeleteDir()
+
+```c
+unsigned char Dir_DeleteDir(unsigned char bank, char* path);
+```
+
+Deletes the directory indicated by the absolute path stored in bank `bank`, address `path`.
+
+*Return value*: On success, returns 0. On failure, sets and returns `_fileerr`.
+
+*SymbOS name*: `Directory_DeleteDirectory` (`DIRRMD`).
+
+#### Dir_GetAttrib()
+
+```c
+signed char Dir_GetAttrib(unsigned char bank, char* path);
+```
+
+Retrieves the file attributes of the file at the absolute path stored in bank `bank`, address `path`. The attributes are an OR'd bitmask consisting of one or more of`ATTRIB_READONLY`, `ATTRIB_HIDDEN`, `ATTRIB_SYSTEM`, `ATTRIB_VOLUME`, `ATTRIB_DIR`and `ATTRIB_ARCHIVE`.
+
+*Return value*: On success, returns a bitmask of the file's attributes. On failure, sets `_fileerr` and returns -1.
+
+*SymbOS name*: `Directory_Property_Get` (`DIRPRR`).
+
+
+#### Dir_SetAttrib()
+
+```c
+unsigned char Dir_SetAttrib(unsigned char bank, char* path, unsigned char attrib);
+```
+
+Sets the file attributes of the file at the absolute path stored in bank `bank`, address `path` to the bitmask `attrib`, which is an OR'd bitmask consisting of one or more of`ATTRIB_READONLY`, `ATTRIB_HIDDEN`, `ATTRIB_SYSTEM`, `ATTRIB_VOLUME`, `ATTRIB_DIR`and `ATTRIB_ARCHIVE`.
+
+*Return value*: On success, returns 0. On failure, sets and returns `_fileerr`.
+
+*SymbOS name*: `Directory_Property_Set` (`DIRPRS`).
+
+#### Dir_PathAdd()
+
+```c
+char* Dir_PathAdd(char* path, char* addition, char* dest);
+```
+
+An SCC convenience function that constructs an absolute file path from a base path (at address `path`) and a relative path addition (at address `addition`), storing the result in address `dest`. This is mainly used to turn relative paths into absolute paths for the file manager functions. (This function is similar to the system function [`Shell_PathAdd()`](#shell-pathadd), but is available even in windowed applications that do not use SymShell.)
+
+Any relative path elements in the addition (`..\`, etc.) will be resolved. If `path` = 0, the absolute path will be relative to the absolute path in which the current application's `.exe` or `.com` file is located; this is useful for loading accompanying data files that should always be in the same directory as the `.exe`.
+
+Examples:
+```c
+char abspath[256];
+
+Dir_PathAdd("C:\SYMBOS\APPS", "..\MUSIC\MP3\LALALA.MP3", abspath);
+// yields: C:\SYMBOS\MUSIC\MP3\LALALA.MP3
+
+Dir_PathAdd("A:\GRAPHICS\NATURE", "\SYMBOS", abspath);
+// yields: A:\SYMBOS
+
+Dir_PathAdd("C:\ARCHIVE", "*.ZIP", abspath);
+// yields: C:\ARCHIVE\*.ZIP
+
+Dir_PathAdd("A:\ARCHIVE", "C:\SYMBOS", abspath);
+// yields: C:\SYMBOS
+
+Dir_PathAdd(0, "FILE.DAT", abspath);
+// if the app is located at C:\APPS\DEMO.EXE, yields: C:\APPS\FILE.DAT
+```
+
+*Return value*: Returns `dest`.
+
 ### Shell functions
 
 SymShell functions will only be available if the application is associated with a running instance of SymShell. To ensure that an application is started in SymShell, make sure that it has the file extension `.com` instead of `.exe`.
@@ -854,7 +1154,7 @@ extern unsigned char _shellerr;    // error code of last shell command
 
 If `_shellpid` = 0, there is no SymShell instance. `_shellver` is a two-digit number where the tens digit is the major version and the ones digit is the minor version, e.g., 21 = 2.1.
 
-Most shell functions allow specifying a *channel*. In general, channel 0 is the standard input/output, which is usually the keyboard (in) and text window (out) but may also be a file or stream if some type of redirection is active. This is similar to the behavior of stdin/stdout in standard C (there is no direct equivalent to stderr). Channel 1 is always the physical keyboard (in) or text window (out), even if redirection is active on channel 0. Usually we want channel 0.
+Most shell functions allow specifying a *channel*. In general, channel 0 is the standard input/output, which is usually the keyboard (in) and text window (out) but may also be a file or stream if some type of redirection is active. This is similar to the behavior of stdin/stdout in standard C (although note that there is no direct equivalent to stderr). Channel 1 is always the physical keyboard (in) or text window (out), even if redirection is active on channel 0. Usually we want channel 0.
 
 Note that SymShell returns the Windows-style ASCII character 13 (`\r`) for the "Enter" key, *not* the Unix-style ASCII character 10 (`\n`), as is more common in C. Likewise, when sending text to the console, note that SymShell expects the Windows-style line terminator `\r\n` rather than the Unix-style `\n` that is more common in C. If we only send `\n`, SymShell will take this literally, only performing a line feed (`\n`, going down a line) but not a carriage return (`\r`, going back to the start of the next line)! The stdio implementation (`printf()`, etc.) includes some logic to paper over these differences and understand the Unix-style convention, but when working with SymShell functions directly, we will need to be more careful.
 
@@ -890,11 +1190,11 @@ While this is the standard way to output a single character to the console, note
 int Shell_CharTest(unsigned char channel, unsigned char lookahead);
 ```
 
-Behaves like `Shell_CharIn()`, except that if there is no character waiting in the keybuffer, it will return 0 immediately without waiting for input. If `lookahead` = 0, any character found will be returned but left in the keybuffer; if `lookahead` = 1, the character will be removed from the keybuffer.
+Behaves like `Shell_CharIn()`, except that if there is no character waiting in the keybuffer, it will return 0 immediately without waiting for input. If `lookahead` = 0, any character found will be returned but left in the keybuffer; if `lookahead` = 1, the character will be returned and removed from the keybuffer.
 
-This function requires SymShell 2.3 or greater and will always return -1 (EOF) on earlier versions. This function currently only works for physical keyboard input, not redirected streams.
+This function requires SymShell 2.3 or greater and will always return 0 on earlier versions. This function currently only works for physical keyboard input, not redirected streams.
 
-*Return value*: On success, returns the ASCII value of the character (including [extended ASCII codes](#extended-ascii-codes) for special keys). If another error has occurred, returns -2 and sets `_shellerr`.
+*Return value*: If a key is waiting, returns the ASCII value of the character (including [extended ASCII codes](#extended-ascii-codes) for special keys). If no key is waiting, returns 0. If another error has occurred, returns -2 and sets `_shellerr`.
 
 *SymbOS name*: `SymShell_CharTest_Command` (`MSC_SHL_CHRTST`).
 
@@ -964,9 +1264,19 @@ Shell_PathAdd(_symbank, "A:\ARCHIVE", "C:\SYMBOS", abspath);
 
 *SymbOS name*: `SymShell_PathAdd_Command` (`MSC_SHL_PTHADD`).
 
-## Other considerations
+## Special considerations
 
 ### The `malloc()` heap
+
+### Quirks of `stdio.h`
+
+Due to a limitation of the filesystem, files stored on AMSDOS filesystems (e.g., CPC floppy disks) will sometimes be terminated with an EOF character 0x1A and then some garbage padding ([see above](#file-access)). To improve compatibility, `stdio.h` functions treat character 0x1A as EOF. If we need to read a binary file that includes legitimate 0x1A characters, the file should be opened in binary (`b`) mode, e.g.:
+
+```c
+f = fopen("data.dat", "rb");
+```
+
+...with the tradeoff being that we now need to pay attention to the fact that there may be garbage data at the end of the file. (This problem does not apply to the FAT filesystems used by most mass storage devices.)
 
 ### Keyboard scancodes
 
