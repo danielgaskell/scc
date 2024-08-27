@@ -42,8 +42,8 @@ ssize_t read(int fd, void *buf, int len) {
         return -1;
 
     default: // normal file
-        readlen = File_Read(fd, _symbank, buf, len);
-        if (readlen == 0 && len != 0) {
+        readlen = File_Read(fd - 3, _symbank, buf, len);
+        if (_fileerr) {
             if (_fileerr == ERR_NOHANDLE)
                 errno = EBADF;
             else
@@ -52,7 +52,6 @@ ssize_t read(int fd, void *buf, int len) {
         } else {
             return readlen;
         }
-        break;
 
     }
 }

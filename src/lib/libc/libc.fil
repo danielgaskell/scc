@@ -154,6 +154,7 @@ vfscanf.o
 expf.o
 localtim_r.o
 asctime_r.o
+sqrtf.o
 cosf.o
 logf.o
 floorf.o

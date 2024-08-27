@@ -35,6 +35,8 @@
 #define __MODE_ERR	0x200	/* Error status */
 #define __MODE_UNGOT	0x400	/* Buffer has been polluted by ungetc */
 
+#define __MODE_BIN	0x800	/* Opened in binary */
+
 #define __MODE_IOTRAN	0
 
 typedef off_t fpos_t;
