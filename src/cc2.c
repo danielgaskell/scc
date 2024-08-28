@@ -710,11 +710,8 @@ void helper_type(register unsigned t, unsigned s)
 	case CLONG:
 		fputc('l', fdo);
 		break;
-	case FLOAT:
+	case FLOAT: case DOUBLE: // DEG: synonymized float/double
 		fputc('f', fdo);
-		break;
-	case DOUBLE:
-		fputc('d', fdo);
 		break;
 	default:
 		fflush(stdout);

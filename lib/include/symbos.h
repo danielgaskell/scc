@@ -498,6 +498,7 @@ extern void Prog_End(char appID);
 extern unsigned short Prog_Search(char bank, char* idstring);
 extern unsigned short Prog_SearchStart(char bank, char* idstring);
 extern void Prog_Release(char bank, char* idstring);
+
 extern unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen,
                             unsigned char type, char* icon);
 extern unsigned char FileBox(unsigned char winID, unsigned char flags, unsigned char attribs,
@@ -540,7 +541,7 @@ extern char* Dir_PathAdd(char* path, char* addition, char* dest);
 /* ========================================================================== */
 /* Desktop Manager                                                            */
 /* ========================================================================== */
-extern char Win_Open(unsigned char bank, void* addr);
+extern signed char Win_Open(unsigned char bank, void* addr);
 extern void Win_Redraw_Menu(unsigned char winID);
 extern void Win_Redraw(unsigned char winID, signed char what, unsigned char first);
 extern void Win_Redraw_Toolbar(unsigned char winID, signed char what, unsigned char first);
@@ -560,12 +561,13 @@ extern void Win_Redraw_Slider(unsigned char winID);
 extern void Win_Redraw_Area(unsigned char winID, unsigned char what, unsigned char first,
                             unsigned short x, unsigned short y, unsigned short w, unsigned short h);
 extern void Win_Redraw_Sub(unsigned char winID, unsigned char collection, unsigned char control);
-extern short Menu_Context(unsigned char bank, char* addr, short x, char y);
-extern char Systray_Add(unsigned char bank, char* addr, unsigned char code);
+
+extern int Menu_Context(unsigned char bank, char* addr, int x, int y);
+
+extern signed char Systray_Add(unsigned char bank, char* addr, unsigned char code);
 extern void Systray_Remove(unsigned char id);
-extern char Select_Pos(short* x, short* y, short w, short h);
-extern char Select_Size(short x, short y, short* w, short* h);
-extern char Desk_Mode(void);
+extern char Select_Pos(unsigned short* x, unsigned short* y, unsigned short w, unsigned short h)
+extern char Select_Size(unsigned short x, unsigned short y, unsigned short* w, unsigned short* h);
 extern void Desk_SetMode(char mode);
 extern unsigned short Desk_GetColor(char color);
 extern void Desk_SetColor(char color, unsigned short value);

@@ -244,52 +244,6 @@ Returns the bank number in which the app's main process is running. (Normally it
 
 *SymbOS name*: `Banking_GetBank` (`BNKGET`).
 
-## Clipboard functions
-
-### Clip_Put()
-
-```c
-unsigned char Clip_Put(unsigned char bank, char* addr, unsigned short len, unsigned char type);
-```
-
-Stores `len` bytes of data from bank `bank`, address `addr` into the system clipboard. `type` may be one of: 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut.
-
-*Return value*: 0 = success, 1 = out of memory.
-
-*SymbOS name*: `Clipboard_Put` (`BUFPUT`).
-
-### Clip_Get()
-
-```c
-unsigned short Clip_Get(unsigned char bank, char* addr, unsigned short len, unsigned char type);
-```
-
-Retrieves up to `len` bytes of data from the system clipboard and stores it in bank `bank`, address `addr`. `type` may be one of: 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut. Data will only be retrieved if (1) the type of the data in the clipboard matches the requested type, and (2) the data length is not greater than `len`.
-
-*Return value*: length of received data, in bytes.
-
-*SymbOS name*: `Clipboard_Get` (`BUFGET`).
-
-### Clip_Type()
-
-```c
-unsigned char Clip_Type(void);
-```
-
-Returns the type of data in the clipboard, if any (0 = empty, 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut).
-
-*SymbOS name*: `Clipboard_Status` (`BUFSTA`).
-
-### Clip_Len()
-
-```c
-unsigned short Clip_Len(void);
-```
-
-Returns the length of data in the clipboard, in bytes.
-
-*SymbOS name*: `Clipboard_Status` (`BUFSTA`).
-
 ## System status
 
 ### Sys_Counter()
@@ -460,6 +414,241 @@ Like `Key_Test()`, but tests up to six keys simultaneously. This may save time w
 **Note that keys are tested by *scancode*, not by their ASCII value!** A set of [scancode constants](#keyboard-scancodes) are provided for convenience.
 
 *SymbOS name*: `Device_KeyMulti` (`KEYMUL`).
+
+## Window management
+
+### Win_Open()
+
+```c
+signed char Win_Open(unsigned char bank, void* addr);
+```
+
+Opens the window whose data record (a struct of type `Window`) is at bank `bank`, address `addr`. This must be in the **transfer** segment.
+
+*Return value*: On success, returns the window ID. On failure, returns -1.
+
+*SymbOS name*: `Window_Open_Command` (`MSC_DSK_WINOPN`).
+
+### Win_Close()
+
+```c
+void Win_Close(unsigned char winID);
+```
+
+Closes the window with the ID `winID`.
+
+*SymbOS name*: `Window_Close_Command` (`MSC_DSK_WINCLS`).
+
+### Win_Redraw()
+
+```c
+void Win_Redraw(unsigned char winID, signed char what, unsigned char first);
+```
+
+Redraws one or more controls in the main window content of window `winID`. `what` can be either (1) -1, meaning "redraw entire window content"; (2) the control ID of a single control to redraw; or (3) a negative number (from -2 to -16) indicating how many controls should be redrawn (from 2 to 16), in which case `first` indicates the control ID of the first control to redraw.
+
+For performance reasons the window will only actually be redrawn if it has focus. To force redraw of the window even when it does not have focus, see `Win_Redraw_Ext()`.
+
+*SymbOS name*: `Window_Redraw_Content_Command` (`MSC_DSK_WININH`).
+
+### Win_RedrawExt()
+
+```c
+void Win_RedrawExt(unsigned char winID, signed char what, unsigned char first);
+```
+
+Equivalent to `Win_Redraw()`, but redraws controls whether or not the window has focus. (This is slightly slower than `Win_Redraw()` because SymbOS must check for window overlap.)
+
+*SymbOS name*: `Window_Redraw_ContentExtended_Command` (`MSC_DSK_WINDIN`).
+
+### Win_Redraw_Area()
+
+```c
+void Win_Redraw_Area(unsigned char winID, unsigned char what, unsigned char first,
+                     unsigned short x, unsigned short y, unsigned short w, unsigned short h);
+```
+
+Equivalent to `Win_Redraw()`, but only redraws controls within the box specified by the upper left coordinates `x` and `y`, width `w`, and height `h` (in pixels). Note that these coordinates are relative to the window content, including any scroll. This command is particularly useful for redrawing only part of a large graphic area (such as a game playfield), since it is much faster than redrawing the entire area.
+
+*SymbOS name*: `Window_Redraw_ContentArea_Command` (`MSC_DSK_WINPIN`).
+
+### Win_Redraw_Toolbar()
+
+```c
+void Win_Redraw_Toolbar(unsigned char winID, signed char what, unsigned char first);
+```
+
+Equivalent to `Win_Redraw()`, but redraws controls in the window's toolbar control group instead of main window content.
+
+*SymbOS name*: `Window_Redraw_Toolbar_Command` (`MSC_DSK_WINTOL`).
+
+### Win_Redraw_Menu()
+
+```c
+void Win_Redraw_Menu(unsigned char winID);
+```
+
+If the window has focus, redraws the menu of window `WinID`.
+
+*SymbOS name*: `Window_Redraw_Menu_Command` (`MSC_DSK_WINMEN`).
+
+### Win_Redraw_Title()
+
+```c
+void Win_Redraw_Title(unsigned char winID);
+```
+
+If the window has focus, redraws the titlebar of window `WinID`.
+
+*SymbOS name*: `Window_Redraw_Title_Command` (`MSC_DSK_WINTIT`).
+
+### Win_Redraw_Status()
+
+```c
+void Win_Redraw_Status(unsigned char winID);
+```
+
+If the window has focus, redraws the statusbar of window `WinID`.
+
+*SymbOS name*: `Window_Redraw_Status_Command` (`MSC_DSK_WINSTA`).
+
+### Win_Redraw_Slider()
+
+```c
+void Win_Redraw_Slider(unsigned char winID);
+```
+
+If the window has focus and is resizable, redraws the main content area's scrollbars on window `WinID`.
+
+*SymbOS name*: `Window_Redraw_Status_Command` (`MSC_DSK_WINSTA`).
+
+### Win_Redraw_Sub()
+
+```c
+void Win_Redraw_Sub(unsigned char winID, unsigned char collection, unsigned char control);
+```
+
+Redraws the single control with the ID `control` inside the control collection with the ID `collection` on window `winID`.
+
+*SymbOS name*: `Window_Redraw_SubControl_Command` (`MSC_DSK_WINSIN`).
+
+### Win_ContentX()
+
+```c
+void Win_ContentX(unsigned char winID, unsigned short newX);
+```
+
+Changes the horizontal scroll position (`.xscroll`) of window `winID` to `newX` pixels. If the window has focus, the relevant portions of the content will be redraw.
+
+This command is faster than updating the `.xscroll` record of the window and redrawing manually because only the newly visible portion of the window will be redrawn from scratch. The scroll position can be changed even if the window is not resizable by the user.
+
+*SymbOS name*: `Window_Set_ContentX_Command` (`MSC_DSK_WINMVX`).
+
+### Win_ContentY()
+
+```c
+void Win_ContentY(unsigned char winID, unsigned short newX);
+```
+
+Changes the vertical scroll position (`.yscroll`) of window `winID` to `newY` pixels. If the window has focus, the relevant portions of the content will be redraw.
+
+This command is faster than updating the `.yscroll` record of the window and redrawing manually because only the newly visible portion of the window will be redrawn from scratch. The scroll position can be changed even if the window is not resizable by the user.
+
+*SymbOS name*: `Window_Set_ContentY_Command` (`MSC_DSK_WINMVY`).
+
+### Win_Focus()
+
+```c
+void Win_Focus(unsigned char winID);
+```
+
+Gives the window `winID` focus, bringing it to the front of the desktop.
+
+*SymbOS name*: `Window_Focus_Command` (`MSC_DSK_WINTOP`).
+
+### Win_Maximize()
+
+```c
+void Win_Maximize(unsigned char winID);
+```
+
+Maximizes the window `winID`.
+
+*SymbOS name*: `Window_Size_Maximize_Command` (`MSC_DSK_WINMAX`).
+
+### Win_Minimize()
+
+```c
+void Win_Minimize(unsigned char winID);
+```
+
+Minimizes the window `winID`.
+
+*SymbOS name*: `Window_Size_Minimize_Command` (`MSC_DSK_WINMIN`).
+
+### Win_Restore()
+
+```c
+void Win_Restore(unsigned char winID);
+```
+
+Restores the window `winID` to normal size, if maximized.
+
+*SymbOS name*: `Window_Size_Restore_Command` (`MSC_DSK_WINMID`).
+
+### Win_Move()
+
+```c
+void Win_Move(unsigned char winID, unsigned short newX, unsigned short newY);
+```
+
+If the window is not maximized, moves the window `winID` to horizontal position `newX`, vertical position `newY` on the screen (in pixels).
+
+*SymbOS name*: `Window_Set_Position_Command` (`MSC_DSK_WINMOV`).
+
+### Win_Resize()
+
+```c
+void Win_Resize(unsigned char winID, unsigned short newW, unsigned short newH);
+```
+
+Resizes the window `winID` so that the main content of the window has the width `newW` and the heigth `newH` (in pixels). Note that this is the size of the main *content*, not the size of the entire window; the titlebar, menubar, toolbar, statusbar, and scrollbars (if any) may add additional size.
+
+*SymbOS name*: `Window_Set_Size_Command` (`MSC_DSK_WINSIZ`).
+
+### Menu_Context()
+
+```c
+int Menu_Context(unsigned char bank, char* addr, int x, int y);
+```
+
+Opens a context menu at the specified `x` and `y` coordinates on the screen (in pixels). The menu data is a `Menu` struct (and associated `Menu_Entry` structs) located at bank `bank`, address `addr` in the **transfer** segment. If `x` = -1, the context menu will be opened at the current mouse position.
+
+*SymbOS name*: `Menu_Context_Command` (`MSC_DSK_MENCTX`).
+
+### Select_Pos()
+
+```c
+char Select_Pos(unsigned short* x, unsigned short* y, unsigned short w, unsigned short h);
+```
+
+Opens a "rubber band" selector (dotted rectangle) at the specified `*x` and `*y` position on the screen (in pixels), with width `w` and height `h` (in pixels). The user will be able to change the position (but not the size) of this selector by moving the mouse, until they either confirm their selection by releasing the left mouse button or cancel it by pressing ESC. (This is usually used for drag-and-drop operations triggered by first pressing the left mouse button.) The final position of the selector will be written back to the variables passed by reference in `x` and `y`.
+
+*Return value*: On successful completion, returns 1. If the user cancelled the operation by pressing ESC, returns 0.
+
+*SymbOS name*: `VirtualControl_Position_Command` (`MSC_DSK_CONPOS`).
+
+### Select_Size()
+
+```c
+char Select_Size(unsigned short x, unsigned short y, unsigned short* w, unsigned short* h);
+```
+
+Opens a "rubber band" selector (dotted rectangle) at the specified `x` and `y` position on the screen (in pixels), with width `*w` and height `*h` (in pixels). The user will be able to change the size (but not the position) of this selector by moving the mouse, until they either confirm their selection by releasing the left mouse button or cancel it by pressing ESC. (This is usually used for drag-and-drop operations triggered by first pressing the left mouse button.) The final size of the selector will be written back to the variables passed by reference in `w` and `h`.
+
+*Return value*: On successful completion, returns 1. If the user cancelled the operation by pressing ESC, returns 0.
+
+*SymbOS name*: `VirtualControl_Size_Command` (`MSC_DSK_CONSIZ`).
 
 ## File access
 
@@ -885,6 +1074,76 @@ Shell_PathAdd(_symbank, "A:\ARCHIVE", "C:\SYMBOS", abspath);
 ```
 
 *SymbOS name*: `SymShell_PathAdd_Command` (`MSC_SHL_PTHADD`).
+
+## Clipboard functions
+
+### Clip_Put()
+
+```c
+unsigned char Clip_Put(unsigned char bank, char* addr, unsigned short len, unsigned char type);
+```
+
+Stores `len` bytes of data from bank `bank`, address `addr` into the system clipboard. `type` may be one of: 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut.
+
+*Return value*: 0 = success, 1 = out of memory.
+
+*SymbOS name*: `Clipboard_Put` (`BUFPUT`).
+
+### Clip_Get()
+
+```c
+unsigned short Clip_Get(unsigned char bank, char* addr, unsigned short len, unsigned char type);
+```
+
+Retrieves up to `len` bytes of data from the system clipboard and stores it in bank `bank`, address `addr`. `type` may be one of: 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut. Data will only be retrieved if (1) the type of the data in the clipboard matches the requested type, and (2) the data length is not greater than `len`.
+
+*Return value*: length of received data, in bytes.
+
+*SymbOS name*: `Clipboard_Get` (`BUFGET`).
+
+### Clip_Type()
+
+```c
+unsigned char Clip_Type(void);
+```
+
+Returns the type of data in the clipboard, if any (0 = empty, 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut).
+
+*SymbOS name*: `Clipboard_Status` (`BUFSTA`).
+
+### Clip_Len()
+
+```c
+unsigned short Clip_Len(void);
+```
+
+Returns the length of data in the clipboard, in bytes.
+
+*SymbOS name*: `Clipboard_Status` (`BUFSTA`).
+
+## System tray
+
+### Systray_Add()
+
+```c
+signed char Systray_Add(unsigned char bank, char* addr, unsigned char code);
+```
+
+Add the icon whose graphic is at bank `bank`, address `addr` to the system tray on the taskbar. These can be clicked by the user, which will generate an event (`MSR_DSK_EVTCLK`) with the reference value `code`. The icon must be an 8x8 4-color SGX graphics object.
+
+*Return value*: On success, returns an icon ID, which can be used to later remove the icon with `Systray_Remove()`. If there are no more icon slots available, returns -1.
+
+*SymbOS name*: `SystrayIcon_Add_Command` (`MSC_DSK_STTADD`).
+
+### Systray_Remove()
+
+```c
+void Systray_Remove(unsigned char id);
+```
+
+Remove the icon with the ID `id` from the system tray.
+
+*SymbOS name*: `SystrayIcon_Remove_Command` (`MSC_DSK_STTREM`).
 
 ## Reference
 

@@ -13,7 +13,7 @@ void _Desk_Service(char id) {
         _Desk_Wait();
 }
 
-char Win_Open(unsigned char bank, void* addr) {
+signed char Win_Open(unsigned char bank, void* addr) {
     ((Window*)addr)->pid = _sympid;
     if (((Window*)addr)->controls != 0)
         ((Ctrl_Group*)(((Window*)addr)->controls))->pid = _sympid;
@@ -161,12 +161,12 @@ void Win_Redraw_Sub(unsigned char winID, unsigned char collection, unsigned char
     _Desk_Msg();
 }
 
-short Menu_Context(unsigned char bank, char* addr, short x, char y) {
+int Menu_Context(unsigned char bank, char* addr, int x, int y) {
     _symmsg[0] = 52;
     _symmsg[1] = bank;
     *((char**)(_symmsg + 2)) = addr;
-    *((unsigned short*)(_symmsg + 4)) = x;
-    *((unsigned short*)(_symmsg + 6)) = y;
+    *((int*)(_symmsg + 4)) = x;
+    *((int*)(_symmsg + 6)) = y;
     _Desk_Msg();
     while (_symmsg[0] != 168)
         _Desk_Wait();
@@ -175,7 +175,7 @@ short Menu_Context(unsigned char bank, char* addr, short x, char y) {
     return *((short*)(_symmsg + 2));
 }
 
-char Systray_Add(unsigned char bank, char* addr, unsigned char code) {
+signed char Systray_Add(unsigned char bank, char* addr, unsigned char code) {
     _symmsg[0] = 53;
     _symmsg[1] = bank;
     *((char**)(_symmsg + 2)) = addr;
@@ -194,7 +194,7 @@ void Systray_Remove(unsigned char id) {
     _Desk_Msg();
 }
 
-char Select_Pos(short* x, short* y, short w, short h) {
+char Select_Pos(unsigned short* x, unsigned short* y, unsigned short w, unsigned short h) {
     _symmsg[0] = 56;
     *((unsigned short*)(_symmsg + 2)) = *x;
     *((unsigned short*)(_symmsg + 4)) = *y;
@@ -210,7 +210,7 @@ char Select_Pos(short* x, short* y, short w, short h) {
     return 1;
 }
 
-char Select_Size(short x, short y, short* w, short* h) {
+char Select_Size(unsigned short x, unsigned short y, unsigned short* w, unsigned short* h) {
     _symmsg[0] = 57;
     *((unsigned short*)(_symmsg + 2)) = x;
     *((unsigned short*)(_symmsg + 4)) = y;
@@ -224,11 +224,6 @@ char Select_Size(short x, short y, short* w, short* h) {
     *w = *((short*)(_symmsg + 2));
     *h = *((short*)(_symmsg + 4));
     return 1;
-}
-
-char Desk_Mode(void) {
-    _Desk_Service(1);
-    return _symmsg[2];
 }
 
 void Desk_SetMode(char mode) {
