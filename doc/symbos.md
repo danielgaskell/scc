@@ -83,18 +83,18 @@ Some commentary on these elements is useful.
 
 `.flags` is an OR'd list of one or more of the following flags:
 
-	* `WIN_ICON` = show window icon
-	* `WIN_RESIZABLE` = window can be resized
-	* `WIN_CLOSE` = show close button
-	* `WIN_TOOLBAR` = show toolbar
-	* `WIN_TITLE` = show titlebar
-	* `WIN_MENU` = show menubar
-	* `WIN_STATUS` = show statusbar
-	* `WIN_ADJUSTX` = automatically adjust the content width to the window width
-	* `WIN_ADJUSTY` = automatically adjust the content height to the window height
-	* `WIN_NOTTASKBAR` = do not display in taskbar
-	* `WIN_NOTMOVEABLE` = window cannot be moved
-	* `WIN_MODAL` = modal window ([see below](#modal-windows))
+* `WIN_ICON` = show window icon
+* `WIN_RESIZABLE` = window can be resized
+* `WIN_CLOSE` = show close button
+* `WIN_TOOLBAR` = show toolbar
+* `WIN_TITLE` = show titlebar
+* `WIN_MENU` = show menubar
+* `WIN_STATUS` = show statusbar
+* `WIN_ADJUSTX` = automatically adjust the content width to the window width
+* `WIN_ADJUSTY` = automatically adjust the content height to the window height
+* `WIN_NOTTASKBAR` = do not display in taskbar
+* `WIN_NOTMOVEABLE` = window cannot be moved
+* `WIN_MODAL` = modal window ([see below](#modal-windows))
 
 For windows that have the `WIN_RESIZABLE` flag, there is an important distinction between the size of the *window* (given by `.w` and `.h`) and the size of its *content* (given by `.wfull` and `.hfull`). The window will have scroll bars at the edges, and if the size of the window is smaller than the size of the content, the user will be able to use these scroll bars to move around and view the whole content of the window. This can be used to accomplish a variety of interesting techniques by adjusting the content of the window in response to the user scrolling or resizing the window; see [resizing calculations](#resizing-calculations) for some discussion of this.
 
