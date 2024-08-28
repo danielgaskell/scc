@@ -17,6 +17,8 @@ char Win_Open(unsigned char bank, void* addr) {
     ((Window*)addr)->pid = _sympid;
     if (((Window*)addr)->controls != 0)
         ((Ctrl_Group*)(((Window*)addr)->controls))->pid = _sympid;
+    if (((Window*)addr)->toolbar != 0)
+        ((Ctrl_Group*)(((Window*)addr)->toolbar))->pid = _sympid;
     _symmsg[0] = 32;
     _symmsg[1] = bank;
     *((char**)(_symmsg + 2)) = addr;
