@@ -37,7 +37,7 @@ unsigned char Dir_New(unsigned char bank, char* path) {
     return File_Command();
 }
 
-int Dir_Read(unsigned char bank, char* path, unsigned char attrib, unsigned char bufbank, void* addr, unsigned short len, unsigned short skip) {
+int Dir_ReadRaw(unsigned char bank, char* path, unsigned char attrib, unsigned char bufbank, void* addr, unsigned short len, unsigned short skip) {
     unsigned char result;
     _symmsg[1] = 38;
     _symmsg[3] = bufbank;

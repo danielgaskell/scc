@@ -36,7 +36,7 @@ void Win_Redraw_Menu(unsigned char winID) {
     _Desk_Msg();
 }
 
-void Win_Redraw(unsigned char winID, unsigned char what, unsigned char first) {
+void Win_Redraw(unsigned char winID, signed char what, unsigned char first) {
     _symmsg[0] = 34;
     _symmsg[1] = winID;
     _symmsg[2] = what;
@@ -44,7 +44,7 @@ void Win_Redraw(unsigned char winID, unsigned char what, unsigned char first) {
     _Desk_Msg();
 }
 
-void Win_Redraw_Toolbar(unsigned char winID, unsigned char what, unsigned char first) {
+void Win_Redraw_Toolbar(unsigned char winID, signed char what, unsigned char first) {
     _symmsg[0] = 35;
     _symmsg[1] = winID;
     _symmsg[2] = what;

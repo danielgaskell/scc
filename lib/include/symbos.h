@@ -524,9 +524,10 @@ extern unsigned char Dir_SetAttrib(unsigned char bank, char* path, unsigned char
 extern signed char Dir_GetAttrib(unsigned char bank, char* path);
 extern unsigned char Dir_Rename(unsigned char bank, char* path, char* newname);
 extern unsigned char Dir_New(unsigned char bank, char* path);
-extern int Dir_Read(unsigned char bank, char* path, unsigned char attrib,
-                    unsigned char bufbank, void* addr, unsigned short len,
-                    unsigned short skip);
+extern int Dir_Read(char* path, unsigned char attrib, void* buf, unsigned short len, unsigned short skip);
+extern int Dir_ReadRaw(unsigned char bank, char* path, unsigned char attrib,
+                       unsigned char bufbank, void* addr, unsigned short len,
+                       unsigned short skip);
 extern int Dir_ReadExt(unsigned char bank, char* path, unsigned char attrib,
                     unsigned char bufbank, void* addr, unsigned short len,
                     unsigned short skip, unsigned char cols);
@@ -535,15 +536,14 @@ extern unsigned char Dir_DeleteDir(unsigned char bank, char* path);
 extern unsigned char Dir_Move(unsigned char bank, char* pathSrc, char* pathDst);
 
 extern char* Dir_PathAdd(char* path, char* addition, char* dest);
-extern void Dir_ReadFmt(void* buf, unsigned short len, unsigned short count);
 
 /* ========================================================================== */
 /* Desktop Manager                                                            */
 /* ========================================================================== */
 extern char Win_Open(unsigned char bank, void* addr);
 extern void Win_Redraw_Menu(unsigned char winID);
-extern void Win_Redraw(unsigned char winID, unsigned char what, unsigned char first);
-extern void Win_Redraw_Toolbar(unsigned char winID, unsigned char what, unsigned char first);
+extern void Win_Redraw(unsigned char winID, signed char what, unsigned char first);
+extern void Win_Redraw_Toolbar(unsigned char winID, signed char what, unsigned char first);
 extern void Win_Redraw_Title(unsigned char winID);
 extern void Win_Redraw_Status(unsigned char winID);
 extern void Win_ContentX(unsigned char winID, unsigned short newX);
