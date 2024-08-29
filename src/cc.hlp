@@ -7,11 +7,13 @@ options:
 -E:    preprocess only, to stdout
 -i:    enable split I/D if supported by this target
 -I:    add a directory to the include path
+-G:    set the SymbOS application icon (.SGX file)
 -l:    add a library name to link
 -L:    add a path to the library search path
 -m:    set the CPU to compile for
 -M:    create a map file
--o:    specify the output file name of the complation (a.out default)
+-N:    set the internal SymbOS application name
+-o:    set the output file name of the complation
 -O:    set optimization level 0-3, or for size '-Os'
 -s:    build standalone. Do not include the OS libraries and include paths
 -S:    compile to assembly source only

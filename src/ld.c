@@ -100,6 +100,8 @@ static int strip = 0;			/* Set to strip symbols */
 static int obj_flags = -1;		/* Object module flags for compat */
 static const char *mapname;		/* Name of map file to write */
 static const char *outname;		/* Name of output file */
+static const char *appname = NULL; /* SymbOS application name */
+static const char *appicon = NULL; /* SymbOS application icon */
 static addr_t dot;			/* Working address as we link */
 
 static unsigned progress;		/* Did we make forward progress ?
@@ -111,6 +113,8 @@ static addr_t rel_mask;			/* Relocation mask */
 static uint_fast8_t rel_check;		/* Check fits mask */
 
 static FILE *relocf;
+
+static char iconbuf[147];
 
 /*
  *	Report an error, and if possible give the object or library that
@@ -1399,6 +1403,7 @@ static void write_binary(FILE * op, FILE *mp)
 	static struct objhdr blankhdr;
 	static struct symbos_hdr symhdr;
 	register uint_fast8_t i;
+	FILE* ficn;
 	int j;
 
 	memset(&blankhdr, 0, sizeof(blankhdr));
@@ -1482,6 +1487,19 @@ static void write_binary(FILE * op, FILE *mp)
     if (rawstream && ldmode == LD_FUZIX) { // overwrite the start of crt0.o's header (used for addresses) with our own
         xfseek(op, 0);
         fwrite(&symhdr, 8, 1, op); // codelen, datalen, translen, origin
+        if (appname) {
+            xfseek(op, 15);
+            fwrite(appname, strlen(appname), 1, op); // app name
+        }
+        if (appicon) {
+            xfseek(op, 109);
+            ficn = fopen(appicon, "rb");
+            if (ficn == NULL)
+                error("Cannot open icon file");
+            fread(iconbuf, 147, 1, ficn);
+            fwrite(iconbuf, 147, 1, op);
+            fclose(ficn);
+        }
     }
 	if (err == 0) {
 		if (!rawstream) {
@@ -1578,7 +1596,7 @@ int main(int argc, char *argv[])
 
 	arg0 = argv[0];
 
-	while ((opt = getopt(argc, argv, "rbvtsiu:o:m:f:R:A:B:C:D:S:X:Z:8:d:T")) != -1) {
+	while ((opt = getopt(argc, argv, "rbvtsiu:o:m:f:R:A:B:C:D:G:N:S:X:Z:8:d:T")) != -1) {
 		switch (opt) {
 		case 'r':
 			ldmode = LD_RFLAG;
@@ -1598,6 +1616,12 @@ int main(int argc, char *argv[])
 			break;
 		case 'm':
 			mapname = optarg;
+			break;
+		case 'N':
+			appname = optarg;
+			break;
+		case 'G':
+			appicon = optarg;
 			break;
 		case 'u':
 			insert_internal_symbol(optarg, -1, 0);

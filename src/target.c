@@ -14,7 +14,7 @@ unsigned target_alignof(unsigned t, unsigned storage)
 static unsigned sizetab[16] = {
 	1, 2, 4, 8,		/* char, short, long, longlong */
 	1, 2, 4, 8,		/* unsigned forms */
-	4, 8, 0, 0,		/* float, double, void, unused.. */
+	4, 4, 0, 0,		/* float, double, void, unused.. */
 	0, 0, 0, 0		/* unused */
 };
 

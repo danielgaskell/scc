@@ -55,6 +55,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <windows.h>
+#include <malloc.h>
 
 /*
  *	For all non native compilers the directories moved and the rules
@@ -203,6 +204,8 @@ int keep_temp;
 int last_phase = 4;
 int only_one_input;
 char *target;
+char *appname = NULL;
+char *appicon = NULL;
 int strip;
 int c_files;
 int standalone;
@@ -263,6 +266,7 @@ static char *xstrdup(char *p, int extra)
 #define CPATHSIZE	256
 
 static char pathbuf[CPATHSIZE];
+static char namebuf[27];
 
 /* Binaries. Native ones in /bin, non-native ones in
    <bindir>/app{.cpu} */
@@ -580,7 +584,7 @@ void convert_s_to_o(char *path)
 
 void convert_c_to_s(char *path)
 {
-	char *tmp, *t, *p;
+	char *tmp, *p;
 	char optstr[2];
 	char featstr[16];
 
@@ -611,16 +615,14 @@ void convert_c_to_s(char *path)
 	*rmptr++ = xstrdup("$stream3", 0);
 	run_command();
 
-	// FIXME: run through copt
+	// FIXME: don't run copt if no optimization level has been specified
 	// TODO: with the new copt we may end up with a copt per cpu
 	p = xstrdup(make_bin_name("copt.exe", ""), 0);
-	add_argument(make_lib_name(t, ""));
 	build_arglist(p);
 	pathmod(path, ".c", ".s", 2, 2);
     add_argument(path);
 	add_argument(make_bin_name("rules.z80", ""));
 	run_command();
-	free(t);
 	free(p);
 }
 
@@ -674,8 +676,6 @@ void link_phase(void)
 		case OS_FUZIX:
 			switch(fuzixsub) {
 			case 0:
-/* FIXME: Needs to move to a per target flag set, as do the various other
-   option defaults (eg -C 256 makes no sense for 6502 */
 				if (has_relocs) {
 					relocs = xstrdup(target, 4);
 					strcpy(strrchr(relocs, '.'), ".rel");
@@ -707,6 +707,17 @@ void link_phase(void)
 		add_argument("-s");
 	add_argument("-o");
 	add_argument(target);
+	if (appname) {
+        add_argument("-N");
+        strcpy(namebuf, "\"");
+        memcpy(namebuf + 1, appname, 24);
+        strcat(namebuf, "\"");
+        add_argument(namebuf);
+	}
+	if (appicon) {
+        add_argument("-G");
+        add_argument(appicon);
+	}
 	if (mapfile) {
 		/* For now output a map file. One day we'll have debug symbols
 		   nailed to the binary */
@@ -1005,6 +1016,36 @@ int main(int argc, char *argv[]) {
 				target = *++p;
 			else {
 				fprintf(stderr, "cc: no target given.\n");
+				fatal();
+			}
+			break;
+		case 'N':
+			if (appname != NULL) {
+				fprintf(stderr,
+					"cc: -N can only be used once.\n");
+				fatal();
+			}
+			if ((*p)[2])
+				appname = *p + 2;
+			else if (*p)
+				appname = *++p;
+			else {
+				fprintf(stderr, "cc: no application name given.\n");
+				fatal();
+			}
+			break;
+		case 'G':
+			if (appicon != NULL) {
+				fprintf(stderr,
+					"cc: -G can only be used once.\n");
+				fatal();
+			}
+			if ((*p)[2])
+				appicon = *p + 2;
+			else if (*p)
+				appicon = *++p;
+			else {
+				fprintf(stderr, "cc: no icon file given.\n");
 				fatal();
 			}
 			break;

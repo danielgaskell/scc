@@ -1,20 +1,24 @@
 # SymbOS C Compiler
 
-A C compiler for SymbOS based on Alan Cox's Fuzix Compiler Kit (Z80 version).
-Currently it runs on Windows and cross-compiles binaries for SymbOS. (Eventually it
-should be possible to cross-compile itself to run natively on SymbOS.)
+A C compiler for [SymbOS](http://symbos.org) based on Alan Cox's Fuzix Compiler Kit
+(Z80 version). Currently it runs on Windows and cross-compiles binaries for SymbOS.
+(Eventually it should be possible to cross-compile itself to run natively on SymbOS.)
 
-Build with mingw32 using the included batch files. To compile a single file:
+[Documentation and quickstart guide](doc/index.md)
 
-```cc source.c```
+SCC features:
 
-The libc port is a work in progress; most platform-independent functions (strcpy,
-asin, etc.) should work, but system-specific functions will not work. In particular,
-most of stdio (fwrite, printf, etc.) will not work. Use the equivalent SymbOS system
-functions (File_Write, Shell_StringOut, etc.) instead; see the SymbOS developer's
-documentation and the system header file:
+* Full ANSI C compiler
+* A proper libc port for plug-and-play compilation of existing code [work in progress]
+* Extensive wrappers and utility functions for SymbOS system calls
+* Extensive [documentation](doc/index.md) to help you get started with SymbOS programming
+* A complete sample application (programmer's calculator) for reference
 
-```#include <symbos.h>```
+This project is a work in progress; it can already be used to write complete
+graphical applications without issue, but you may encounter bugs or incompletely-
+implemented advanced features. Please report bugs on the Issues tab (although
+of course make sure that the bug is actually in the compiler, not in your own
+code, and include code to reproduce it).
 
 # License
 

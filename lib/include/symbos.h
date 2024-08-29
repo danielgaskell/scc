@@ -244,6 +244,7 @@
 #define ALIGN_CENTER 2
 #define TEXT_FILL 64
 #define TEXT_16COLOR 128
+#define AREA_FILL 64
 
 #define C_AREA 0
 #define C_TEXT 1
@@ -566,7 +567,7 @@ extern int Menu_Context(unsigned char bank, char* addr, int x, int y);
 
 extern signed char Systray_Add(unsigned char bank, char* addr, unsigned char code);
 extern void Systray_Remove(unsigned char id);
-extern char Select_Pos(unsigned short* x, unsigned short* y, unsigned short w, unsigned short h)
+extern char Select_Pos(unsigned short* x, unsigned short* y, unsigned short w, unsigned short h);
 extern char Select_Size(unsigned short x, unsigned short y, unsigned short* w, unsigned short* h);
 extern void Desk_SetMode(char mode);
 extern unsigned short Desk_GetColor(char color);

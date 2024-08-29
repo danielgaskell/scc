@@ -1,3 +1,10 @@
+# Contents
+
+* [Introduction](#introduction)
+* [SymbOS programming guide](symbos.md)
+* [System call reference](syscalls.md)
+* [Special considerations](special.md)
+
 # Introduction
 
 Writing C will rot your brain. Only a true C programmer would look at the following code fragment and think it was an "elegant" solution to anything:
@@ -48,11 +55,12 @@ A good way to determine what `cc` is doing under the hood (particularly for link
 ## Limitations
 
 * **Not all libc functions are available, well-tested, and/or correctly implemented yet**. Platform-independent ones should all work, but any code requiring I/O or calls to the operating system should be tested carefully.
+* **`float` is currently somewhat broken**; use with care. (The current implementation is horrible anyway, and should eventually be replaced with a proper Z80 floating-point library.)
 * No high-level optimizations like subexpression merging. (Just write efficiently.)
 * The libc implementation is not very fast and favors portability over speed.
 * For the usual Z80 reasons, 8-bit arithmetic (`char`) will always be much faster than 16-bit (`int`) and particularly floating-point (`float`, `double`) arithmetic. Declaring variables `unsigned` may also improve efficiency where applicable.
-* For speed, functions from `math.h` are mostly `float` by default rather than `double`.
-* The usual SymbOS limits apply, such as 64KB and 16KB limits on particular segments (see below).
+* `double` is currently treated as synonymous with `float` (IEEE 754 floating-point).
+* The usual SymbOS limits apply, such as 64KB and 16KB limits on particular segments (see the [SymbOS programming guide](symbos.md)).
 * No named static struct initializers like `{.x = 1, .y = 2}`---use `{1, 2}` instead and just be careful about member order.
 * No K&R-style function declarations.
 * Not all C99 and C11 additions are supported.
