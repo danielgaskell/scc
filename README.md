@@ -16,9 +16,13 @@ SCC features:
 
 This project is a work in progress; it can already be used to write complete
 graphical applications without issue, but you may encounter bugs or incompletely-
-implemented advanced features. Please report bugs on the Issues tab (although
-of course make sure that the bug is actually in the compiler, not in your own
-code, and include code to reproduce it).
+implemented advanced features. In particular:
+
+* `float` support is currently flaky (and scheduled for a complete rewrite)
+* Many libc functions are under-tested.
+
+Please report bugs on the Issues tab (although of course make sure that the bug
+is actually in the compiler, not in your own code, and include code to reproduce it).
 
 # License
 

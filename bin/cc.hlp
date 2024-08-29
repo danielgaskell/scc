@@ -2,25 +2,26 @@ cc [option and file list]
 
 options:
 
--c:    compile to object modules only
--D:    define a macro for the C preprocessor
--E:    preprocess only, to stdout
--i:    enable split I/D if supported by this target
--I:    add a directory to the include path
--G:    set the SymbOS application icon (.SGX file)
--l:    add a library name to link
--L:    add a path to the library search path
--m:    set the CPU to compile for
--M:    create a map file
--N:    set the internal SymbOS application name
--o:    set the output file name of the complation
--O:    set optimization level 0-3, or for size '-Os'
--s:    build standalone. Do not include the OS libraries and include paths
--S:    compile to assembly source only
--t:    set the target OS
--T:    set the starting address of the text/code segment
--V:    verbosely print pass information
--X:    keep temporary files for debugging
+-c      compile to object modules only
+-D x    define a macro for the C preprocessor
+-E      preprocess only, to stdout
+-i      enable split I/D if supported by this target
+-I x    add a directory to the include path
+-G x    set the SymbOS 4-color application icon (.SGX file)
+-g x    set the SymbOS 16-color application icon (.SGX file)
+-h x    set the malloc() heap size to x bytes (default 4096)
+-l x    add a library name to link
+-L x    add a path to the library search path
+-M x    create a map file
+-N "x"  set the internal SymbOS application name
+-o x    set the output file name of the complation
+-Ox     set optimization level 0-3, or for size '-Os'
+-s      build standalone. Do not include the OS libraries and include paths
+-S      compile to assembly source only
+-t      set the target OS
+-T x    set the starting address of the text/code segment
+-V      verbosely print pass information
+-X      keep temporary files for debugging
 
 long options:
 --dlib:	build a loadable object module instead

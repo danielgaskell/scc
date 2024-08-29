@@ -206,6 +206,9 @@ int only_one_input;
 char *target;
 char *appname = NULL;
 char *appicon = NULL;
+char *appicon16 = NULL;
+char *heapsize = "4096";
+char heapsize_cust = 0;
 int strip;
 int c_files;
 int standalone;
@@ -647,8 +650,11 @@ void preprocess_c(char *path)
 
 	build_arglist(make_bin_name("cpp", ""));
 
-	add_argument("-I");
-	add_argument("./include");
+	tmp = xstrdup("-D HEAP_SIZE=", strlen(heapsize) + 1);
+	strcat(tmp, heapsize);
+	add_argument(tmp);
+	//add_argument("-I");
+	//add_argument("./include");
 	add_argument_list("-I", &inclist);
 	add_argument_list("-D", &deflist);
 	//add_argument("-E");
@@ -717,6 +723,14 @@ void link_phase(void)
 	if (appicon) {
         add_argument("-G");
         add_argument(appicon);
+	}
+	if (appicon16) {
+        add_argument("-g");
+        add_argument(appicon16);
+	}
+	if (heapsize_cust) {
+        add_argument("-h");
+        add_argument(heapsize);
 	}
 	if (mapfile) {
 		/* For now output a map file. One day we'll have debug symbols
@@ -1034,6 +1048,21 @@ int main(int argc, char *argv[]) {
 				fatal();
 			}
 			break;
+		case 'g':
+			if (appicon16 != NULL) {
+				fprintf(stderr,
+					"cc: -g can only be used once.\n");
+				fatal();
+			}
+			if ((*p)[2])
+				appicon16 = *p + 2;
+			else if (*p)
+				appicon16 = *++p;
+			else {
+				fprintf(stderr, "cc: no icon file given.\n");
+				fatal();
+			}
+			break;
 		case 'G':
 			if (appicon != NULL) {
 				fprintf(stderr,
@@ -1048,6 +1077,17 @@ int main(int argc, char *argv[]) {
 				fprintf(stderr, "cc: no icon file given.\n");
 				fatal();
 			}
+			break;
+		case 'h':
+			if ((*p)[2])
+				heapsize = *p + 2;
+			else if (*p)
+				heapsize = *++p;
+			else {
+				fprintf(stderr, "cc: no heap size given.\n");
+				fatal();
+			}
+			heapsize_cust = 1;
 			break;
 		case 'O':
 			if ((*p)[2]) {

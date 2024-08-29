@@ -1,6 +1,3 @@
-; constants
-_HEAP_SIZE .equ 4096
-
 	.code
 __codestart:
 	
@@ -36,7 +33,7 @@ __exehead_exeid:	.byte 83	; SymExe10
 					.byte 101
 					.byte 49
 					.byte 48
-__exehead_extcode:	.word _HEAP_SIZE
+__exehead_extcode:	.word 4096
 __exehead_extdata:	.word 0
 __exehead_exttrans:	.word 0
 					.ds 26
@@ -66,6 +63,8 @@ __exehead_iconlg:
 .export __segcode
 __segcode:
 	.word __codestart
+__heapsize:			; note: must be at byte 258! written by linker
+	.word 4096
 
 ; entry point
 start2:
@@ -75,7 +74,7 @@ start2:
 	add hl,de
 	ld (__malloc_heap),hl
 	ld (__malloc_top),hl
-	ld de,_HEAP_SIZE
+	ld de,(__heapsize)
 	add hl,de
 	ld (__malloc_max),hl
 	

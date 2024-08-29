@@ -20,9 +20,9 @@ SCC is an ANSI C compiler that produces executables for [SymbOS](https://symbos.
 
 (This documentation assumes you are familiar with standard C syntax, particularly structs, pointers, and typecasting, as well as the various weird ways you can combine them.)
 
-# Using SCC
+## Using SCC
 
-## Compilation
+### Compilation
 
 To compile a single source file into a single SymbOS executable, just run it through `cc` on the command line:
 
@@ -38,9 +38,26 @@ cc -c file2.c
 ld -o file.exe -R file.rel ..\lib\crt0.o file1.o file2.o ..\lib\libc.a ..\lib\libsym.a ..\lib\libz80.a
 reloc file.exe file.rel
 ```
+
 In the C world this type of modular build is usually done with a Makefile. SCC does not currently have its own `make` utility, but we can use the one from MinGW (not documented here). In practice SymbOS projects are usually small enough that we can just maintain a single main source file (potentially with `#include` directives to merge in subsidiary files) and compile it directly with `cc`.
 
 A good way to determine what `cc` is doing under the hood (particularly for linking) is to run it with the `-V` option, which outputs each command as it is run.
+
+### SymbOS executable options
+
+SymbOS executables include several special resources used by the desktop. The first is the application name, which is displayed in the task manager and used as the default name when creating a shortcut. The default is just "App", but we can set this using the `-N` command line option in `cc`:
+
+```bash
+cc -N "Application Name" file.c
+```
+
+The second resource is the application icon, a 24x24 image in SGX format. The default icon resembles the SymShell icon and is suitable for console apps, but to specify our own, we can use the uppercase `-G` command line option (for 4-color icons) or lowercase `-g` option (for 16-color icons):
+
+```bash
+cc file.c -G icon.sgx -g icon16.sgx
+```
+
+Images can be converted to SGX format using software such as [MSX Viewer 5](https://marmsx.msxall.com/msxvw/msxvw5/index_en.php) (classic version). A library of generic icons can also be found on the [SymbOS website](http://symbos.org). (For 16-color icons, note that MSX Viewer 5 will generate an incorrect header; this can be fixed easily with a hex editor by deleting the first eight bytes of the file and replacing them with the ten bytes: `0C 18 18 00 00 00 00 20 01 05`. The resulting file should be exactly 298 bytes long. 4-color icons generated with MSX Viewer 5 will work unmodified.)
 
 ## Features
 

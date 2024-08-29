@@ -102,6 +102,8 @@ static const char *mapname;		/* Name of map file to write */
 static const char *outname;		/* Name of output file */
 static const char *appname = NULL; /* SymbOS application name */
 static const char *appicon = NULL; /* SymbOS application icon */
+static const char *appicon16 = NULL; /* SymbOS 16-color application icon */
+static const char *heapsize = NULL; /* SymbOS heap size */
 static addr_t dot;			/* Working address as we link */
 
 static unsigned progress;		/* Did we make forward progress ?
@@ -114,7 +116,7 @@ static uint_fast8_t rel_check;		/* Check fits mask */
 
 static FILE *relocf;
 
-static char iconbuf[147];
+static char iconbuf[298];
 
 /*
  *	Report an error, and if possible give the object or library that
@@ -802,6 +804,10 @@ static void set_segment_bases(void)
 		io_close();
 	}
 
+	// add extra room for 16-color icon, if applicable
+    if (appicon16)
+        size[CODE] += 298;
+
 	if (verbose) {
 		for (i = 1; i < 12; i++)
 			printf("Segment %c Size %04X\n", "ACDBZXSLsbdt"[i], size[i]);
@@ -1403,6 +1409,7 @@ static void write_binary(FILE * op, FILE *mp)
 	static struct objhdr blankhdr;
 	static struct symbos_hdr symhdr;
 	register uint_fast8_t i;
+	uint16_t extra, iconloc16;
 	FILE* ficn;
 	int j;
 
@@ -1500,6 +1507,26 @@ static void write_binary(FILE * op, FILE *mp)
             fwrite(iconbuf, 147, 1, op);
             fclose(ficn);
         }
+        if (appicon16) {
+            iconloc16 = size[CODE] - 298;
+            xfseek(op, iconloc16);
+            ficn = fopen(appicon16, "rb");
+            if (ficn == NULL)
+                error("Cannot open icon file");
+            fread(iconbuf, 298, 1, ficn);
+            fwrite(iconbuf, 298, 1, op);
+            fclose(ficn);
+            xfseek(op, 40);
+            fwrite("\x01", 1, 1, op);       // flag: 1 = 16-color icon included
+            fwrite(&iconloc16, 2, 1, op);   // icon location
+        }
+        if (heapsize) {
+            extra = atoi(heapsize);
+            xfseek(op, 56);
+            fwrite(&extra, 2, 1, op);
+            xfseek(op, 258);
+            fwrite(&extra, 2, 1, op);
+        }
     }
 	if (err == 0) {
 		if (!rawstream) {
@@ -1596,7 +1623,7 @@ int main(int argc, char *argv[])
 
 	arg0 = argv[0];
 
-	while ((opt = getopt(argc, argv, "rbvtsiu:o:m:f:R:A:B:C:D:G:N:S:X:Z:8:d:T")) != -1) {
+	while ((opt = getopt(argc, argv, "rbvtsiu:o:m:f:R:A:B:C:D:G:N:S:X:Z:8:d:g:h:T")) != -1) {
 		switch (opt) {
 		case 'r':
 			ldmode = LD_RFLAG;
@@ -1622,6 +1649,12 @@ int main(int argc, char *argv[])
 			break;
 		case 'G':
 			appicon = optarg;
+			break;
+		case 'g':
+			appicon16 = optarg;
+			break;
+		case 'h':
+			heapsize = optarg;
 			break;
 		case 'u':
 			insert_internal_symbol(optarg, -1, 0);

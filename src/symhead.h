@@ -1,3 +1,5 @@
+#pragma pack(1)
+
 struct symbos_hdr {
     uint16_t len_code;
     uint16_t len_data;
@@ -20,5 +22,5 @@ struct symbos_hdr {
     uint8_t major_version;
     char icon_small[19];
     char icon_large[147];
-} __attribute((packed));
+};
 
