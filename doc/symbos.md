@@ -81,7 +81,7 @@ Some commentary on these elements is useful.
 
 `.state` is one of the following: `WIN_CLOSED`, `WIN_NORMAL`, `WIN_MAXIMIZED`, or `WIN_MINIMIZED`.
 
-`.flags` is an OR'd list of one or more of the following flags:
+`.flags` is an OR'd bitmask of one or more of the following flags:
 
 * `WIN_ICON` = show window icon
 * `WIN_RESIZABLE` = window can be resized
