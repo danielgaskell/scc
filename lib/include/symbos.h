@@ -45,6 +45,11 @@
 #define ALT_DOWN 4
 #define CAPSLOCK_DOWN 256
 
+#define KEY_BACK 8
+#define KEY_TAB 9
+#define KEY_ENTER 13
+#define KEY_RETURN 13
+#define KEY_DEL 127
 #define KEY_UP 136
 #define KEY_DOWN 137
 #define KEY_LEFT 138
@@ -651,7 +656,7 @@ typedef struct {
     void* controls;
     void* toolbar;
     unsigned short toolheight;
-    char reserved1[6];
+    char reserved1[9];
     unsigned char modal;
     char reserved2[140];
 } Window;

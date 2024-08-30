@@ -71,7 +71,7 @@ typedef struct {
     void* controls;         // address of the control group struct
     void* toolbar;          // address of the control group struct for the toolbar
     unsigned short toolheight; // toolbar height, in pixels
-    char reserved1[6];
+    char reserved1[9];
     unsigned char modal;    // modal window ID + 1
     char reserved2[140];
 } Window;
@@ -279,6 +279,7 @@ Message type codes are [documented below](#event-reference). The most immediatel
 			* `DSK_SUB_KEY`: Key pressed, with key ASCII value in `msg[4]`
 		* `(int)&msg[4]` = Mouse X position relative to window content
 		* `(int)&msg[6]` = Mouse y position relative to window content
+		* `msg[8]` = control ID
 	* `DSK_ACT_TOOLBAR`: Equivalent to `DSK_ACT_CONTENT`, but for controls in the toolbar.
 	* `DSK_ACT_KEY`: A key has been pressed without modifying any control:
 		* `msg[4]` = key ASCII value
