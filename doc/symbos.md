@@ -277,8 +277,8 @@ Message type codes are [documented below](#event-reference). The most immediatel
 			* `DSK_SUB_MDCLICK`: Left mouse button double clicked
 			* `DSK_SUB_MMCLICK`: Middle mouse button clicked
 			* `DSK_SUB_KEY`: Key pressed, with key ASCII value in `msg[4]`
-		* `(int)&msg[4]` = Mouse X position relative to window content
-		* `(int)&msg[6]` = Mouse y position relative to window content
+		* `*(int*)&msg[4]` = Mouse X position relative to window content
+		* `*(int*)&msg[6]` = Mouse y position relative to window content
 		* `msg[8]` = control ID
 	* `DSK_ACT_TOOLBAR`: Equivalent to `DSK_ACT_CONTENT`, but for controls in the toolbar.
 	* `DSK_ACT_KEY`: A key has been pressed without modifying any control:

@@ -3,8 +3,8 @@
 
 char winID = -1; // main window ID (returned by Win_Open())
 
-long value = 0;
-long last_value = 0;
+unsigned long value = 0;
+unsigned long last_value = 0;
 long mem_value = 0;
 char old_base = 10;
 char need_param = 0;
@@ -12,15 +12,23 @@ char op = 0;
 
 _transfer char display[36];    // string buffer for the number display
 _transfer char bits_str[36];   // string buffer for the bits display
-_transfer char check1 = 1;     // global variable for checkbox state
+_transfer char check1 = 0;     // global variable for checkbox state
 _transfer char base = 10;      // global variable for radio group 1 state
 _transfer char bindigits = 32; // global variable for radio group 2 state
 _transfer char radiog1_coord[4] = {-1, -1, -1, -1}; // radio group 1 coordinates (required by Ctrl_Radio)
 _transfer char radiog2_coord[4] = {-1, -1, -1, -1}; // radio group 2 coordinates (required by Ctrl_Radio)
 
+/* a trick: custom font for bitmask (just 0, 1, and / for space) to ensure that
+   the spacing always stays constant even if the system font changes. See the
+   SymbOS Developer Documentation for details on the format of fonts. */
+_transfer char bitfont[50] = {0x08, 0x2F, // header info: 8 pixels tall, starts at ASCII character 0x2F
+    0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // character /
+	0x05, 0x00, 0x60, 0x90, 0x90, 0x90, 0x90, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // character 0
+	0x05, 0x00, 0x20, 0x60, 0x20, 0x20, 0x20, 0x70, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; // character 1
+
 // control data
 _transfer Ctrl_Text cd_display = { display, (COLOR_BLACK << 2) | COLOR_YELLOW | TEXT_FILL, ALIGN_RIGHT };
-_transfer Ctrl_Text cd_bits = { bits_str, (COLOR_BLACK << 2) | COLOR_ORANGE | TEXT_FILL, ALIGN_RIGHT };
+_transfer Ctrl_Text_Font cd_bits = { bits_str, (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_RIGHT, bitfont };
 _transfer Ctrl_Radio cd_radio1 = { &base, "Hex", COLOR_BLACK*4 | COLOR_ORANGE, 16, radiog1_coord };
 _transfer Ctrl_Radio cd_radio2 = { &base, "Dec", COLOR_BLACK*4 | COLOR_ORANGE, 10, radiog1_coord };
 _transfer Ctrl_Radio cd_radio3 = { &base, "Oct", COLOR_BLACK*4 | COLOR_ORANGE, 8, radiog1_coord };
@@ -38,7 +46,7 @@ _transfer Ctrl c_area = { 0, C_AREA, -1, COLOR_ORANGE, 0, 0, 10000, 10000 };
 _transfer Ctrl c_bitsback = { 1, C_AREA, -1, COLOR_ORANGE, 4, 16, 170, 8 };
 _transfer Ctrl c_outline = { 2, C_FRAME, -1, AREA_FILL | COLOR_YELLOW*16 | COLOR_BLACK*4 | COLOR_BLACK, 2, 2, 174, 12 };
 _transfer Ctrl c_display = { 3, C_TEXT, -1, (unsigned short)&cd_display, 4, 4, 170, 8 };
-_transfer Ctrl c_bits = { 4, C_TEXT, -1, (unsigned short)&cd_bits, 4, 16, 170, 8 };
+_transfer Ctrl c_bits = { 4, C_TEXT_FONT, -1, (unsigned short)&cd_bits, 2, 16, 174, 8 };
 _transfer Ctrl c_frame1 = { 5, C_FRAME, -1, COLOR_BLACK*4 | COLOR_BLACK, 2, 26, 37, 46 };
 _transfer Ctrl c_radio1 = { 6, C_RADIO, -1, (unsigned short)&cd_radio1, 6, 30, 28, 8 };
 _transfer Ctrl c_radio2 = { 7, C_RADIO, -1, (unsigned short)&cd_radio2, 6, 40, 28, 8 };
@@ -113,7 +121,7 @@ _transfer Window form = {
     &ctrls};    // controls
 
 // convert an ASCII character to a digit (including hex characters)
-char char_to_digit(char ch) {
+unsigned char char_to_digit(char ch) {
     if (ch <= '9')
         return ch - '0';
     else
@@ -122,24 +130,22 @@ char char_to_digit(char ch) {
 
 // extract value from display, respecting working base
 void display2value(char working_base) {
-    signed char i, sign;
+    signed char i;
     unsigned long placemult;
 
     // get value, respecting working base
     i = strlen(display) - 1;
-    sign = 1;
     value = 0;
     placemult = 1;
     while (i >= 0) {
         if (display[i] == '-') {
-            sign = -1;
+            value = -value;
         } else {
             value += (char_to_digit(display[i]) * placemult);
             placemult *= working_base;
         }
         --i;
     }
-    value *= sign;
 }
 
 // update display with value, in the current base
@@ -148,7 +154,7 @@ void value2display(void) {
 
     // call the appropriate function to generate the number
     if (check1)
-        ltoa(value, display, base);
+        ltoa((signed long)value, display, base);
     else
         ultoa(value, display, base);
 
@@ -174,7 +180,7 @@ void update_bits(void) {
         ++t;
         if (t == 9) {
             // insert a space every 8 bits
-            bits_str[i] = ' ';
+            bits_str[i] = '/'; // actually '/' because we have a (tiny 3-character) custom font
             t = 0;
         } else {
             // normal bit, emit 0 or 1
@@ -192,8 +198,48 @@ void redraw_display(void) {
     Win_Redraw(winID, -3, 2); // redraw the 3 controls starting with ID 2 (i.e., the displays and the main display frame) if requested
 }
 
+// truncate to correct size, propagating sign if needed
+void truncate(void) {
+    unsigned long mask;
+    if (bindigits == 16) {
+        value &= 0xFFFF;
+        if (check1 && value & 0x8000)
+            value |= 0xFFFF0000UL;
+    } else if (bindigits == 8) {
+        value &= 0x000000FFUL;
+        if (check1 && value & 0x80)
+            value |= 0xFFFFFF00UL;
+    }
+}
+
+// set the base
+void set_base(char newbase) {
+    if (base != newbase) {
+        base = newbase;
+        Win_Redraw(winID, -4, 6); // redraw radio buttons
+    }
+    display2value(old_base);
+    value2display();
+    redraw_display();
+    old_base = base;
+}
+
+// set the data type
+void set_type(char newtype) {
+    if (bindigits != newtype) {
+        bindigits = newtype;
+        Win_Redraw(winID, -3, 11); // redraw radio buttons
+    }
+    display2value(base);
+    truncate();
+    value2display();
+    update_bits();
+    Win_Redraw(winID, 1, 0); // redraw the bits background, to erase excess bits if present
+    redraw_display();
+}
+
 // integer sqrt (faster and smaller than the float version in math.h)
-unsigned long sqrti(unsigned long s) {
+unsigned long sqrtl(unsigned long s) {
     unsigned long x0, x1;
 	if (s <= 1)
 		return s;
@@ -208,29 +254,15 @@ unsigned long sqrti(unsigned long s) {
 
 // integer rotate left
 unsigned long lro(unsigned long val, char by) {
-    unsigned long mask;
-    if (bindigits == 32)
-        mask = 0xFFFFFFFFL;
-    else if (bindigits == 16)
-        mask = 0xFFFF;
-    else
-        mask = 0xFF;
     while (by--)
-        val = ((val << 1) | (val >> (bindigits - 1))) & mask;
+        val = ((val << 1) | (val >> (bindigits - 1)));
     return val;
 }
 
 // integer rotate right
 unsigned long rro(unsigned long val, char by) {
-    unsigned long mask;
-    if (bindigits == 32)
-        mask = 0xFFFFFFFFL;
-    else if (bindigits == 16)
-        mask = 0xFFFF;
-    else
-        mask = 0xFF;
     while (by--)
-        val = ((val >> 1) | (val << (bindigits - 1))) & mask;
+        val = ((val >> 1) | (val << (bindigits - 1)));
     return val;
 }
 
@@ -241,7 +273,6 @@ void do_op(void) {
     // no operator waiting: just set left term
     if (op == 0) {
         last_value = value;
-        //MsgBox("1", "", "", COLOR_BLACK, BUTTON_OK, 0);
         return;
     }
 
@@ -260,9 +291,9 @@ void do_op(void) {
     case 50: value = last_value - value; break;
     case 51: value = last_value + value; break;
     }
-    //MsgBox("2", "", "", COLOR_BLACK, BUTTON_OK, 0);
 
     // refresh everything
+    truncate();
     value2display();
     update_bits();
     redraw_display();
@@ -274,10 +305,11 @@ void do_op(void) {
 void do_unary(char uop) {
     display2value(base);
     switch (uop) {
-    case 14: value = abs(value); break;
+    case 14: value = labs(value); break;
     case 18: value = ~value; break;
-    case 47: value = sqrti(abs(value)); break;
+    case 47: value = sqrtl(labs(value)); break;
     }
+    truncate();
     value2display();
     update_bits();
     redraw_display();
@@ -288,9 +320,11 @@ void handle_key(char key) {
     char tmp[2];
     char i;
 
-    // handle number keys
-    if (key >= 'a' && key <= 'f') // convert lowercase to uppercase
+    // convert lowercase to uppercase for convenience
+    if (key >= 'a' && key <= 'z')
         key -= ('a' - 'A');
+
+    // handle number keys
     if ((key >= '0' && key <= '9') || (key >= 'A' && key <= 'F')) {
         // sanity check digits
         if (base < 16 && key >= 'A') // reject A-F if base < 16
@@ -322,17 +356,57 @@ void handle_key(char key) {
 
     // handle other keys
     switch (key) {
+
+    // option keys
+    case KEY_F2: set_type(32); break;
+    case KEY_F3: set_type(16); break;
+    case KEY_F4: set_type(8); break;
+    case KEY_F5: set_base(16); break;
+    case KEY_F6: set_base(10); break;
+    case KEY_F7: set_base(8); break;
+    case KEY_F8: set_base(2); break;
+
+    // operators
+    case '{': do_op(); op = 15; need_param = 1; break;
+    case '<': do_op(); op = 16; need_param = 1; break;
+    case '&': do_op(); op = 17; need_param = 1; break;
+    case '%': do_op(); op = 19; need_param = 1; break;
+    case '}': do_op(); op = 20; need_param = 1; break;
+    case '>': do_op(); op = 21; need_param = 1; break;
+    case '|': do_op(); op = 22; need_param = 1; break;
+    case '^': do_op(); op = 23; need_param = 1; break;
     case '/': do_op(); op = 48; need_param = 1; break;
     case '*': do_op(); op = 49; need_param = 1; break;
     case '-': do_op(); op = 50; need_param = 1; break;
     case '+': do_op(); op = 51; need_param = 1; break;
-    case '=': do_op(); break;
+    case '~': case '!': do_unary(18); break;
+    case '=': case KEY_ENTER: do_op(); break;
 
+    // memory
+    case 'M':
+        mem_value = value;
+        break;
+    case 'R':
+        value = mem_value;
+        value2display();
+        update_bits();
+        redraw_display();
+        break;
+    case 'L':
+        mem_value = 0;
+        break;
+
+    // delete
     case KEY_DEL:
         strcpy(display, "0");
         handle_key('0');
         break;
-
+    case KEY_ESC:
+        last_value = 0;
+        op = 0;
+        strcpy(display, "0");
+        handle_key('0');
+        break;
     case KEY_BACK:
         i = strlen(display);
         if (i == 1)
@@ -348,49 +422,45 @@ void handle_key(char key) {
 
 // handle a click reported by the event loop
 void handle_click(char control) {
+    int x;
+
     switch (control) {
+    // bit display
+    case 4:
+        // turn mouse position into bit to flip
+        x = *(int*)&_symmsg[4];
+        x = 175 - x;
+        if (x > 40)
+            x -= 4;
+        if (x > 80)
+            x -= 4;
+        if (x > 120)
+            x -= 4;
+        x /= 5;
+        if (x < bindigits) {
+            display2value(base);
+            value ^= (1L << x);
+            truncate();
+            value2display();
+            update_bits();
+            redraw_display();
+        }
+        break;
+
     // radio button group 1, change base
     case 6: case 7: case 8: case 9:
-        display2value(old_base);
-        value2display();
-        redraw_display();
-        old_base = base;
+        set_base(base);
         break;
 
     // radio button group 2, change data type
     case 11: case 12: case 13:
-        display2value(base);
-        if (bindigits == 16) {
-            if (check1)
-                value = (signed short)value;
-            else
-                value = (unsigned short)value;
-        } else if (bindigits == 8) {
-            if (check1)
-                value = (signed char)value;
-            else
-                value = (unsigned char)value;
-        }
-        value2display();
-        update_bits();
-        Win_Redraw(winID, 1, 0); // redraw the bits background, to erase excess bits if present
-        redraw_display();
+        set_type(bindigits);
         break;
 
     // sign checkbox
     case 24:
         display2value(base);
-        if (check1 == 1) { // when converting to signed, propagate the sign bit
-            if (bindigits == 16 && (value & 0x8000))
-                value |= 0xFFFF0000L;
-            else if (bindigits == 8 && (value & 0x80))
-                value |= 0xFFFFFF00L;
-        } else { // when converting to unsigned, truncate to avoid excess high bits
-            if (bindigits == 16)
-                value &= 0xFFFF;
-            else if (bindigits == 8)
-                value &= 0xFF;
-        }
+        truncate();
         value2display();
         redraw_display();
         break;
@@ -423,35 +493,17 @@ void handle_click(char control) {
         break;
 
     // unary operators
-    case 14: do_unary(14); break; // Abs
-    case 18: do_unary(18); break; // Not
-    case 47: do_unary(47); break; // Sqrt
+    case 14: case 18: case 47:
+        do_unary(control);
+        break;
 
     // other buttons
-    case 32: // <-
-        handle_key(KEY_BACK);
-        break;
-    case 38: // CE
-        last_value = 0;
-        op = 0;
-        strcpy(display, "0");
-        handle_key('0');
-        break;
-    case 43: // clear
-        handle_key(KEY_DEL);
-        break;
-    case 42: // MS
-        mem_value = value;
-        break;
-    case 37: // MR
-        value = mem_value;
-        value2display();
-        update_bits();
-        redraw_display();
-        break;
-    case 31: // MC
-        mem_value = 0;
-        break;
+    case 32: handle_key(KEY_BACK); break; // <-
+    case 38: handle_key(KEY_ESC);  break; // CE
+    case 43: handle_key(KEY_DEL);  break; // C
+    case 42: handle_key('M');      break; // MS
+    case 37: handle_key('R');      break; // MR
+    case 31: handle_key('L');      break; // MC
     }
 }
 

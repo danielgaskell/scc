@@ -1,13 +1,9 @@
 __cos.o
-__expo2.o
 __log1p.o
 __sin.o
-__tan.o
-__tandf.o
 a64l.o
 abs.o
 acosf.o
-acosh.o
 acoshf.o
 asinf.o
 asinhf.o
@@ -155,7 +151,6 @@ expf.o
 localtim_r.o
 asctime_r.o
 sqrtf.o
-cosf.o
 logf.o
 floorf.o
 fabsf.o

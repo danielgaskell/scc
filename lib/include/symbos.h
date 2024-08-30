@@ -49,6 +49,7 @@
 #define KEY_TAB 9
 #define KEY_ENTER 13
 #define KEY_RETURN 13
+#define KEY_ESC 27
 #define KEY_DEL 127
 #define KEY_UP 136
 #define KEY_DOWN 137
@@ -256,7 +257,7 @@
 #define C_FRAME 2
 #define C_TFRAME 3
 #define C_PROGRESS 4
-#define C_TEXT_ALT 5
+#define C_TEXT_FONT 5
 #define C_TEXT_CTRL 6
 #define C_IMAGE 8
 #define C_ICON 9
@@ -678,7 +679,7 @@ typedef struct {
     unsigned char color;
     unsigned char flags;
     char* font;
-} Ctrl_TextFont;
+} Ctrl_Text_Font;
 
 typedef struct {
     char* text;
@@ -686,7 +687,7 @@ typedef struct {
     char* font;
     unsigned char color;
     unsigned char underline;
-} Ctrl_TextCode;
+} Ctrl_Text_Ctrl;
 
 typedef struct {
     char* icon;
