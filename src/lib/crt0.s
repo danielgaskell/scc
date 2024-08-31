@@ -92,12 +92,22 @@ start2:
 ; exit code
 .export _exit
 _exit:
-	; close all open files
-	call ___stdio_close_all
+	; if fopen() has set __exit_stdio, close all open files
+	; (this indirect method prevents stdio from being linked via crt0.s unless actually used)
+	ld a,(__exit_stdio+0)
+	ld b,a
+	ld a,(__exit_stdio+1)
+	or b
+	jr z,_symexit1
+	ld hl,(__exit_stdio+0)
+	push hl
+	push hl
+	ret					; simulate 'call hl'
+_symexit1:
 	; if a shell is open, close it
 	ld a,(__shellpid)
 	and a
-	jr z,_symexit1
+	jr z,_symexit2
 	; send MSC_SHL_EXIT
 	ld a,(__sympid)
 	.byte #0xDD			; ld ixl,a
@@ -109,7 +119,7 @@ _exit:
 	ld (iy+0),#0x44
 	ld (iy+1),#0x00
 	rst #0x10
-_symexit1:
+_symexit2:
     ; send MSC_SYS_PRGEND and idle until killed
 	ld a,(__sympid)
 	.byte #0xDD			; ld ixl,a
@@ -206,6 +216,9 @@ __malloc_top:
 	.word 0
 .export __malloc_max
 __malloc_max:
+	.word 0
+.export __exit_stdio
+__exit_stdio:
 	.word 0
 
 ; start of SymbOS data area

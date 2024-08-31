@@ -3,11 +3,22 @@
 
 ## Console applications
 
-For the most part, console applications meant to run in SymShell can be written in normal C style using the functions in `stdio.h` (`printf()`, `fgets()`, etc.). No additional headers are necessary. The only subtlety is that SymbOS expects console applications to have the file extension `.com` rather than `.exe`. We can rename the executable file after compilation, or tell `cc` to use a custom output name:
+For the most part, console applications meant to run in SymShell can be written in normal C style using the functions in `stdio.h` (`printf()`, `fgets()`, etc.). No additional headers are necessary:
+
+```c
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+	printf("Hello world!\n");
+}
+```
+
+The only subtlety is that SymbOS expects console applications to have the file extension `.com` rather than `.exe`. We can rename the executable file after compilation, or tell `cc` to use a custom output name:
 
 ```bash
-cc -o file.com file.c
+cc -o condemo.com condemo.c
 ```
+
 While SCC's `stdio` functions are meant to work relatively seamlessly in SymShell, they are somewhat slow and bulky and are not entirely optimized for SymShell's display model. When writing code from scratch for SymbOS, consider designing it around the [system shell functions](#system-call-reference) (`Shell_StringOut()`, `Shell_CharIn()`, etc.) rather than the standard `stdio` functions.
 
 ## Windowed applications

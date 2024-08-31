@@ -8,6 +8,8 @@
 
 #include "stdio-l.h"
 
+extern void* _exit_stdio;
+
 /*
  * This Fopen is all three of fopen, fdopen and freopen. The macros in
  * stdio.h show the other names.
@@ -19,6 +21,9 @@ FILE * __fopen(const char *fname, int fd, FILE * fp, const char *mode)
 
 	int fopen_mode = 0;
 	FILE * nfp = 0;
+
+	/* save address of __stdio_close_all internally (avoids it being linked unless actually needed) */
+	_exit_stdio = __stdio_close_all;
 
 	/* If we've got an fp close the old one (freopen) */
 	if (fp) {

@@ -5,7 +5,7 @@ char winID = -1; // main window ID (returned by Win_Open())
 
 unsigned long value = 0;
 unsigned long last_value = 0;
-long mem_value = 0;
+unsigned long mem_value = 0;
 char old_base = 10;
 char need_param = 0;
 char op = 0;
@@ -18,9 +18,10 @@ _transfer char bindigits = 32; // global variable for radio group 2 state
 _transfer char radiog1_coord[4] = {-1, -1, -1, -1}; // radio group 1 coordinates (required by Ctrl_Radio)
 _transfer char radiog2_coord[4] = {-1, -1, -1, -1}; // radio group 2 coordinates (required by Ctrl_Radio)
 
-/* a trick: custom font for bitmask (just 0, 1, and / for space) to ensure that
-   the spacing always stays constant even if the system font changes. See the
-   SymbOS Developer Documentation for details on the format of fonts. */
+/* A trick: we use a custom font for the bits display (just 0, 1, and / for
+   space) to ensure that the spacing always stays constant, even if the system
+   font changes. See the SymbOS Developer Documentation for details on the
+   format of fonts. */
 _transfer char bitfont[50] = {0x08, 0x2F, // header info: 8 pixels tall, starts at ASCII character 0x2F
     0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // character /
 	0x05, 0x00, 0x60, 0x90, 0x90, 0x90, 0x90, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // character 0
@@ -29,14 +30,14 @@ _transfer char bitfont[50] = {0x08, 0x2F, // header info: 8 pixels tall, starts 
 // control data
 _transfer Ctrl_Text cd_display = { display, (COLOR_BLACK << 2) | COLOR_YELLOW | TEXT_FILL, ALIGN_RIGHT };
 _transfer Ctrl_Text_Font cd_bits = { bits_str, (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_RIGHT, bitfont };
-_transfer Ctrl_Radio cd_radio1 = { &base, "Hex", COLOR_BLACK*4 | COLOR_ORANGE, 16, radiog1_coord };
-_transfer Ctrl_Radio cd_radio2 = { &base, "Dec", COLOR_BLACK*4 | COLOR_ORANGE, 10, radiog1_coord };
-_transfer Ctrl_Radio cd_radio3 = { &base, "Oct", COLOR_BLACK*4 | COLOR_ORANGE, 8, radiog1_coord };
-_transfer Ctrl_Radio cd_radio4 = { &base, "Bin", COLOR_BLACK*4 | COLOR_ORANGE, 2, radiog1_coord };
-_transfer Ctrl_Radio cd_radio5 = { &bindigits, "Long", COLOR_BLACK*4 | COLOR_ORANGE, 32, radiog2_coord };
-_transfer Ctrl_Radio cd_radio6 = { &bindigits, "Word", COLOR_BLACK*4 | COLOR_ORANGE, 16, radiog2_coord };
-_transfer Ctrl_Radio cd_radio7 = { &bindigits, "Byte", COLOR_BLACK*4 | COLOR_ORANGE, 8, radiog2_coord };
-_transfer Ctrl_Check cd_check1 = { &check1, "Signed", COLOR_BLACK*4 | COLOR_ORANGE };
+_transfer Ctrl_Radio cd_radio1 = { &base, "Hex", (COLOR_BLACK << 2) | COLOR_ORANGE, 16, radiog1_coord };
+_transfer Ctrl_Radio cd_radio2 = { &base, "Dec", (COLOR_BLACK << 2) | COLOR_ORANGE, 10, radiog1_coord };
+_transfer Ctrl_Radio cd_radio3 = { &base, "Oct", (COLOR_BLACK << 2) | COLOR_ORANGE, 8, radiog1_coord };
+_transfer Ctrl_Radio cd_radio4 = { &base, "Bin", (COLOR_BLACK << 2) | COLOR_ORANGE, 2, radiog1_coord };
+_transfer Ctrl_Radio cd_radio5 = { &bindigits, "Long", (COLOR_BLACK << 2) | COLOR_ORANGE, 32, radiog2_coord };
+_transfer Ctrl_Radio cd_radio6 = { &bindigits, "Word", (COLOR_BLACK << 2) | COLOR_ORANGE, 16, radiog2_coord };
+_transfer Ctrl_Radio cd_radio7 = { &bindigits, "Byte", (COLOR_BLACK << 2) | COLOR_ORANGE, 8, radiog2_coord };
+_transfer Ctrl_Check cd_check1 = { &check1, "Signed", (COLOR_BLACK << 2) | COLOR_ORANGE };
   /* A trick: notice how the "value" properties of the radio buttons are set
      directly to the values we need - base, binary digits - so we can just read
      them from the global variables registered to store the radio button state. */
@@ -44,15 +45,15 @@ _transfer Ctrl_Check cd_check1 = { &check1, "Signed", COLOR_BLACK*4 | COLOR_ORAN
 // controls
 _transfer Ctrl c_area = { 0, C_AREA, -1, COLOR_ORANGE, 0, 0, 10000, 10000 };
 _transfer Ctrl c_bitsback = { 1, C_AREA, -1, COLOR_ORANGE, 4, 16, 170, 8 };
-_transfer Ctrl c_outline = { 2, C_FRAME, -1, AREA_FILL | COLOR_YELLOW*16 | COLOR_BLACK*4 | COLOR_BLACK, 2, 2, 174, 12 };
+_transfer Ctrl c_outline = { 2, C_FRAME, -1, AREA_FILL | (COLOR_YELLOW << 4) | (COLOR_BLACK << 2) | COLOR_BLACK, 2, 2, 174, 12 };
 _transfer Ctrl c_display = { 3, C_TEXT, -1, (unsigned short)&cd_display, 4, 4, 170, 8 };
 _transfer Ctrl c_bits = { 4, C_TEXT_FONT, -1, (unsigned short)&cd_bits, 2, 16, 174, 8 };
-_transfer Ctrl c_frame1 = { 5, C_FRAME, -1, COLOR_BLACK*4 | COLOR_BLACK, 2, 26, 37, 46 };
+_transfer Ctrl c_frame1 = { 5, C_FRAME, -1, (COLOR_BLACK << 2) | COLOR_BLACK, 2, 26, 37, 46 };
 _transfer Ctrl c_radio1 = { 6, C_RADIO, -1, (unsigned short)&cd_radio1, 6, 30, 28, 8 };
 _transfer Ctrl c_radio2 = { 7, C_RADIO, -1, (unsigned short)&cd_radio2, 6, 40, 28, 8 };
 _transfer Ctrl c_radio3 = { 8, C_RADIO, -1, (unsigned short)&cd_radio3, 6, 50, 28, 8 };
 _transfer Ctrl c_radio4 = { 9, C_RADIO, -1, (unsigned short)&cd_radio4, 6, 60, 28, 8 };
-_transfer Ctrl c_frame2 = { 10, C_FRAME, -1, COLOR_BLACK*4 | COLOR_BLACK, 2, 74, 37, 34 };
+_transfer Ctrl c_frame2 = { 10, C_FRAME, -1, (COLOR_BLACK << 2) | COLOR_BLACK, 2, 74, 37, 34 };
 _transfer Ctrl c_radio5 = { 11, C_RADIO, -1, (unsigned short)&cd_radio5, 6, 77, 28, 8 };
 _transfer Ctrl c_radio6 = { 12, C_RADIO, -1, (unsigned short)&cd_radio6, 6, 87, 28, 8 };
 _transfer Ctrl c_radio7 = { 13, C_RADIO, -1, (unsigned short)&cd_radio7, 6, 97, 28, 8 };
@@ -100,8 +101,8 @@ _transfer Ctrl c_button39 = { 52, C_BUTTON, -1, (unsigned short)"=", 142, 96, 34
 _transfer Ctrl_Group ctrls = { 53, 0, &c_area };
 
 // small icon (8x8 4-color SGX format)
-_transfer char icon[19] = {0x02, 0x08, 0x08, 0xFF, 0xFF, 0xF8, 0xF1, 0xF8, 0xF1,
-                           0x8F, 0x1F, 0x8F, 0x1F, 0x8F, 0x1F, 0x8F, 0x1F, 0xFF, 0xFF};
+_transfer char icon[19] = {0x02, 0x08, 0x08, 0x00, 0x00, 0x77, 0xEE, 0x00, 0x00,
+                           0x55, 0x44, 0x22, 0xAA, 0x55, 0x44, 0x22, 0xAA, 0x00, 0x00};
 
 // window
 _transfer Window form = {
@@ -128,10 +129,18 @@ unsigned char char_to_digit(char ch) {
         return ch - 'A' + 10;
 }
 
-// extract value from display, respecting working base
-void display2value(char working_base) {
+// extract value from display, respecting working base; returns 1 on overflow
+char display2value(char working_base) {
     signed char i;
-    unsigned long placemult;
+    unsigned long placemult, addition, max;
+
+    // set maximum value, to detect overflow
+    if (bindigits == 32)
+        max = 0xFFFFFFFFUL;
+    else if (bindigits == 16)
+        max = 0xFFFF;
+    else
+        max = 0xFF;
 
     // get value, respecting working base
     i = strlen(display) - 1;
@@ -141,11 +150,15 @@ void display2value(char working_base) {
         if (display[i] == '-') {
             value = -value;
         } else {
-            value += (char_to_digit(display[i]) * placemult);
+            addition = (char_to_digit(display[i]) * placemult);
+            if (addition > (max - value))
+                return 1; // overflow, abort
+            value += addition;
             placemult *= working_base;
         }
         --i;
     }
+    return 0;
 }
 
 // update display with value, in the current base
@@ -154,11 +167,11 @@ void value2display(void) {
 
     // call the appropriate function to generate the number
     if (check1)
-        ltoa((signed long)value, display, base);
+        ltoa((signed long)value, display, base); // signed
     else
-        ultoa(value, display, base);
+        ultoa(value, display, base); // unsigned
 
-    // convert result to uppercase
+    // convert result to uppercase (for hex)
     while (*ptr) {
         if (*ptr >= 'a' && *ptr <= 'z')
             *ptr -= ('a' - 'A');
@@ -195,7 +208,7 @@ void update_bits(void) {
 
 // redraw display and bits
 void redraw_display(void) {
-    Win_Redraw(winID, -3, 2); // redraw the 3 controls starting with ID 2 (i.e., the displays and the main display frame) if requested
+    Win_Redraw(winID, -3, 2); // redraw the 3 controls starting with ID 2 (i.e., the displays and the main display frame)
 }
 
 // truncate to correct size, propagating sign if needed
@@ -209,7 +222,7 @@ void truncate(void) {
         value &= 0x000000FFUL;
         if (check1 && value & 0x80)
             value |= 0xFFFFFF00UL;
-    }
+    } // (32-bit does not need truncating)
 }
 
 // set the base
@@ -234,7 +247,7 @@ void set_type(char newtype) {
     truncate();
     value2display();
     update_bits();
-    Win_Redraw(winID, 1, 0); // redraw the bits background, to erase excess bits if present
+    Win_Redraw(winID, 1, 0); // redraw the bits background first, to erase excess bits if present
     redraw_display();
 }
 
@@ -297,17 +310,30 @@ void do_op(void) {
     value2display();
     update_bits();
     redraw_display();
+
+    // clean up for the next operator
     last_value = value;
     op = 0;
 }
 
-// do a unary operator
+// execute a unary operator in place
 void do_unary(char uop) {
     display2value(base);
     switch (uop) {
-    case 14: value = labs(value); break;
-    case 18: value = ~value; break;
-    case 47: value = sqrtl(labs(value)); break;
+    case 14: // Abs
+        if (check1 != 0 && (signed long)value < 0)
+            value = -value;
+        break;
+
+    case 18: // Not
+        value = ~value;
+        break;
+
+    case 47: // Sqrt
+        if (check1 == 0 || (signed long)value > 0) // disallow sqrt() on negative numbers (imaginary!)
+            value = sqrtl(value);
+        break;
+
     }
     truncate();
     value2display();
@@ -326,7 +352,7 @@ void handle_key(char key) {
 
     // handle number keys
     if ((key >= '0' && key <= '9') || (key >= 'A' && key <= 'F')) {
-        // sanity check digits
+        // sanity checks
         if (base < 16 && key >= 'A') // reject A-F if base < 16
             return;
         if (base < 10 && key >= '8') // reject 8-9 if base < 10
@@ -338,6 +364,7 @@ void handle_key(char key) {
         if (need_param) {
             strcpy(display, "0");
             need_param = 0;
+            value = 0;
         }
 
         // update display
@@ -348,7 +375,14 @@ void handle_key(char key) {
             tmp[1] = 0;
             strcat(display, tmp);
         }
-        display2value(base);
+        if (display2value(base)) {
+            // overflow, undo what we just did
+            if (strlen(display) == 1)
+                display[0] = '0';
+            else
+                display[strlen(display) - 1] = 0;
+            display2value(base);
+        }
         update_bits();
         redraw_display();
         return;
@@ -380,7 +414,19 @@ void handle_key(char key) {
     case '-': do_op(); op = 50; need_param = 1; break;
     case '+': do_op(); op = 51; need_param = 1; break;
     case '~': case '!': do_unary(18); break;
-    case '=': case KEY_ENTER: do_op(); break;
+
+    // equals
+    case '=': case KEY_ENTER:
+        if (op) {
+            do_op();
+        } else { // if no operator is waiting, just refresh (to, e.g., convert sign)
+            display2value(base);
+            truncate();
+            value2display();
+            update_bits();
+            redraw_display();
+        }
+        break;
 
     // memory
     case 'M':
@@ -437,6 +483,8 @@ void handle_click(char control) {
         if (x > 120)
             x -= 4;
         x /= 5;
+
+        // flip the bit and update displays
         if (x < bindigits) {
             display2value(base);
             value ^= (1L << x);
@@ -457,7 +505,7 @@ void handle_click(char control) {
         set_type(bindigits);
         break;
 
-    // sign checkbox
+    // sign checkbox, just update display
     case 24:
         display2value(base);
         truncate();
@@ -465,7 +513,7 @@ void handle_click(char control) {
         redraw_display();
         break;
 
-    // number buttons
+    // number buttons, mapped to keys
     case 25: handle_key('A'); break;
     case 26: handle_key('B'); break;
     case 27: handle_key('C'); break;
@@ -497,7 +545,7 @@ void handle_click(char control) {
         do_unary(control);
         break;
 
-    // other buttons
+    // other buttons, mapped to keys
     case 32: handle_key(KEY_BACK); break; // <-
     case 38: handle_key(KEY_ESC);  break; // CE
     case 43: handle_key(KEY_DEL);  break; // C
@@ -528,7 +576,7 @@ int main(int argc, char *argv[]) {
                 case DSK_SUB_MLCLICK: // left mouse click
                     handle_click(_symmsg[8]);
                     break;
-                case DSK_SUB_MLCLICK: // keypress on a control
+                case DSK_SUB_KEY: // keypress on a control
                     handle_key(_symmsg[4]);
                     break;
                 }
