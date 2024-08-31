@@ -8,6 +8,27 @@ The following calls are all available after including `symbos.h`:
 
 These headers are not 100% comprehensive; SymbOS provides some additional system calls not implemented in `symbos.h`, mainly low-level calls for dealing with storage devices, system configuration, and complicated applications that alter system functionality or execute code in multiple banks (SCC is not well-suited for this). These calls are discussed in the [SymbOS developer documentation](https://symbos.org/download.htm). It is assumed that, if you need these calls, you are probably already doing something complicated enough that a few extra wrapper functions won't be useful.
 
+## Contents
+
+* [System variables](#system-variables)
+* [Messaging](#messaging)
+* [Memory management](#memory-management)
+* [Memory read/write](#memory-read-write)
+* [System status](#system-status)
+* [Screen status](#screen-status)
+* [Mouse status](#mouse-status)
+* [Keyboard status](#keyboard-status)
+* [Window management](#window-management)
+* [Onscreen popups](#onscreen-popups)
+* [File access](#file-access)
+* [Directory access](#directory-access)
+* [Shell functions](#shell-functions)
+* [Process management](#process-management)
+* [Timer management](#timer-management)
+* [Clipboard functions](#clipboard-functions)
+* [System tray](#system-tray)
+* [Reference tables](#reference-tables)
+
 ## System variables
 
 ```c
@@ -32,6 +53,7 @@ The other contents of the application header can be accessed directly with the s
 ## Messaging
 
 ### Msg_Send()
+
 ```c
 unsigned char Msg_Send(char rec_pid, char send_pid, char* msg);
 ```
@@ -47,6 +69,7 @@ Sends the message in `*msg` to process ID `send_pid`. `rec_pid` is the process I
 ```c
 unsigned short Msg_Receive(char rec_pid, char send_pid, char* msg);
 ```
+
 Checks for a message sent from process ID `send_pid` to process ID `rec_pid` and, if one is waiting, stores it in `*msg`. Usually `rec_pid` should be our own process ID (`_sympid`). If `send_pid` is -1, checks for messages from any process. `*msg` must be in the **transfer** segment.
 
 *Return value*: Low byte: 0 = no message available, 1 = message received. High byte: sender process ID. Extract with, e.g.,
@@ -63,6 +86,7 @@ pid = result >> 8;
 ```c
 unsigned short Msg_Sleep(char rec_pid, char send_pid, char* msg);
 ```
+
 Checks for a message sent from process ID `send_pid` to process ID `rec_pid`. If one is waiting, stores it in `*msg`. If there is no message, returns CPU time to SymbOS and waits until a message is available or the process is woken up for another reason. Usually `rec_pid` should be our own process ID (`_sympid`). If `send_pid` is -1, checks for messages from any process. `*msg` must be in the **transfer** segment.
 
 
@@ -86,6 +110,7 @@ while (!(Msg_Sleep(_sympid, -1, _symmsg) & 0x01));
 ```c
 void Idle(void);
 ```
+
 Return CPU time to SymbOS and idle until something wakes it up---for example, an incoming message.
 
 *SymbOS name*: `Multitasking_SoftInterrupt` (`RST #30`).
@@ -614,6 +639,79 @@ Resizes the window `winID` so that the main content of the window has the width 
 
 *SymbOS name*: `Window_Set_Size_Command` (`MSC_DSK_WINSIZ`).
 
+## Onscreen popups
+
+### MsgBox()
+
+```c
+unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen,
+                     unsigned char type, char* icon, void* modalWin);
+```
+
+Opens a message box onscreen. `line1`, `line2`, and `line3` are three text strings that will be displayed. `pen` is the text color, one of `COLOR_BLACK`, `COLOR_RED`, `COLOR_ORANGE`, or `COLOR_YELLOW` (usually we want `COLOR_BLACK`). `type` is a OR'd bitmask of one or more of the following options:
+
+* `BUTTON_OK`: display an "OK" button
+* `BUTTON_YN`: display "Yes" and "No" buttons
+* `BUTTON_YNC`: display "Yes", "No", and "Cancel" buttons
+* `TITLE_DEFAULT`: title the box "Error!" if there is no custom icon, otherwise "Info"
+* `TITLE_INFO`: title the box "Info"
+* `TITLE_WARNING`: title the box "Warning"
+* `TITLE_CONFIRM`: title the box "Confirmation"
+* `MSGBOX_ICON`: use a custom icon
+
+`icon` is the address of a 24x24 custom icon image, in 4-color SGX format. If `icon` = 0, a default icon will be used.
+
+`modalWin` specifies the address of a `Window` data record that should be declared modal, if any; this window will not be able to be focused until the message box is closed. If `modalWin` = 0, no window will be declared modal.
+
+Note that only pure info messages (BUTTON_OK, not modal) can have multiple instances open on the screen at the same time. SymbOS implements more complex message boxes as a single window shared by all processes; if the message box cannot be opened because it is already in use by another process, this function will return `MSGBOX_FAILED` (0).
+
+*Return value*: One of:
+
+* `MSGBOX_FAILED` (0): another process is already using the complex message box.
+* `MSGBOX_OK`: the user clicked the "OK" button.
+* `MSGBOX_YES`: the user cliked the "Yes" button.
+* `MSGBOX_NO`: the user clicked the "No" button.
+* `MSGBOX_CANCEL`: the user clicked the "Cancel" button or the window Close button.
+
+*SymbOS name*: `Dialogue_Infobox_Command` (`MSC_SYS_SYSWRN`)
+
+### FileBox()
+
+```c
+unsigned char FileBox(char* path, char* filter, unsigned char flags, unsigned char attribs,
+                      unsigned short entries, unsigned short bufsize, void* modalWin);
+```
+
+Opens a file selector box onscreen. `path` can be the absolute path of the directory to start in, the absolute path of a file to preselect, or 0 to start in the default location. If `path` is a directory, it should end with a backslash (`\`). `filter` is a three-byte string containing a file extension filter, which can contain Window-style wildcards (`*` or `?`); for example, `*  ` to show all files or `TXT` to show only `.txt` files. (If shorter than 3 bytes, this string should be padded to 3 bytes with spaces.) 'flags' is an OR'd bitmask consisting of one or more of the following options:
+
+* `FILEBOX_OPEN`: label box "open"
+* `FILEBOX_SAVE`: label box "save"
+* `FILEBOX_FILE`: select an individual file
+* `FILEBOX_DIR`: select a directory
+
+`attribs` is an OR'd bitmask consisting of one or more of the following options:
+
+* `ATTRIB_READONLY`: do not include read-only files
+* `ATTRIB_HIDDEN`: do not include hidden files
+* `ATTRIB_SYSTEM`: do not include system files
+* `ATTRIB_VOLUME`: do not include volume information files (recommended)
+* `ATTRIB_DIR`: do not include directories
+* `ATTRIB_ARCHIVE`: do not include archived files
+
+`entries` specifies the maximum number of entries (recommended 128) and `buflen` specifies the length of the directory buffer to create (recommended 8000). `modalWin` specifies the address of a `Window` data record that should be declared modal, if any; this window will not be able to be focused until the file selector is closed. If `modalWin` = 0, no window will be declared modal.
+
+Note that SymbOS implements the file selector as a single window shared by all processes; if the file selector cannot be opened because it is already in use by another process, this function will return `FILEBOX_FAILED`.
+
+*Return value*: One of:
+
+* `FILEBOX_OK` (0): the user has selected a file and clicked "OK". The absolute path of the selected file or directory will be stored in the global string `FileBoxPath`.
+* `FILEBOX_CANCEL`: the user canceled file selection.
+* `FILEBOX_FAILED`: another process is already using the file selector.
+* `FILEBOX_NOMEM`: not enough memory available to open the file selector.
+* `FILEBOX_NOWIN`: no window ID is available to open the file selector.
+
+*SymbOS name*: `Dialogue_FileSelector_Command` (`MSC_SYS_SELOPN`)
+
 ### Menu_Context()
 
 ```c
@@ -1073,6 +1171,273 @@ Shell_PathAdd(_symbank, "A:\ARCHIVE", "C:\SYMBOS", abspath);
 
 *SymbOS name*: `SymShell_PathAdd_Command` (`MSC_SHL_PTHADD`).
 
+## Process management
+
+SymbOS makes a distinction between an *application ID*, which is associated with a single application, and a *process ID*, which is associated with a single process. An application may potentially open multiple processes, although most do not. *Pay close attention to which is required by a given function!*
+
+### App_Run()
+
+```c
+unsigned short App_Run(char bank, char* path, char suppress);
+```
+
+Runs the app whose absolute path is at bank `bank`, address `path`. If `suppress` = 1, any errors that occur during loading will be supressed; otherwise, they will appear in a message box. If the path points to a non-executable file of a known type (such as `.txt`), it will be opened with its associated application, exactly like double-clicking it in SymCommander.
+
+*Return value*: On success, returns the application ID as the low byte and the process ID of the application's main process as the high byte. These can be extracted with:
+
+```c
+appid = result & 0xFF;
+procid = result >> 8;
+```
+
+The process ID will always be greater than 3, so if the return value is greater than 3, the app was opened successfully.
+
+On failure, returns an error code:
+
+* `APPERR_NOFILE`: the file does not exist.
+* `APPERR_UNKNOWN`: the file is not executable or of a known type.
+* `APPERR_LOAD`: file system error (sets `_fileerr` with error code).
+* `APPERR_NOMEM`: out of memory.
+
+*SymbOS name*: `Program_Run_Command` (`MSC_SYS_PRGRUN`).
+
+### App_End()
+
+```c
+void App_End(char appID);
+```
+
+Forcibly closes the app with the application ID `appID`. SymbOS will close any processes, windows, and other system resources registered to the app, but since it is possible for apps to reserve some resources (particularly file handles and banked memory) without explicitly registering them to the app, memory leaks may occur. (Treat this command like force-killing an application in the Task Manager: safe if we control the app and know exactly what it is doing, but a last-resort otherwise.)
+
+*SymbOS name*: `Program_End_Command` (`MSC_SYS_PRGEND`).
+
+### App_Search()
+
+```c
+unsigned short App_Search(char bank, char* idstring);
+```
+
+Searches for the running application with the first 12 bytes of the internal application name matching the string at bank `bank`, address `idstring`. (This is the application name listed in the Task Manager and which can be set with the `-N` command-line option to `cc`.) This function is mainly used for determining the process IDs of shared services such as network drivers so we can send messages to them.
+
+*Return value*: If a matching app has been found, returns the application ID as the low byte and the process ID of the application's main process as the high byte. These can be extracted with:
+
+```c
+appid = result & 0xFF;
+procid = result >> 8;
+```
+
+If no matching app can be found, returns 0.
+
+*SymbOS name*: `Program_SharedService_Command` (`MSC_SYS_PRGSRV`).
+
+### App_Service()
+
+```c
+unsigned short App_Service(char bank, char* idstring);
+```
+
+Similar to `App_Search()`, but used to connect with system shared services. The behavior is identical to `App_Search`, with two differences:
+
+1) If the specified app is not currently running, SymbOS will attempt to start it from the system path. The `idstring` must have the exact format `%NNNNNNNN.EE` (`%`, eight ASCII characters for the filename, `.`, and two ASCII characters for the first part of the extension). The last character will be filled in automatically based on the current system type:
+
+* `C` for Amstrad CPC
+* `P` for Amstrad PCW
+* `M` for MSX
+
+For example, if the system path were `C:\SYMBOS` and the system were an Amstrad CPC, `App_Service(_symbank, "%GAMEDRVR.EX")` would try to load `C:\SYMBOS\GAMEDRVR.EXC`.
+
+2) After the app is successfully located or started, an internal counter will be incremented that indicates how many apps are using the service. This allows SymbOS to automatically decide whether the service is still being used and should remain open. (We can unregister with the service with `App_Release()`.)
+
+*Return value*: If the application could be found or was successfully loaded, returns the application ID as the low byte and the process ID of the application's main process as the high byte. These can be extracted with:
+
+```c
+appid = result & 0xFF;
+procid = result >> 8;
+```
+
+The process ID will always be greater than 3, so if the return value is greater than 3, the app was found or opened successfully.
+
+If the application could not be found or was not successfully loaded, returns an error code:
+
+* `APPERR_NOFILE`: the file does not exist.
+* `APPERR_UNKNOWN`: the file is not executable or of a known type.
+* `APPERR_LOAD`: file system error (sets `_fileerr` with error code).
+* `APPERR_NOMEM`: out of memory.
+
+*SymbOS name*: `Program_SharedService_Command` (`MSC_SYS_PRGSRV`).
+
+## App_Release()
+
+```c
+void App_Release(char appID);
+```
+
+Decrements the service counter incremented by `App_Service()`, so SymbOS knows when the shared service is no longer being used and can be closed. The parameter `appID` specifies the application ID of the service app to release.
+
+*SymbOS name*: `Program_SharedService_Command` (`MSC_SYS_PRGSRV`).
+
+## Proc_Add()
+
+```c
+signed char Proc_Add(unsigned char bank, void* header, unsigned char priority);
+```
+
+Launches a new process based on the information given in bank `bank`, address `header`. The process will be started with the priority `priority`, from 1 (highest) to 7 (lowest). The standard priority for application is 4.
+
+Usually if we just want to run an executable file from disk, we should use [`App_Run()`](#app-run), not `Proc_Add()`. This function is for a lower-level operation, starting a new process running code we have already defined in memory. This may be code we have loaded from a file, or even part of our application's own main code, meaning that **we can use `Proc_Add()` to implement multithreading.** (See below for examples.)
+
+`header` must point to a data structure in the **transfer** segment with the struct type `ProcHeader`:
+
+```c
+typedef struct {
+	unsigned short ix;  // initial value of IX register pair
+	unsigned short iy;  // initial value of IY register pair
+	unsigned short hl;  // initial value of HL register pair
+	unsigned short de;  // initial value of DE register pair
+	unsigned short bc;  // initial value of BC register pair
+	unsigned short af;  // initial value of AF register pair
+	void* startAddr;    // address of routine to run
+	unsigned char pid;  // process ID, set by kernel
+} ProcHeader;
+```
+
+In addition, when the process is launched, its internal stack will begin at the address immediately before this header and grow downwards. So, we must define space for the stack immediately before the header in the **transfer** segment. `startAddr` can be an absolute address, or (as in the example below) the address of a `void` function in our own main code to run as a separate thread. Example:
+
+```c
+char threadID;
+
+void threadfunc(void) {
+	/* ... thread code, do something here ... */
+	Proc_Delete(threadID); // end the thread's process (rather than returning)
+}
+
+_transfer char procstack[256];
+_transfer ProcHeader threadhead = {0, 0, 0, 0, 0, 0, // initial register values
+                                   threadfunc};      // address of routine to run
+								 
+int main(int argc, char* argv[]) {
+	threadID = Proc_Add(_symbank, &threadhead, 4);
+	/* ... */
+}
+```
+
+Congratulations! Multithreading! Now we just have to worry about all the other problems that come with multithreading (race conditions, deadlocks, concurrent access, reentrancy, SymShell not knowing your thread's process ID...) In particular, some libc functions and most system call wrappers are NOT reentrant; most system calls share the same static buffer `_symmsg` for passing messages, so trying to run multiple system calls at the same time on different threads is a recipe for trouble. When in doubt, check the library source code to verify that a function does not rely on any static/global variables, or write your own reentrant substitute (e.g., using only local variables, or with a semaphore system that sets a global variable when the shared resource is being used and, if it is already set, loops until it is unset by whatever other thread is using the resource). Any use of 32-bit data types (**long**, **float**, **double**) is also currently not thread-safe, as these internally rely on static "extended" registers.
+
+*Return value*: On success, returns the process ID of the newly launched process. On failure, returns -1.
+
+*SymbOS name*: `Multitasking_Add_Process_Command` (`MSC_KRL_MTADDP`).
+
+## Proc_Delete()
+
+```c
+void Proc_Delete(unsigned char pid);
+```
+
+Forcibly stops execution of the process with the process ID `pid`. (This is most useful for processes we have launched ourselves with `Proc_Add()`; for stopping an entire application and freeing its resources, see [`App_End()`](#app-end).)
+
+*SymbOS name*: `Multitasking_Delete_Process_Command` (`MSC_KRL_MTDELP`).
+
+## Proc_Sleep()
+
+```c
+void Proc_Sleep(unsigned char pid);
+```
+
+Forcibly puts the process with the process ID `pid` into "sleep" mode. It will not continue execution until it receives a message or is woken up by another system function (such as `Proc_Wake()`).
+
+*SymbOS name*: `Multitasking_Sleep_Process_Command` (`MSC_KRL_MTSLPP`).
+
+## Proc_Wake()
+
+```c
+void Proc_Wake(unsigned char pid);
+```
+
+Wakes up the process with the process ID `pid` from "sleep" mode.
+
+*SymbOS name*: `Multitasking_Sleep_Process_Command` (`MSC_KRL_MTSLPP`).
+
+## Proc_Priority()
+
+```c
+void Proc_Priority(unsigned char pid, unsigned char priority);
+```
+
+Sets the scheduler priority of the process with the process ID `pid` to `priority`, which may be from 1 (highest) to 7 (lowest). The default priority is usually 4. A process is allowed to change its own priority.
+
+*SymbOS name*: `Multitasking_Sleep_Process_Command` (`MSC_KRL_MTSLPP`).
+
+## Timer management
+
+SymbOS implements two types of clock events that fire at regular intervals: **counters** and **timers**. These can be used in cases where we need something to occur at regular intervals of real time (such as movement in a game), rather than at regular intervals of CPU time.
+
+A **counter** is the simplest method. A byte in memory can be registered as a counter, after which it will be incremented automatically from 1 to 50 times per second. We can then check the value of this byte regularly, and if it has changed, perform whatever action needs to be done.
+
+A **timer** is more complicated. It is essentially a new process that is only given CPU time for brief, regular intervals every 1/50th or 1/60th of a second (depending on the screen vsync frequency of the platform). See `Timer_Add()` and `Proc_Add()` for details on how to define this process.
+
+## Counter_Add()
+
+```c
+unsigned char Counter_Add(unsigned char bank, char* addr, unsigned char pid, unsigned char speed);
+```
+
+Registers a new **counter** byte at bank `bank`, address `addr`, incrementing every `speed`/50 seconds. (For example, to increment the counter twice per second, set `speed` = 25, because 25/50 = 0.5 seconds) The process ID `pid` is the process to register this counter with (usually our own, `_sympid`).
+
+*Return value*: On success, returns 0. On failure, returns 1.
+
+*SymbOS name*: `Timer_Add_Counter_Command` (`MSC_KRL_TMADDT`).
+
+## Counter_Delete()
+
+```c
+void Counter_Delete(unsigned char bank, char* addr);
+```
+
+Unregisters the **counter** byte at bank `bank`, address `addr` so it no longer increments automatically.
+
+*SymbOS name*: `Timer_Delete_Counter_Command` (`MSC_KRL_TMDELT`).
+
+## Counter_Clear()
+
+```c
+void Counter_Clear(unsigned char pid);
+```
+
+Unregisters all **counter** bytes associated with the process ID *pid*.
+
+*SymbOS name*: `Timer_Delete_AllProcessCounters_Command` (`MSC_KRL_TMDELP`).
+
+## Timer_Add()
+
+```c
+signed char Timer_Add(unsigned char bank, void* header);
+```
+
+Behaves identically to `Proc_Add()`, but launches the new process as a **timer**. (See [`Proc_Add()`](#proc-add) for details on how a new process is implemented.) The timer code should ideally be short to ensure that it can fully complete in the allotted time, even under higher CPU load. Typically, we want to implement the timer code as a short loop that ends by calling `Idle()`; the timer process will then execute the loop contents, finish, go to sleep, and be woken up 1/50th of a second later for another pass through the loop:
+
+```c
+void timer_loop(void) {
+	while (1) {
+		/* ... do something here ... */
+		Idle();
+	}
+}
+```
+
+*Return value*: On success, returns the timer ID needed to stop the timer later with `Timer_Delete()`. On failure, returns -1.
+
+*SymbOS name*: `Multitasking_Add_Timer_Command` (`MSC_KRL_MTADDT`).
+
+## Timer_Delete()
+
+```c
+void Timer_Delete(unsigned char id);
+```
+
+Stops execution of a timer previously launched by `Timer_Add()`. The parameter `id` is the timer ID returned by `Timer_Add()`.
+
+*SymbOS name*: `Multitasking_Delete_Timer_Command` (`MSC_KRL_MTDELT`).
+
 ## Clipboard functions
 
 ### Clip_Put()
@@ -1143,7 +1508,7 @@ Remove the icon with the ID `id` from the system tray.
 
 *SymbOS name*: `SystrayIcon_Remove_Command` (`MSC_DSK_STTREM`).
 
-## Reference
+## Reference tables
 
 ### Keyboard scancodes
 
@@ -1170,18 +1535,42 @@ Remove the icon with the ID `id` from the system tray.
 
 | Code | Code | Code | Code |
 | ---- | ---- | ---- | ---- |
-| `KEY_UP` | `KEY_FDOT` | `KEY_ALT_M` | `KEY_ALT_0` |
-| `KEY_DOWN` | `KEY_ALT_AT` | `KEY_ALT_N` | `KEY_ALT_1` |
-| `KEY_LEFT` | `KEY_ALT_A` | `KEY_ALT_O` | `KEY_ALT_2` |
-| `KEY_RIGHT` | `KEY_ALT_B` | `KEY_ALT_P` | `KEY_ALT_3` |
-| `KEY_F0` | `KEY_ALT_C` | `KEY_ALT_Q` | `KEY_ALT_4` |
-| `KEY_F1` | `KEY_ALT_D` | `KEY_ALT_R` | `KEY_ALT_5` |
-| `KEY_F2` | `KEY_ALT_E` | `KEY_ALT_S` | `KEY_ALT_6` |
-| `KEY_F3` | `KEY_ALT_F` | `KEY_ALT_T` | `KEY_ALT_7` |
-| `KEY_F4` | `KEY_ALT_G` | `KEY_ALT_U` | `KEY_ALT_8` |
-| `KEY_F5` | `KEY_ALT_H` | `KEY_ALT_V` | `KEY_ALT_9` |
-| `KEY_F6` | `KEY_ALT_I` | `KEY_ALT_W` |  |
-| `KEY_F7` | `KEY_ALT_J` | `KEY_ALT_X` |  |
-| `KEY_F8` | `KEY_ALT_K` | `KEY_ALT_Y` |  |
-| `KEY_F9` | `KEY_ALT_L` | `KEY_ALT_Z` |  |
+| `KEY_UP`    | `KEY_TAB`    | `KEY_ALT_M` | `KEY_ALT_0` |
+| `KEY_DOWN`  | `KEY_ALT_AT` | `KEY_ALT_N` | `KEY_ALT_1` |
+| `KEY_LEFT`  | `KEY_ALT_A`  | `KEY_ALT_O` | `KEY_ALT_2` |
+| `KEY_RIGHT` | `KEY_ALT_B`  | `KEY_ALT_P` | `KEY_ALT_3` |
+| `KEY_F0`    | `KEY_ALT_C`  | `KEY_ALT_Q` | `KEY_ALT_4` |
+| `KEY_F1`    | `KEY_ALT_D`  | `KEY_ALT_R` | `KEY_ALT_5` |
+| `KEY_F2`    | `KEY_ALT_E`  | `KEY_ALT_S` | `KEY_ALT_6` |
+| `KEY_F3`    | `KEY_ALT_F`  | `KEY_ALT_T` | `KEY_ALT_7` |
+| `KEY_F4`    | `KEY_ALT_G`  | `KEY_ALT_U` | `KEY_ALT_8` |
+| `KEY_F5`    | `KEY_ALT_H`  | `KEY_ALT_V` | `KEY_ALT_9` |
+| `KEY_F6`    | `KEY_ALT_I`  | `KEY_ALT_W` | `KEY_BACK`  |
+| `KEY_F7`    | `KEY_ALT_J`  | `KEY_ALT_X` | `KEY_DEL`   |
+| `KEY_F8`    | `KEY_ALT_K`  | `KEY_ALT_Y` | `KEY_ENTER` |
+| `KEY_F9`    | `KEY_ALT_L`  | `KEY_ALT_Z` | `KEY_ESC`   |
+| `KEY_FDOT`  |              |             |             |
+
+### Colors
+
+International English synonyms (`COLOUR`, `GREY`) are also available.
+
+| Value | 4-color   | 16-color      |
+| ---- | ---------- | ------------- |
+|  0 | COLOR_YELLOW | COLOR_YELLOW  |
+|  1 | COLOR_BLACK  | COLOR_BLACK   |
+|  2 | COLOR_ORANGE | COLOR_ORANGE  |
+|  3 | COLOR_RED    | COLOR_RED     |
+|  4 |              | COLOR_CYAN    |
+|  5 |              | COLOR_DBLUE   |
+|  6 |              | COLOR_LBLUE   |
+|  7 |              | COLOR_BLUE    |
+|  8 |              | COLOR_WHITE   |
+|  9 |              | COLOR_GREEN   |
+| 10 |              | COLOR_LGREEN  |
+| 11 |              | COLOR_MAGENTA |
+| 12 |              | COLOR_LYELLOW |
+| 13 |              | COLOR_GRAY    |
+| 14 |              | COLOR_PINK    |
+| 15 |              | COLOR_LRED    |
 

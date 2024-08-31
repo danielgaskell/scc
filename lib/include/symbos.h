@@ -12,6 +12,37 @@
 #define COLOR_BLACK 1
 #define COLOR_ORANGE 2
 #define COLOR_RED 3
+#define COLOR_CYAN 4
+#define COLOR_DBLUE 5
+#define COLOR_LBLUE 6
+#define COLOR_BLUE 7
+#define COLOR_WHITE 8
+#define COLOR_GREEN 9
+#define COLOR_LGREEN 10
+#define COLOR_MAGENTA 11
+#define COLOR_LYELLOW 12
+#define COLOR_GRAY 13
+#define COLOR_GREY 13
+#define COLOR_PINK 14
+#define COLOR_LRED 15
+
+#define COLOUR_YELLOW 0
+#define COLOUR_BLACK 1
+#define COLOUR_ORANGE 2
+#define COLOUR_RED 3
+#define COLOUR_CYAN 4
+#define COLOUR_DBLUE 5
+#define COLOUR_LBLUE 6
+#define COLOUR_BLUE 7
+#define COLOUR_WHITE 8
+#define COLOUR_GREEN 9
+#define COLOUR_LGREEN 10
+#define COLOUR_MAGENTA 11
+#define COLOUR_LYELLOW 12
+#define COLOUR_GRAY 13
+#define COLOUR_GREY 13
+#define COLOUR_PINK 14
+#define COLOUR_LRED 15
 
 #define BUTTON_OK 1
 #define BUTTON_YN 2
@@ -24,10 +55,22 @@
 #define MSGBOX_MODAL 64
 #define MSGBOX_ICON 128
 
+#define MSGBOX_FAILED 0
+#define MSGBOX_OK 2
+#define MSGBOX_YES 3
+#define MSGBOX_NO 4
+#define MSGBOX_CANCEL 5
+
 #define FILEBOX_OPEN 0
 #define FILEBOX_SAVE 64
 #define FILEBOX_FILE 0
 #define FILEBOX_DIR 128
+
+#define FILEBOX_OK 0
+#define FILEBOX_CANCEL 1
+#define FILEBOX_FAILED 2
+#define FILEBOX_NOMEM 3
+#define FILEBOX_NOWIN 4
 
 #define ATTRIB_READONLY 1
 #define ATTRIB_HIDDEN 2
@@ -224,6 +267,11 @@
 #define ERR_MOREPROC 11
 #define ERR_NOSHELL 10
 
+#define APPERR_NOFILE 0
+#define APPERR_UNKNOWN 1
+#define APPERR_LOAD 2
+#define APPERR_NOMEM 3
+
 #define WIN_CLOSED 0
 #define WIN_NORMAL 1
 #define WIN_MAXIMIZED 2
@@ -248,9 +296,14 @@
 #define ALIGN_LEFT 0
 #define ALIGN_RIGHT 1
 #define ALIGN_CENTER 2
-#define TEXT_FILL 64
+#define TEXT_FILL 128
+#define TEXT_FILL16 64
 #define TEXT_16COLOR 128
+#define TEXT_16COLOUR 128
 #define AREA_FILL 64
+#define AREA_XOR 64
+#define AREA_16COLOR 128
+#define FRAME_XOR 32
 
 #define C_AREA 0
 #define C_TEXT 1
@@ -469,6 +522,7 @@ extern unsigned short Clip_Len(void);
 extern unsigned long Sys_Counter(void);
 extern unsigned short Sys_IdleCount(void);
 
+#define ScreenColours(x) ScreenColors(x)
 extern unsigned char Screen_Mode(void);
 extern unsigned char Screen_Colors(void);
 extern unsigned short Screen_Width(void);
@@ -491,24 +545,40 @@ extern unsigned char Text_Height(unsigned char bank, char* addr, int maxlen);
 /* ========================================================================== */
 /* System Manager                                                             */
 /* ========================================================================== */
-extern char Timer_Add(unsigned char bank, char* stack);
+typedef struct {
+	unsigned short ix;
+	unsigned short iy;
+	unsigned short hl;
+	unsigned short de;
+	unsigned short bc;
+	unsigned short af;
+	void* startAddr;
+	unsigned char pid;
+} ProcHeader;
+
+extern signed char Timer_Add(unsigned char bank, void* header);
 extern void Timer_Delete(unsigned char id);
 extern unsigned char Counter_Add(unsigned char bank, char* addr, unsigned char pid, unsigned char speed);
 extern void Counter_Delete(unsigned char bank, char* addr);
 extern void Counter_Clear(unsigned char pid);
+extern signed char Proc_Add(unsigned char bank, void* header, unsigned char priority);
+extern void Proc_Delete(unsigned char pid);
 extern void Proc_Sleep(unsigned char pid);
 extern void Proc_Wake(unsigned char pid);
 extern void Proc_Priority(unsigned char pid, unsigned char priority);
-extern unsigned short Prog_Run(char bank, char* path, char suppress);
-extern void Prog_End(char appID);
-extern unsigned short Prog_Search(char bank, char* idstring);
-extern unsigned short Prog_SearchStart(char bank, char* idstring);
-extern void Prog_Release(char bank, char* idstring);
+extern unsigned short App_Run(char bank, char* path, char suppress);
+extern void App_End(char appID);
+extern unsigned short App_Search(char bank, char* idstring);
+extern unsigned short App_Service(char bank, char* idstring);
+extern void App_Release(char appID);
+
+extern char FileBoxExt[4];
+extern char FileBoxPath[256];
 
 extern unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen,
-                            unsigned char type, char* icon);
-extern unsigned char FileBox(unsigned char winID, unsigned char flags, unsigned char attribs,
-                             unsigned char bank, char* buffer);
+                            unsigned char type, char* icon, void* modalWin);
+extern unsigned char FileBox(char* path, char* filter, unsigned char flags, unsigned char attribs,
+                             unsigned short entries, unsigned short bufsize, void* modalWin);
 
 extern unsigned char File_Command(void);
 extern unsigned char File_New(unsigned char bank, char* path, unsigned char attrib);
@@ -575,7 +645,9 @@ extern void Systray_Remove(unsigned char id);
 extern char Select_Pos(unsigned short* x, unsigned short* y, unsigned short w, unsigned short h);
 extern char Select_Size(unsigned short x, unsigned short y, unsigned short* w, unsigned short* h);
 extern void Desk_SetMode(char mode);
+#define Desk_GetColour(x) Desk_GetColor(x)
 extern unsigned short Desk_GetColor(char color);
+#define Desk_SetColour(x, y) Desk_SetColor(x, y)
 extern void Desk_SetColor(char color, unsigned short value);
 extern void Desk_Redraw_Back(void);
 extern void Desk_Redraw_All(void);
@@ -672,7 +744,7 @@ typedef struct {
     char* text;
     unsigned char color;
     unsigned char color2;
-} Ctrl_Frame;
+} Ctrl_TFrame;
 
 typedef struct {
     char* text;
@@ -826,6 +898,15 @@ typedef struct {
     unsigned char flags;
     unsigned char unused2;
 } List_Title;
+
+typedef struct {
+    unsigned char bytew;
+    unsigned char h;
+    unsigned char w;
+    char* addrData;
+    char* addrEncoding;
+    unsigned short len;
+} Img_Header;
 
 /* ========================================================================== */
 /* SymShell                                                                   */

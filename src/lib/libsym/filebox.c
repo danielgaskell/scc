@@ -1,25 +1,31 @@
 #include <symbos.h>
 
-// returns: 0 on success, other errors as documented
-unsigned char FileBox(unsigned char winID, unsigned char flags, unsigned char attribs, unsigned char bank, char* buffer) {
+_transfer char FileBoxExt[4];
+_transfer char FileBoxPath[256];
+
+unsigned char FileBox(char* path, char* filter, unsigned char flags, unsigned char attribs, unsigned short entries, unsigned short bufsize, void* modalWin) {
+    // format path buffer as expected
+    strcpy(FileBoxExt, filter);
+    strcpy(FileBoxPath, path);
+
+    // send message
     _symmsg[0] = 31;
-    _symmsg[6] = flags | bank;
+    _symmsg[6] = flags | _symbank;
     _symmsg[7] = attribs;
-    *((char**)(_symmsg + 8)) = (char*)&buffer;
-    _symmsg[10] = 0x80; // 128 entries
-    _symmsg[11] = 0;
-    _symmsg[12] = 0;    // 8k buffer
-    _symmsg[13] = 0x20;
+    *((char**)(_symmsg + 8)) = FileBoxExt;
+    *((unsigned short*)(_symmsg + 10)) = entries;
+    *((unsigned short*)(_symmsg + 12)) = bufsize;
     Msg_Send(_sympid, 3, _symmsg);
     while (_symmsg[0] != 159)
         Msg_Sleep(_sympid, 3, _symmsg);
-    if (_symmsg[1] != -1)       // initial open failed
+    if (_symmsg[1] != 255)       // initial open failed
         return _symmsg[1];
-    if (winID) {
-        // FIXME set as modal, then unset
-    }
+    if (modalWin)
+        ((Window*)modalWin)->modal = _symmsg[2];
     _symmsg[0] = 0;
     while (_symmsg[0] != 159)   // wait for result
         Msg_Sleep(_sympid, 3, _symmsg);
+    if (modalWin)
+        ((Window*)modalWin)->modal = 0;
     return _symmsg[1];
 }

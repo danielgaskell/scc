@@ -12,8 +12,10 @@ typedef struct {
 
 _transfer MSGBOX _msgbox;
 
-unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, unsigned char type, char* icon) {
+unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, unsigned char type, char* icon, void* modalWin) {
     pen = pen*4 + 2;
+    if (modalWin)
+        type |= MSGBOX_MODAL;
     _msgbox.line1 = line1;
 	_msgbox.pen1 = pen;
 	_msgbox.line2 = line2;
@@ -28,5 +30,12 @@ unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, un
 	Msg_Send(_sympid, 3, _symmsg);
     while (_symmsg[0] != 157)
         Msg_Sleep(_sympid, 3, _symmsg);
+    if (modalWin != 0 && _symmsg[1] == 1) {
+        ((Window*)modalWin)->modal = _symmsg[2];
+        _symmsg[0] = 0;
+        while (_symmsg[0] != 157)
+            Msg_Sleep(_sympid, 3, _symmsg);
+        ((Window*)modalWin)->modal = 0;
+    }
     return _symmsg[1];
 }

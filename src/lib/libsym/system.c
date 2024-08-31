@@ -6,7 +6,7 @@
 void _Sys_Msg(void)  { Msg_Send (_sympid, 3, _symmsg); }
 void _Sys_Wait(void) { Msg_Sleep(_sympid, 3, _symmsg); }
 
-unsigned short Prog_Run(char bank, char* path, char suppress) {
+unsigned short App_Run(char bank, char* path, char suppress) {
     if (suppress)
         bank |= 0x80;
     _symmsg[0] = 16;
@@ -17,16 +17,18 @@ unsigned short Prog_Run(char bank, char* path, char suppress) {
         _Sys_Wait();
     if (_symmsg[1] == 0)
         return *((unsigned short*)(_symmsg + 8)); // includes both pid and appid!
+    if (_symmsg[1] == 3)
+        _fileerr = _symmsg[8] + 16;
     return _symmsg[1] - 1; // note: -1 from documented codes
 }
 
-void Prog_End(char appID) {
+void App_End(char appID) {
     _symmsg[0] = 17;
     _symmsg[1] = appID;
     _Sys_Msg();
 }
 
-unsigned short Prog_Search(char bank, char* idstring) {
+unsigned short App_Search(char bank, char* idstring) {
     _symmsg[0] = 30;
     *((char**)(_symmsg + 1)) = idstring;
     _symmsg[3] = bank;
@@ -39,7 +41,7 @@ unsigned short Prog_Search(char bank, char* idstring) {
     return 0;
 }
 
-unsigned short Prog_SearchStart(char bank, char* idstring) {
+unsigned short App_Service(char bank, char* idstring) {
     _symmsg[0] = 30;
     *((char**)(_symmsg + 1)) = idstring;
     _symmsg[3] = bank;
@@ -52,10 +54,9 @@ unsigned short Prog_SearchStart(char bank, char* idstring) {
     return _symmsg[1] - 1; // note: -1 from documented codes
 }
 
-void Prog_Release(char bank, char* idstring) {
+void App_Release(char appID) {
     _symmsg[0] = 30;
-    *((char**)(_symmsg + 1)) = idstring;
-    _symmsg[3] = bank;
+    _symmsg[3] = appID;
     _symmsg[4] = 2;
     _Sys_Msg();
     while (_symmsg[0] != 158)

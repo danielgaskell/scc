@@ -1,4 +1,3 @@
-
 # SymbOS programming
 
 ## Console applications
@@ -323,6 +322,250 @@ That's it, our first windowed application! (The complete code for this demo is a
 A reference guide to the available controls and events is below, as well as information on how to accomplish some more complicated effects. See also the [System Call Reference](syscalls.md#window-management) for additional commands that can be sent to the desktop manager.
 
 ### Control reference
+
+#### C_AREA
+
+Displays a rectangular area filled with the specified color.
+
+*Control type*: `C_AREA`.
+
+*Parameter*: Color, e.g., `COLOR_ORANGE`. The parameter may optionally be OR'd with `AREA_16COLOR` (to enable 16-color mode) and `AREA_XOR` (to enable XOR mode, to be used only with 16-color mode): e.g., `COLOR_WHITE | AREA_16COLOR`.
+
+```c
+// example
+c_area1.param = COLOR_WHITE | AREA_16COLOR;
+```
+
+#### C_TEXT
+
+Displays a line of text in the default system font.
+
+*Control type*: `C_TEXT`.
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    char* text;           // address of text
+    unsigned char color;  // 4-color mode:  (foreground << 2) | background
+	                      // 16-color mode: (foreground << 4) | background
+    unsigned char flags;  // one of: ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT
+	                      //   OR with TEXT_16COLOR for 16-color mode
+} Ctrl_Text;
+```
+
+In "fill" mode, the background of the control is first filled in with the specified background color and the text is clipped to the size of the control rather than being allowed to overflow. To activate this mode in 4-color mode, OR `.color` with `TEXT_FILL`: e.g., `(COLOR_BLACK << 2) | COLOR_ORANGE | TEXT_FILL`. To activate this mode in 16-color mode, OR `.flags` with `TEXT_FILL16`: e.g., `ALIGN_LEFT | TEXT_16COLOR | TEXT_FILL16`.
+
+```c
+// example
+_transfer Ctrl_Text = {"Text", (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_LEFT};
+```
+
+#### C_TEXT_FONT
+
+Displays a line of text in an alternative font.
+
+*Control type*: `C_TEXT_FONT`.
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    char* text;           // address of text
+    unsigned char color;  // 4-color mode:  (foreground << 2) | background
+	                      // 16-color mode: (foreground << 4) | background
+    unsigned char flags;  // one of: ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT
+	                      //   OR with TEXT_16COLOR for 16-color mode
+	char* font;           // address of font
+} Ctrl_Text_Font;
+```
+
+The control height should be equal to the height of the font, and the font data must be stored in the same 16KB bank as the text (usually the **data** segment). A description of the font format can be found in the SymbOS Developer Documentation; fonts can be created using the SymbOS Font Editor application.
+
+```c
+// example
+_data char fontbuf[1538]; // a font would be loaded into this buffer
+_transfer Ctrl_Text_Font = {"Text", (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_LEFT, fontbuf};
+```
+
+#### C_TEXT_CTRL
+
+Displays a line of "rich" text with optional control codes that can change the appearance of the text mid-line.
+
+*Control type*: `C_TEXT_CTRL`.
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    char* text;              // address of text
+    unsigned short maxlen;   // maximum length (in bytes) of the text
+    char* font;              // address of starting font (-1 for default)
+    unsigned char color;     // (foreground << 4) | background
+    unsigned char underline; // 1 = start with underline on
+} Ctrl_Text_Ctrl;
+```
+
+The following control bytes can be included in the text string:
+
+* 0x00 = end of string
+* 0x01 0xNN = change text color, where NN is (foreground << 4) | background
+* 0x02 0xNNNN = change font, where NNNN is the address of the font, or -1 for the default font. The font must be in the same 16KB segment as the text (usually the **data** segment).
+* 0x03 = switch underlining on
+* 0x04 = switch underlining off
+* 0x05 0xNN = insert NN pixels of extra space before the next character
+* 0x08 to 0x0B = skip next (code - 8) * 2 + 1 bytes
+* 0x0C to 0x1F = insert (code - 8) pixels of extra space before the next character
+
+#### C_FRAME
+
+Displays a rectangular frame.
+
+*Control type*: `C_FRAME`.
+
+*Parameter*: Color and flags:
+
+* 4-color mode: `(area_color << 4) | (lower_right_color << 2) | upper_left_color`; OR with `AREA_FILL` to fill interior.
+* 16-color mode: `(lower_right_color << 12) | (upper_right_color << 8) | area_color | AREA_16COLOR`; OR with `AREA_FILL` to fill interior.
+
+An optional XOR mode inverts the colors underneath the control, like a rubber-band selection. In XOR mode, the parameter is `FRAME_XOR | AREA_16COLOR`.
+
+```c
+// example
+c_frame1.param = (COLOR_YELLOW << 4) | (COLOR_BLACK << 2) | COLOR_BLACK | AREA_FILL;
+```
+
+#### C_TFRAME
+
+Displays a rectangular frame with a line of text at the top.
+
+*Control type*: `C_TFRAME`.
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    char* text;           // address of text
+    unsigned char color;  // 4-color mode:  (foreground << 2) | background
+	                      // 16-color mode: line color
+						  //   OR with AREA_16COLOR for 16-color mode
+    unsigned char color2; // 16-color mode only: (foreground << 2) | background
+} Ctrl_TFrame;
+```
+
+```c
+// example
+_transfer Ctrl_TFrame = {"Title", COLOR_BLACK | AREA_16COLOR, (COLOR_BLACK << 2) | COLOR_LBLUE};
+```
+
+#### C_PROGRESS
+
+Displays a progress bar.
+
+*Control type*: `C_PROGRESS`.
+
+*Parameter*: Color and progress: `(progress << 8) | (empty_color << 6) | (filled_color << 4) | (lower_right_color << 2) | upper_left_color`. Progress is measured from 0 (empty) to 255 (full).
+
+```c
+// example
+c_progress1.param = (119 << 8) | (COLOR_ORANGE << 6) | (COLOR_RED << 4) | (COLOR_BLACK << 2) | COLOR_BLACK;
+```
+
+#### C_IMAGE
+
+Displays an image (4-color SGX format only).
+
+*Control type*: `C_IMAGE`.
+
+*Parameter*: Address of the image data. 
+
+```c
+// example
+char imgbuf[256];
+c_image1.param = (unsigned short)imgbuf;
+```
+
+#### C_IMAGE_EXT
+
+Displays an image with an extended graphics header.
+
+*Control type*: `C_IMAGE_EXT`.
+
+*Parameter*: Address of the extended graphics header. Extended graphics are complicated, but allow plotting 16-color images and breaking up an image that is larger than 256 pixels wide/tall into multiple blocks that can be displayed side by side. The details of the graphics format are described in the SymbOS Developer Documentation; SCC provides a struct type, `Img_Header`, to implement the header itself:
+
+```
+typedef struct {
+    unsigned char bytew;  // width of the complete graphic in bytes (must be even)
+    unsigned char h;      // height of this block in pixels
+    unsigned char w;      // width of this block in pixels
+    char* addrData;       // address of graphic data + offset`
+    char* addrEncoding;   // address of encoding byte at the start of the whole graphic
+    unsigned short len;   // size of the complete graphic in bytes
+} Img_Header;
+```
+
+```c
+// example
+Img_Header imghead;
+c_image_ext1.param = (unsigned short)&imghead;
+```
+
+#### C_IMAGE_TRANS
+
+Same as `C_IMAGE_EXT`, except that color 0 will be transparent.
+
+*Control type*: `C_IMAGE_EXT`.
+
+*Parameter*: Address of the extended graphics header, as above.
+
+#### C_IMAGE_ICON
+
+#### C_BUTTON
+
+Displays a button.
+
+*Control type*: `C_BUTTON`.
+
+*Parameter*: Address of the button text.
+
+Control height must always be 12.
+
+```c
+// example
+c_button1.param = (unsigned short)"OK";
+```
+
+#### C_RADIO
+
+#### C_CHECK
+
+Displays a checkbox.
+
+*Control type*: `C_CHECK`.
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    char* status;         // address of status byte
+    char* text;           // address of text
+    unsigned char color;  // (foreground << 2) | background
+} Ctrl_Check;
+```
+
+The value of the checkbox (0 = unchecked, 1 = checked) will be stored in the byte pointed to by `status`.
+
+```c
+// example
+char check1 = 0;
+_transfer Ctrl_Check = {&check1, "Label text", (COLOR_BLACK << 2) | COLOR_ORANGE};
+```
+
+#### C_HIDDEN
+
+Nothing will be displayed, but any clicks to the area of the control will be sent as events for this control ID.
+
+*Control type*: `C_HIDDEN`.
 
 ### Event reference
 

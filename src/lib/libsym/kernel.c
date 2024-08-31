@@ -11,9 +11,9 @@ void _Kern_MsgWait(void) {
         Msg_Sleep(_sympid, 1, _symmsg);
 }
 
-char Timer_Add(unsigned char bank, char* stack) {
+signed char Timer_Add(unsigned char bank, void* header) {
     _symmsg[0] = 3;
-    *((char**)(_symmsg + 1)) = stack;
+    *((char**)(_symmsg + 1)) = header;
     _symmsg[4] = bank;
     _Kern_MsgWait();
     if (_symmsg[1] == 1)
@@ -46,6 +46,23 @@ void Counter_Delete(unsigned char bank, char* addr) {
 
 void Counter_Clear(unsigned char pid) {
     _symmsg[0] = 9;
+    _symmsg[1] = pid;
+    _Kern_MsgWait();
+}
+
+signed char Proc_Add(unsigned char bank, void* header, unsigned char priority) {
+    _symmsg[0] = 1;
+    *((char**)(_symmsg + 1)) = header;
+    _symmsg[3] = priority;
+    _symmsg[4] = bank;
+    _Kern_MsgWait();
+    if (_symmsg[1])
+        return -1;
+    return _symmsg[2];
+}
+
+void Proc_Delete(unsigned char pid) {
+    _symmsg[0] = 2;
     _symmsg[1] = pid;
     _Kern_MsgWait();
 }
