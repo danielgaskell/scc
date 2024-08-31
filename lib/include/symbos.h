@@ -304,6 +304,18 @@
 #define AREA_XOR 64
 #define AREA_16COLOR 128
 #define FRAME_XOR 32
+#define ICON_STD 0
+#define ICON_EXT 16
+#define ICON_4COLOR 0
+#define ICON_16COLOR 32
+#define ICON_EXTOPTS 64
+#define ICON_MOVEABLE 128
+#define ICON_MARKABLE 1
+#define ICON_MARKED 2
+#define SLIDER_V 0
+#define SLIDER_H 1
+#define SLIDER_VALUE 0
+#define SLIDER_SCROLL 2
 
 #define C_AREA 0
 #define C_TEXT 1

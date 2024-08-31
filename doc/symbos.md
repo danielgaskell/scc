@@ -327,8 +327,6 @@ A reference guide to the available controls and events is below, as well as info
 
 Displays a rectangular area filled with the specified color.
 
-*Control type*: `C_AREA`.
-
 *Parameter*: Color, e.g., `COLOR_ORANGE`. The parameter may optionally be OR'd with `AREA_16COLOR` (to enable 16-color mode) and `AREA_XOR` (to enable XOR mode, to be used only with 16-color mode): e.g., `COLOR_WHITE | AREA_16COLOR`.
 
 ```c
@@ -339,8 +337,6 @@ c_area1.param = COLOR_WHITE | AREA_16COLOR;
 #### C_TEXT
 
 Displays a line of text in the default system font.
-
-*Control type*: `C_TEXT`.
 
 *Parameter*: Address of extended data record:
 
@@ -358,14 +354,12 @@ In "fill" mode, the background of the control is first filled in with the specif
 
 ```c
 // example
-_transfer Ctrl_Text = {"Text", (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_LEFT};
+_transfer Ctrl_Text cd_text1 = {"Text", (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_LEFT};
 ```
 
 #### C_TEXT_FONT
 
 Displays a line of text in an alternative font.
-
-*Control type*: `C_TEXT_FONT`.
 
 *Parameter*: Address of extended data record:
 
@@ -385,14 +379,12 @@ The control height should be equal to the height of the font, and the font data 
 ```c
 // example
 _data char fontbuf[1538]; // a font would be loaded into this buffer
-_transfer Ctrl_Text_Font = {"Text", (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_LEFT, fontbuf};
+_transfer Ctrl_Text_Font cd_text_font1 = {"Text", (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_LEFT, fontbuf};
 ```
 
 #### C_TEXT_CTRL
 
 Displays a line of "rich" text with optional control codes that can change the appearance of the text mid-line.
-
-*Control type*: `C_TEXT_CTRL`.
 
 *Parameter*: Address of extended data record:
 
@@ -421,8 +413,6 @@ The following control bytes can be included in the text string:
 
 Displays a rectangular frame.
 
-*Control type*: `C_FRAME`.
-
 *Parameter*: Color and flags:
 
 * 4-color mode: `(area_color << 4) | (lower_right_color << 2) | upper_left_color`; OR with `AREA_FILL` to fill interior.
@@ -439,8 +429,6 @@ c_frame1.param = (COLOR_YELLOW << 4) | (COLOR_BLACK << 2) | COLOR_BLACK | AREA_F
 
 Displays a rectangular frame with a line of text at the top.
 
-*Control type*: `C_TFRAME`.
-
 *Parameter*: Address of extended data record:
 
 ```c
@@ -455,14 +443,12 @@ typedef struct {
 
 ```c
 // example
-_transfer Ctrl_TFrame = {"Title", COLOR_BLACK | AREA_16COLOR, (COLOR_BLACK << 2) | COLOR_LBLUE};
+_transfer Ctrl_TFrame cd_tframe1 = {"Title", COLOR_BLACK | AREA_16COLOR, (COLOR_BLACK << 2) | COLOR_LBLUE};
 ```
 
 #### C_PROGRESS
 
 Displays a progress bar.
-
-*Control type*: `C_PROGRESS`.
 
 *Parameter*: Color and progress: `(progress << 8) | (empty_color << 6) | (filled_color << 4) | (lower_right_color << 2) | upper_left_color`. Progress is measured from 0 (empty) to 255 (full).
 
@@ -489,8 +475,6 @@ c_image1.param = (unsigned short)imgbuf;
 
 Displays an image with an extended graphics header.
 
-*Control type*: `C_IMAGE_EXT`.
-
 *Parameter*: Address of the extended graphics header. Extended graphics are complicated, but allow plotting 16-color images and breaking up an image that is larger than 256 pixels wide/tall into multiple blocks that can be displayed side by side. The details of the graphics format are described in the SymbOS Developer Documentation; SCC provides a struct type, `Img_Header`, to implement the header itself:
 
 ```
@@ -498,8 +482,8 @@ typedef struct {
     unsigned char bytew;  // width of the complete graphic in bytes (must be even)
     unsigned char h;      // height of this block in pixels
     unsigned char w;      // width of this block in pixels
-    char* addrData;       // address of graphic data + offset`
-    char* addrEncoding;   // address of encoding byte at the start of the whole graphic
+    char* addrData;       // address of graphic data + offset
+    char* addrEncoding;   // address of encoding byte just before the start of the whole graphic
     unsigned short len;   // size of the complete graphic in bytes
 } Img_Header;
 ```
@@ -514,17 +498,48 @@ c_image_ext1.param = (unsigned short)&imghead;
 
 Same as `C_IMAGE_EXT`, except that color 0 will be transparent.
 
-*Control type*: `C_IMAGE_EXT`.
-
 *Parameter*: Address of the extended graphics header, as above.
 
 #### C_ICON
 
+Displays a 24x24 icon with up to two lines of text below it.
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    char* icon;             // address of standard graphic or extended graphic header
+    char* line1;            // address of first line of text
+    char* line2;            // address of second line of text
+    unsigned char flags;    // 4-color mode:  (foreground_color << 2) | background_color
+    unsigned char color16;  // 16-color mode: (foreground_color << 4) | background_color
+    unsigned char extflags; // extended mode flags
+} Ctrl_Icon;
+```
+
+The following flags can be OR'd with `.flags`:
+
+* `ICON_STD`: `.icon`. points to standard graphics data (4-color SGX)
+* `ICON_EXT`: `.icon` points to extended graphics header (see `C_IMAGE_EXT`)
+* `ICON_4COLOR`: icon is 4-color
+* `ICON_16COLOR`: icon is 16-color (requires `ICON_EXT`)
+* `ICON_MOVEABLE`: icon can be moved by the user
+* `ICON_EXTOPTS`: icon has extended options
+
+When `.flags` includes `ICON_EXTOPTS`, the following flags can be OR'd with `.extflags`:
+
+* `ICON_MARKABLE`: icon can be marked (selected) by user
+* `ICON_MARKED`: icon is currently marked (selected) by user
+
+```c
+// example
+_data char imgdata[198]; // store an icon image here
+_transfer Ctrl_Icon cd_icon1 = {imgdata, "Line 1", "Line 2", (COLOR_BLACK << 2) | COLOR_YELLOW | ICON_STD | ICON_4COLOR};
+```
+
 #### C_BUTTON
 
 Displays a button. Control height must always be 12.
-
-*Control type*: `C_BUTTON`.
 
 *Parameter*: Address of the button text.
 
@@ -533,13 +548,9 @@ Displays a button. Control height must always be 12.
 c_button1.param = (unsigned short)"OK";
 ```
 
-#### C_RADIO
-
 #### C_CHECK
 
 Displays a checkbox.
-
-*Control type*: `C_CHECK`.
 
 *Parameter*: Address of extended data record:
 
@@ -551,23 +562,127 @@ typedef struct {
 } Ctrl_Check;
 ```
 
-The value of the checkbox (0 = unchecked, 1 = checked) will be stored in the byte pointed to by `status`.
+The value of the checkbox (0 = unchecked, 1 = checked) will be stored in the byte pointed to by `status`. The control height should always be 8.
 
 ```c
 // example
 char check1 = 0;
-_transfer Ctrl_Check = {&check1, "Label text", (COLOR_BLACK << 2) | COLOR_ORANGE};
+_transfer Ctrl_Check cd_check1 = {&check1, "Label text", (COLOR_BLACK << 2) | COLOR_ORANGE};
+_transfer Ctrl c_check1 = {1, C_CHECK, -1, (unsigned short)&cd_check1, 10, 10, 32, 8};
+```
+
+#### C_RADIO
+
+Displays a radio button (circular checkbox). Selecting one radio button in a group will unselect all the others, allowing the user to select just one option.
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    char* status;         // address of status byte
+    char* text;           // address of text
+    unsigned char color;  // (foreground << 2) | background
+    unsigned char value;  // value to load into status when selected
+    char* buffer;         // address of 4-byte coordinate buffer (see below)
+} Ctrl_Radio;
+```
+
+When a radio button is selected, its `value` property will be loaded into the byte pointed to by `status`. Usually this is an ID of some kind (1, 2, 3...), but it can technically be anything. To determine which radio button is selected, read the value of the byte pointed to by `status` and match it to the known `value` properties of the possible radio buttons.
+
+`buffer` points to a 4-byte static buffer used internally by the desktop manager. It should initially contain the values -1, -1, -1, -1.
+
+All radio buttons in a group should use the same `status` and `buffer`; to create multiple groups that do not interact, give them different status bytes and coordinate buffers.
+
+The control height should always be 8.
+
+```c
+// example
+char radio = 0;
+_transfer char radiocoord[4] = {-1, -1, -1, -1};
+
+_transfer Ctrl_Radio cd_radio1 = {&radio, "First button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 1, &radiocoord};
+_transfer Ctrl_Radio cd_radio2 = {&radio, "Second button", (COLOR_BLACK << 2) | COLOR_ORANGE, 2, &radiocoord};
+_transfer Ctrl_Radio cd_radio3 = {&radio, "Third button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 3, &radiocoord};
+
+_transfer Ctrl c_radio1 = {1, C_RADIO, -1, (unsigned short)&cd_radio1, 10, 10, 32, 8};
+_transfer Ctrl c_radio2 = {2, C_RADIO, -1, (unsigned short)&cd_radio2, 10, 20, 32, 8};
+_transfer Ctrl c_radio3 = {3, C_RADIO, -1, (unsigned short)&cd_radio3, 10, 30, 32, 8};
 ```
 
 #### C_HIDDEN
 
 Nothing will be displayed, but any clicks to the area of the control will be sent as events for this control ID.
 
-*Control type*: `C_HIDDEN`.
+```c
+// example
+_transfer Ctrl c_hidden1 = {1, C_HIDDEN, -1, 0, 10, 30, 32, 8};
+```
 
 #### C_TABS
 
+Displays a row of tabs.
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    unsigned char tabs;      // number of tabs
+    unsigned char color;     // (lower_right_color << 6) | (upper_left_color << 4) | (foreground << 2) | background
+    unsigned char selected;  // number of selected tab
+} Ctrl_Tabs;
+```
+
+This data structure should be immediately followed by the number of `Ctrl_Tab` structs indicated by the `tabs` property:
+
+```c
+typedef struct {
+    char* text;              // address of text
+    signed char width;       // width in pixels, or -1 to autocalculate
+} Ctrl_Tab;
+```
+
+The control height must be 11. SymbOS will keep track of the selected tab for us, but it is our responsibility to decide what tab events actually do (for example, hiding one page of controls and revealing another).
+
+```c
+// example
+_transfer Ctrl_Tabs cd_tabs = {2, (COLOR_BLACK << 6) | (COLOR_RED << 4) | (COLOR_BLACK) | COLOR_ORANGE, 1};
+_transfer Ctrl_Tab cd_tab1 = {"Tab 1", -1};
+_transfer Ctrl_Tab cd_tab2 = {"Tab 2", -1};
+
+_transfer Ctrl c_tabs = {1, C_TABS, -1, (unsigned short)&cd_tabs, 10, 10, 64, 11};
+```
+
 #### C_SLIDER
+
+Displays a slider (scrollbar or value selector).
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    unsigned char type;      // type (see below)
+    unsigned char unused;
+    unsigned short value;    // current value/position
+    unsigned short maxvalue; // maximum value/position (minimum is 0)
+    unsigned char increment; // value to increase by when clicking button
+    unsigned char decrement; // value to decrease by when clicking button
+} Ctrl_Slider;
+```
+
+Type is an OR'd bitmask consisting of one or more of the following flags:
+
+* `SLIDER_H`: horizontal slider
+* `SLIDER_V`: vertical slider
+* `SLIDER_VALUE`: value slider
+* `SLIDER_SCROLL`: scrollbar slider
+
+For a horizontal slider, the control height must be 8 and the control width must be at least 24. For a vertical slider, the control width must be 8 and the control height must be at least 24. We are responsible for reading the slider's value and deciding what to do with it.
+
+```c
+// example
+_transfer Ctrl_Slider cd_slider1 = {SLIDER_H | SLIDER_SCROLL, 0, 15, 30, 1, 1};
+_transfer Ctrl c_tabs = {1, C_SLIDER, -1, (unsigned short)&cd_slider1, 10, 10, 100, 8};
+```
 
 #### C_COLLECTION
 
