@@ -376,11 +376,11 @@ typedef struct {
 	                      // 16-color mode: (foreground << 4) | background
     unsigned char flags;  // one of: ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT
 	                      //   OR with TEXT_16COLOR for 16-color mode
-	char* font;           // address of font
+    char* font;           // address of font
 } Ctrl_Text_Font;
 ```
 
-The control height should be equal to the height of the font, and the font data must be stored in the same 16KB bank as the text (usually the **data** segment). A description of the font format can be found in the SymbOS Developer Documentation; fonts can be created using the SymbOS Font Editor application.
+The control height should be equal to the height of the font, and the font data must be stored in the same 16KB segment as the text (usually the **data** segment). A description of the font format can be found in the SymbOS Developer Documentation; fonts can be created using the SymbOS Font Editor application.
 
 ```c
 // example
@@ -518,17 +518,15 @@ Same as `C_IMAGE_EXT`, except that color 0 will be transparent.
 
 *Parameter*: Address of the extended graphics header, as above.
 
-#### C_IMAGE_ICON
+#### C_ICON
 
 #### C_BUTTON
 
-Displays a button.
+Displays a button. Control height must always be 12.
 
 *Control type*: `C_BUTTON`.
 
 *Parameter*: Address of the button text.
-
-Control height must always be 12.
 
 ```c
 // example
@@ -566,6 +564,24 @@ _transfer Ctrl_Check = {&check1, "Label text", (COLOR_BLACK << 2) | COLOR_ORANGE
 Nothing will be displayed, but any clicks to the area of the control will be sent as events for this control ID.
 
 *Control type*: `C_HIDDEN`.
+
+#### C_TABS
+
+#### C_SLIDER
+
+#### C_COLLECTION
+
+#### C_INPUT
+
+#### C_TEXTBOX
+
+#### C_LIST
+
+#### C_LISTBOX
+
+#### C_DROPDOWN
+
+#### C_LISTFULL
 
 ### Event reference
 
