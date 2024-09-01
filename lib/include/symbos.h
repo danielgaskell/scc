@@ -79,6 +79,9 @@
 #define ATTRIB_DIR 16
 #define ATTRIB_ARCHIVE 32
 
+#define TIME_MODIFIED 1
+#define TIME_CREATED 2
+
 #define BUTTON_LEFT 1
 #define BUTTON_RIGHT 2
 #define BUTTON_MIDDLE 4
@@ -582,6 +585,19 @@ extern unsigned char Key_Multi(unsigned char scancode1, unsigned char scancode2,
 extern unsigned short Text_Width(unsigned char bank, char* addr, int maxlen);
 extern unsigned char Text_Height(unsigned char bank, char* addr, int maxlen);
 
+typedef struct {
+    unsigned char second;
+    unsigned char minute;
+    unsigned char hour;
+    unsigned char day;
+    unsigned char month;
+    unsigned short year;
+    signed char timezone;
+} SymTime;
+
+extern void Time_Get(SymTime* addr);
+extern void Time_Set(SymTime* addr);
+
 /* ========================================================================== */
 /* System Manager                                                             */
 /* ========================================================================== */
@@ -631,14 +647,16 @@ extern long File_Seek(unsigned char id, long offset, unsigned char ref);
 
 typedef struct {
     long len;
-    unsigned short date;
-    unsigned short time;
+    unsigned long time;
     unsigned char attrib;
     char name[13];
 } DirEntry;
 
 extern unsigned char Dir_SetAttrib(unsigned char bank, char* path, unsigned char attrib);
 extern signed char Dir_GetAttrib(unsigned char bank, char* path);
+extern unsigned long Dir_GetTime(unsigned char bank, char* path, unsigned char which);
+extern unsigned char Dir_SetTime(unsigned char bank, char* path, unsigned char which,
+                                 unsigned long timestamp);
 extern unsigned char Dir_Rename(unsigned char bank, char* path, char* newname);
 extern unsigned char Dir_New(unsigned char bank, char* path);
 extern int Dir_Read(char* path, unsigned char attrib, void* buf, unsigned short len, unsigned short skip);
@@ -684,13 +702,12 @@ extern signed char Systray_Add(unsigned char bank, char* addr, unsigned char cod
 extern void Systray_Remove(unsigned char id);
 extern char Select_Pos(unsigned short* x, unsigned short* y, unsigned short w, unsigned short h);
 extern char Select_Size(unsigned short x, unsigned short y, unsigned short* w, unsigned short* h);
-extern void Desk_SetMode(char mode);
-#define Desk_GetColour(x) Desk_GetColor(x)
-extern unsigned short Desk_GetColor(char color);
-#define Desk_SetColour(x, y) Desk_SetColor(x, y)
-extern void Desk_SetColor(char color, unsigned short value);
-extern void Desk_Redraw_Back(void);
-extern void Desk_Redraw_All(void);
+extern void Screen_Mode_Set(char mode, char force, char vwidth);
+#define Colour_Get(x) Color_Get(x)
+extern unsigned short Color_Get(char color);
+#define Colour_Set(x, y) ColorSet(x, y)
+extern void Color_Set(char color, unsigned short value);
+extern void Screen_Redraw(void);
 
 /* ========================================================================== */
 /* Desktop Data Records                                                       */
@@ -956,8 +973,15 @@ extern signed char Shell_StringIn(unsigned char channel, unsigned char bank, cha
 extern signed char Shell_CharOut(unsigned char channel, unsigned char val);
 extern signed char Shell_StringOut(unsigned char channel, unsigned char bank,
                                    char* addr, unsigned char len);
+extern signed char Shell_Print(char* addr);
 extern void Shell_Exit(unsigned char type);
 extern void Shell_PathAdd(unsigned char bank, char* path, char* addition, char* dest);
 extern int Shell_CharTest(unsigned char channel, unsigned char lookahead);
+
+/* ========================================================================== */
+/* Time utility functions                                                     */
+/* ========================================================================== */
+extern void Time2Obj(unsigned long timestamp, SymTime* obj);
+extern unsigned long Obj2Time(SymTime* obj);
 
 #endif

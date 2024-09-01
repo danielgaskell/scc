@@ -22,6 +22,25 @@ signed char Dir_GetAttrib(unsigned char bank, char* path) {
     return -1;
 }
 
+unsigned long Dir_GetTime(unsigned char bank, char* path, unsigned char which) {
+    _symmsg[1] = 35;
+    _symmsg[3] = which;
+    *((char**)(_symmsg + 8)) = path;
+    _symmsg[11] = bank;
+    if (File_Command() == 0)
+        return *(unsigned long*)&_symmsg[4];
+    return 0;
+}
+
+unsigned char Dir_SetTime(unsigned char bank, char* path, unsigned char which, unsigned long timestamp) {
+    _symmsg[1] = 34;
+    _symmsg[3] = which;
+    *(unsigned long*)&_symmsg[4] = timestamp;
+    *((char**)(_symmsg + 8)) = path;
+    _symmsg[11] = bank;
+    return File_Command();
+}
+
 unsigned char Dir_Rename(unsigned char bank, char* path, char* newname) {
     _symmsg[1] = 36;
     *((char**)(_symmsg + 6)) = newname;

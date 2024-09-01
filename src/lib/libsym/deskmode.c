@@ -1,20 +1,21 @@
 #include <symbos.h>
 #include "deskmsg.h"
 
-void Desk_SetMode(char mode) {
+void Screen_Mode_Set(char mode, char force, char vwidth) {
     _symmsg[0] = 48;
     _symmsg[1] = 2;
-    _symmsg[2] = mode;
+    _symmsg[2] = mode | (force << 7);
+    _symmsg[3] = vwidth;
     _Desk_Msg();
 }
 
-unsigned short Desk_GetColor(char color) {
+unsigned short Color_Get(char color) {
     _symmsg[2] = color;
     _Desk_Service(3);
     return *((unsigned short*)(_symmsg + 3));
 }
 
-void Desk_SetColor(char color, unsigned short value) {
+void Color_Set(char color, unsigned short value) {
     _symmsg[0] = 48;
     _symmsg[1] = 4;
     _symmsg[2] = color;
@@ -22,13 +23,7 @@ void Desk_SetColor(char color, unsigned short value) {
     _Desk_Msg();
 }
 
-void Desk_Redraw_Back(void) {
-    _symmsg[0] = 48;
-    _symmsg[1] = 8;
-    _Desk_Msg();
-}
-
-void Desk_Redraw_All(void) {
+void Screen_Redraw(void) {
     _symmsg[0] = 48;
     _symmsg[1] = 9;
     _Desk_Msg();

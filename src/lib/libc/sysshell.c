@@ -1,4 +1,5 @@
 #include <symbos.h>
+#include <string.h>
 
 /* ========================================================================== */
 /* SymShell system calls                                                      */
@@ -75,6 +76,10 @@ signed char Shell_StringOut(unsigned char channel, unsigned char bank, char* add
     }
     _shellerr = ERR_NOSHELL;
     return -2;
+}
+
+signed char Shell_Print(char* addr) {
+    return Shell_StringOut(0, _symbank, addr, strlen(addr));
 }
 
 void Shell_Exit(unsigned char type) {

@@ -26,6 +26,7 @@ These headers are not 100% comprehensive; SymbOS provides some additional system
 * [Process management](#process-management)
 * [Timer management](#timer-management)
 * [Clipboard functions](#clipboard-functions)
+* [Time functions](#time-functions)
 * [System tray](#system-tray)
 * [Reference tables](#reference-tables)
 
@@ -314,6 +315,18 @@ Returns the current screen mode, which depends on the current platform:
 
 *SymbOS name*: `Device_ScreenMode` (`SCRGET`).
 
+### Screen_Mode_Set()
+
+```c
+void Screen_Mode_Set(char mode, char force, char vwidth);
+```
+
+Sets the current screen mode. `mode` is the screen mode (see `Screen_Mode()`). If `force` = 1, the mode will be forced to change. For G9K modes only, `vwidth` specifies the virtual desktop width, one of:
+
+* 0 = no virtual desktop
+* 1 = 512 pixels wide
+* 2 = 1000 pixels wide
+
 ### Screen_Colors()
 
 ```c
@@ -343,6 +356,66 @@ unsigned short Screen_Height(void);
 Returns the vertical height of the screen, in pixels.
 
 *SymbOS name*: `Device_ScreenMode` (`SCRGET`).
+
+### Screen_Redraw()
+
+```c
+void Screen_Redraw(void);
+```
+
+Reinitializes the desktop background and redraws the entire screen.
+
+*SymbOS name*: `DesktopService_RedrawComplete` (`DSK_SRV_DSKPLT`).
+
+### Color_Get()
+
+```c
+unsigned short Color_Get(char color);
+```
+
+Retrieves the true palette color of the indexed color `color`.
+
+*Return value*: A 12-bit color, with the components:
+
+* `(value >> 8)` = red component (0 to 15)
+* `(value >> 4) & 0x0F` = green component (0 to 15)
+* `value & 0x0F` = blue component (0 to 15)
+
+*SymbOS name*: `DesktopService_ColourGet` (`DSK_SRV_COLGET`).
+
+### Color_Set()
+
+```c
+void Color_Set(char color, unsigned short value);
+```
+
+Sets the true palette color of the indexed color `color` to the 12-bit color `value`, which has the format:
+
+* `(value >> 8)` = red component (0 to 15)
+* `(value >> 4) & 0x0F` = green component (0 to 15)
+* `value & 0x0F` = blue component (0 to 15)
+
+*SymbOS name*: `DesktopService_ColourSet` (`DSK_SRV_COLSET`).
+
+### Text_Width()
+
+```c
+unsigned short Text_Width(unsigned char bank, char* addr, int maxlen);
+```
+
+Returns the width (in pixels) of the text string at bank `bank`, address `address` if it were plotted with the current system font. `maxlen` contains the maximum number of characters to measure; if the text is terminated by character 0 or 13 (`\r`), use -1.
+
+*SymbOS name*: `Screen_TextLength` (`TXTLEN`).
+
+### Text_Height()
+
+```c
+unsigned short Text_Height(unsigned char bank, char* addr, int maxlen);
+```
+
+Returns the height (in pixels) of the text string at bank `bank`, address `address` if it were plotted with the current system font. `maxlen` contains the maximum number of characters to measure; if the text is terminated by character 0 or 13 (`\r`), use -1. (This function effectively just returns the pixel height of the system font, so we can just run it once with a dummy string like "A" and cache the result.)
+
+*SymbOS name*: `Screen_TextLength` (`TXTLEN`).
 
 ## Mouse status
 
@@ -883,8 +956,7 @@ The resulting directory information will be written to the buffer at address `bu
 ```c
 typedef struct {
     long len;             // file length in bytes
-    unsigned short date;  // system datestamp
-    unsigned short time;  // system timestamp
+    unsigned long time;   // system timestamp - decode with Time2Obj()
     unsigned char attrib; // attribute bitmask
     char name[13];        // filename (zero-terminated)
 } DirEntry;
@@ -1013,6 +1085,31 @@ Sets the file attributes of the file at the absolute path stored in bank `bank`,
 
 *SymbOS name*: `Directory_Property_Set` (`DIRPRS`).
 
+### Dir_GetTime()
+
+```c
+unsigned long Dir_GetTime(unsigned char bank, char* path, unsigned char which);
+```
+
+Retrieves the system timestamp of the file at the absolute path stored in bank `bank`, address `path`. The option `which` can be `TIME_MODIFIED` or `TIME_CREATED`. Timestamps can be read with the utility function [`Time2Obj()`](#time2obj).
+
+*Return value*: On success, returns the timestamp. On failure, sets `_fileerr` and returns 0.
+
+*SymbOS name*: `Directory_Property_Get` (`DIRPRR`).
+
+### Dir_SetTime()
+
+```c
+unsigned char Dir_SetTime(unsigned char bank, char* path, unsigned char which,
+                          unsigned long timestamp);
+```
+
+Sets the system timestamp of the file at the absolute path stored in bank `bank`, address `path`. The option `which` can be `TIME_MODIFIED` or `TIME_CREATED`. Timestamps can be created with the utility function [`Obj2Time()`](#obj2time).
+
+*Return value*: On success, returns 0. On failure, sets and returns `_fileerr`.
+
+*SymbOS name*: `Directory_Property_Set` (`DIRPRS`).
+
 ### Dir_PathAdd()
 
 ```c
@@ -1131,6 +1228,16 @@ Sends the string at bank `bank`, address `addr` to the specified  `channel`. The
 *Return value*: On success, returns 0. If another error has occurred, returns -2 and sets `_shellerr`.
 
 *SymbOS name*: `SymShell_StringOutput_Command` (`MSC_SHL_STROUT`).
+
+### Shell_StringOut()
+
+```c
+signed char Shell_Print(char* addr);
+```
+
+An SCC convenience function; calls `Shell_StringOut(0, _symbank, addr, strlen(addr))`. This saves some bytes and hassle from the most common use-case for `Shell_StringOut()`.
+
+*Return value*: On success, returns 0. If another error has occurred, returns -2 and sets `_shellerr`.
 
 ### Shell_Exit()
 
@@ -1483,6 +1590,60 @@ unsigned short Clip_Len(void);
 Returns the length of data in the clipboard, in bytes.
 
 *SymbOS name*: `Clipboard_Status` (`BUFSTA`).
+
+## Time functions
+
+These functions may only behave as expected on systems that have a realtime clock (RTC).
+
+### Time_Get()
+
+```c
+void Time_Get(SymTime* addr);
+```
+
+Loads the current time into the `SymTime` struct at the address `addr`, which has the format:
+
+```c
+typedef struct {
+    unsigned char second; // 0 to 59
+    unsigned char minute; // 0 to 59
+    unsigned char hour;   // 0 to 23
+    unsigned char day;    // 1 to 31
+    unsigned char month;  // 1 to 12
+    unsigned short year;  // 1900 to 2100
+    signed char timezone; // -12 to +13 (UTC)
+} SymTime;
+```
+
+*SymbOS name*: `Device_TimeGet` (`TIMGET`).
+
+### Time_Set()
+
+```c
+void Time_Set(SymTime* addr);
+```
+
+Sets the current time to the values in the `SymTime` struct at the address `addr`. (See `Time_Get()` for the format.)
+
+*SymbOS name*: `Device_TimeSet` (`TIMSET`).
+
+### Time2Obj()
+
+```c
+void Time2Obj(unsigned long timestamp, SymTime* obj);
+```
+
+An SCC utility function that decodes the system timestamp `timestamp` (obtained from, e.g., `Dir_GetTime()`) into the `SymTime` struct at the address `addr`. (See `Time_Get()` for the format.)
+
+### Obj2Time()
+
+```c
+unsigned long Obj2Time(SymTime* obj);
+```
+
+An SCC utility function that converts the `SymTime` struct at the address `addr` into a system timestamp. (See `Time_Get()` for the format.)
+
+*Return value*: A 32-bit system timestamp.
 
 ## System tray
 

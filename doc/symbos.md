@@ -16,6 +16,8 @@
 	* [Toolbars](#toolbars)
 	* [Resizing calculations](#resizing-calculations)
 	* [Modal windows](#modal-windows)
+	
+See also: [System call reference](syscalls.md).
 
 ## Console applications
 
@@ -35,7 +37,7 @@ The only subtlety is that SymbOS expects console applications to have the file e
 cc -o condemo.com condemo.c
 ```
 
-While SCC's `stdio` functions are meant to work relatively seamlessly in SymShell, they are somewhat slow and bulky and are not entirely optimized for SymShell's display model. When writing code from scratch for SymbOS, consider designing it around the [system shell functions](#system-call-reference) (`Shell_StringOut()`, `Shell_CharIn()`, etc.) rather than the standard `stdio` functions.
+While SCC's `stdio` functions are meant to work relatively seamlessly in SymShell, they are somewhat slow and bulky and are not entirely optimized for SymShell's display model. When writing code from scratch for SymbOS, consider designing it around the [system shell functions](syscalls.md#shell-functions) (`Shell_StringOut()`, `Shell_CharIn()`, etc.) rather than the standard `stdio` functions.
 
 ## Windowed applications
 

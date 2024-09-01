@@ -7,6 +7,7 @@ acosf.o
 acoshf.o
 asinf.o
 asinhf.o
+assert.o
 atan2f.o
 atanhf.o
 atof.o
@@ -58,6 +59,7 @@ libopen.o
 log10f.o
 log2f.o
 logbf.o
+longjmp.o
 lrintf.o
 lroundf.o
 lsearch.o
@@ -84,6 +86,7 @@ rindex.o
 scanblnf.o
 setbuffer.o
 setenv.o
+setjmp.o
 setlocale.o
 setvbuf.o
 strcasecmp.o
