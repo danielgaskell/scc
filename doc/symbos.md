@@ -1,5 +1,22 @@
 # SymbOS programming
 
+## Contents
+
+* [Console applications](#console-applications)
+* [Windowed applications](#windowed-applications)
+	* [Memory segments](#memory-segments)
+	* [Windows](#windows)
+	* [Controls](#controls)
+	* [Desktop commands](#desktop-commands)
+	* [Handling events](#handling-events)
+* [Control reference](#control-reference)
+* [Event reference](#event-reference)
+* [Advanced topics](#advanced-topics)
+	* [Menus](#menus)
+	* [Toolbars](#toolbars)
+	* [Resizing calculations](#resizing-calculations)
+	* [Modal windows](#modal-windows)
+
 ## Console applications
 
 For the most part, console applications meant to run in SymShell can be written in normal C style using the functions in `stdio.h` (`printf()`, `fgets()`, etc.). No additional headers are necessary:
@@ -36,7 +53,7 @@ We first need to include the header file `symbos.h`, which defines many of the f
 
 A SymbOS executable is divided into three memory segments. For console apps written with normal libc functionality, it is not generally necessary to think about this, but many SymbOS system calls make important distinctions between memory segments:
 
-1. **Code**: Contains code and globals (unless manually placed into a different segment - see below). Can contain up to 64KB of code and data.
+1. **Code**: Contains code and globals (unless manually placed into a different segment---see below). Can contain up to 64KB of code and data.
 2. **Data**: Stores data that must not cross a 16KB page boundary. This is required by many system functions, particularly those dealing with text or image data, so SCC places string literals in this segment by default. Can contain up to 16KB of data.
 3. **Transfer**: Stores data that must be relocated to the upper 16KB of address space so it can be accessed by (mainly) the desktop manager. Most data structures relating to desktop windows and controls should be placed here. Can contain up to 16KB of data.
 
@@ -77,7 +94,7 @@ typedef struct {
     char* icon;             // address of the 8x8 window icon, in SGX format
     char* title;            // address of the title text
     char* status;           // address of the status text
-    void* menu;             // address of the menu struct
+    void* menu;             // address of the Menu struct (see Menus)
     void* controls;         // address of the control group struct
     void* toolbar;          // address of the control group struct for the toolbar
     unsigned short toolheight; // toolbar height, in pixels
@@ -89,9 +106,9 @@ typedef struct {
 
 Some commentary on these elements is useful.
 
-`.state` is one of the following: `WIN_CLOSED`, `WIN_NORMAL`, `WIN_MAXIMIZED`, or `WIN_MINIMIZED`.
+`state` is one of the following: `WIN_CLOSED`, `WIN_NORMAL`, `WIN_MAXIMIZED`, or `WIN_MINIMIZED`.
 
-`.flags` is an OR'd bitmask of one or more of the following flags:
+`flags` is an OR'd bitmask which may contain one or more of the following flags:
 
 * `WIN_ICON` = show window icon
 * `WIN_RESIZABLE` = window can be resized
@@ -321,9 +338,9 @@ That's it, our first windowed application! (The complete code for this demo is a
 
 A reference guide to the available controls and events is below, as well as information on how to accomplish some more complicated effects. See also the [System Call Reference](syscalls.md#window-management) for additional commands that can be sent to the desktop manager.
 
-### Control reference
+## Control reference
 
-#### C_AREA
+### C_AREA
 
 Displays a rectangular area filled with the specified color.
 
@@ -331,10 +348,10 @@ Displays a rectangular area filled with the specified color.
 
 ```c
 // example
-c_area1.param = COLOR_WHITE | AREA_16COLOR;
+_transfer Ctrl c_area1 = {1, C_AREA, -1, COLOR_ORANGE, 0, 0, 100, 80};
 ```
 
-#### C_TEXT
+### C_TEXT
 
 Displays a line of text in the default system font.
 
@@ -355,9 +372,10 @@ In "fill" mode, the background of the control is first filled in with the specif
 ```c
 // example
 _transfer Ctrl_Text cd_text1 = {"Text", (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_LEFT};
+_transfer Ctrl c_text1 = {1, C_TEXT, -1, (unsigned short)&cd_text1, 10, 10, 80, 8};
 ```
 
-#### C_TEXT_FONT
+### C_TEXT_FONT
 
 Displays a line of text in an alternative font.
 
@@ -380,9 +398,10 @@ The control height should be equal to the height of the font, and the font data 
 // example
 _data char fontbuf[1538]; // a font would be loaded into this buffer
 _transfer Ctrl_Text_Font cd_text_font1 = {"Text", (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_LEFT, fontbuf};
+_transfer Ctrl c_text_font1 = {1, C_TEXT_FONT, -1, (unsigned short)&cd_text_font1, 10, 10, 80, 8};
 ```
 
-#### C_TEXT_CTRL
+### C_TEXT_CTRL
 
 Displays a line of "rich" text with optional control codes that can change the appearance of the text mid-line.
 
@@ -409,7 +428,13 @@ The following control bytes can be included in the text string:
 * 0x08 to 0x0B = skip next (code - 8) * 2 + 1 bytes
 * 0x0C to 0x1F = insert (code - 8) pixels of extra space before the next character
 
-#### C_FRAME
+```c
+// example
+_transfer Ctrl_Text_Ctrl cd_text_ctrl1 = {"Text", 100, -1, (COLOR_BLACK << 2) | COLOR_ORANGE, 0};
+_transfer Ctrl c_text_ctrl1 = {1, C_TEXT_CTRL, -1, (unsigned short)&cd_text_ctrl1, 10, 10, 80, 8};
+```
+
+### C_FRAME
 
 Displays a rectangular frame.
 
@@ -422,10 +447,10 @@ An optional XOR mode inverts the colors underneath the control, like a rubber-ba
 
 ```c
 // example
-c_frame1.param = (COLOR_YELLOW << 4) | (COLOR_BLACK << 2) | COLOR_BLACK | AREA_FILL;
+_transfer Ctrl c_frame1 = {1, C_FRAME, -1, (COLOR_ORANGE << 4) | (COLOR_RED << 2) | COLOR_BLACK | AREA_FILL, 10, 10, 64, 64};
 ```
 
-#### C_TFRAME
+### C_TFRAME
 
 Displays a rectangular frame with a line of text at the top.
 
@@ -444,9 +469,10 @@ typedef struct {
 ```c
 // example
 _transfer Ctrl_TFrame cd_tframe1 = {"Title", COLOR_BLACK | AREA_16COLOR, (COLOR_BLACK << 2) | COLOR_LBLUE};
+_transfer Ctrl c_tframe1 = {1, C_TFRAME, -1, (unsigned short)&cd_tframe1, 10, 10, 64, 64};
 ```
 
-#### C_PROGRESS
+### C_PROGRESS
 
 Displays a progress bar.
 
@@ -454,12 +480,12 @@ Displays a progress bar.
 
 ```c
 // example
-c_progress1.param = (119 << 8) | (COLOR_ORANGE << 6) | (COLOR_RED << 4) | (COLOR_BLACK << 2) | COLOR_BLACK;
+_transfer Ctrl c_progress1 = {1, C_PROGRESS, -1, (119 << 8) | (COLOR_ORANGE << 6) | (COLOR_RED << 4) | (COLOR_BLACK << 2) | COLOR_BLACK, 10, 10, 64, 8};
 ```
 
-#### C_IMAGE
+### C_IMAGE
 
-Displays an image (4-color SGX format only).
+Displays a standard image (4-color SGX format only).
 
 *Control type*: `C_IMAGE`.
 
@@ -467,11 +493,11 @@ Displays an image (4-color SGX format only).
 
 ```c
 // example
-char imgbuf[256];
-c_image1.param = (unsigned short)imgbuf;
+char imgbuf[198];
+_transfer Ctrl c_image1 = {1, C_IMAGE, -1, (unsigned short)imgbuf, 10, 10, 24, 24};
 ```
 
-#### C_IMAGE_EXT
+### C_IMAGE_EXT
 
 Displays an image with an extended graphics header.
 
@@ -490,17 +516,17 @@ typedef struct {
 
 ```c
 // example
-Img_Header imghead;
-c_image_ext1.param = (unsigned short)&imghead;
+Img_Header imghead; // fill with the appropriate data
+_transfer Ctrl c_image_ext1 = {1, C_IMAGE_EXT, -1, (unsigned short)&imghead, 10, 10, 24, 24};
 ```
 
-#### C_IMAGE_TRANS
+### C_IMAGE_TRANS
 
 Same as `C_IMAGE_EXT`, except that color 0 will be transparent.
 
 *Parameter*: Address of the extended graphics header, as above.
 
-#### C_ICON
+### C_ICON
 
 Displays a 24x24 icon with up to two lines of text below it.
 
@@ -531,13 +557,16 @@ When `.flags` includes `ICON_EXTOPTS`, the following flags can be OR'd with `.ex
 * `ICON_MARKABLE`: icon can be marked (selected) by user
 * `ICON_MARKED`: icon is currently marked (selected) by user
 
+The width of the control must be 48 and the height 40.
+
 ```c
 // example
 _data char imgdata[198]; // store an icon image here
 _transfer Ctrl_Icon cd_icon1 = {imgdata, "Line 1", "Line 2", (COLOR_BLACK << 2) | COLOR_YELLOW | ICON_STD | ICON_4COLOR};
+_transfer Ctrl c_icon1 = {1, C_ICON, -1, (unsigned short)&cd_icon1, 10, 10, 48, 40};
 ```
 
-#### C_BUTTON
+### C_BUTTON
 
 Displays a button. Control height must always be 12.
 
@@ -545,10 +574,10 @@ Displays a button. Control height must always be 12.
 
 ```c
 // example
-c_button1.param = (unsigned short)"OK";
+_transfer Ctrl c_button1 = {1, C_BUTTON, -1, (unsigned short)"Text", 10, 10, 48, 12};
 ```
 
-#### C_CHECK
+### C_CHECK
 
 Displays a checkbox.
 
@@ -571,7 +600,7 @@ _transfer Ctrl_Check cd_check1 = {&check1, "Label text", (COLOR_BLACK << 2) | CO
 _transfer Ctrl c_check1 = {1, C_CHECK, -1, (unsigned short)&cd_check1, 10, 10, 32, 8};
 ```
 
-#### C_RADIO
+### C_RADIO
 
 Displays a radio button (circular checkbox). Selecting one radio button in a group will unselect all the others, allowing the user to select just one option.
 
@@ -609,7 +638,7 @@ _transfer Ctrl c_radio2 = {2, C_RADIO, -1, (unsigned short)&cd_radio2, 10, 20, 3
 _transfer Ctrl c_radio3 = {3, C_RADIO, -1, (unsigned short)&cd_radio3, 10, 30, 32, 8};
 ```
 
-#### C_HIDDEN
+### C_HIDDEN
 
 Nothing will be displayed, but any clicks to the area of the control will be sent as events for this control ID.
 
@@ -618,7 +647,7 @@ Nothing will be displayed, but any clicks to the area of the control will be sen
 _transfer Ctrl c_hidden1 = {1, C_HIDDEN, -1, 0, 10, 30, 32, 8};
 ```
 
-#### C_TABS
+### C_TABS
 
 Displays a row of tabs.
 
@@ -652,7 +681,7 @@ _transfer Ctrl_Tab cd_tab2 = {"Tab 2", -1};
 _transfer Ctrl c_tabs = {1, C_TABS, -1, (unsigned short)&cd_tabs, 10, 10, 64, 11};
 ```
 
-#### C_SLIDER
+### C_SLIDER
 
 Displays a slider (scrollbar or value selector).
 
@@ -684,25 +713,384 @@ _transfer Ctrl_Slider cd_slider1 = {SLIDER_H | SLIDER_SCROLL, 0, 15, 30, 1, 1};
 _transfer Ctrl c_tabs = {1, C_SLIDER, -1, (unsigned short)&cd_slider1, 10, 10, 100, 8};
 ```
 
-#### C_COLLECTION
+### C_COLLECTION
 
-#### C_INPUT
+Contains a collection of subcontrols. A collection behaves similarly to the main window content: controls will be clipped to the bounds of the collection, and if the full size of the content is larger than the size of the collection, the user will be able to scroll around the collection's content with scrollbars.
 
-#### C_TEXTBOX
+*Parameter*: Address of extended data record:
 
-#### C_LIST
+```c
+typedef struct {
+    void* controls;          // address of first Ctrl struct in the collection
+    unsigned short wfull;    // full width of content, in pixels
+    unsigned short hfull;    // full height of content, in pixels
+    unsigned short xscroll;  // horizontal scroll position, in pixels
+    unsigned short yscroll;  // vertical scroll position, in pixels
+    unsigned char flags;     // flags (see below)
+} Ctrl_Collection;
+```
 
-#### C_LISTBOX
+If scrollbars are enabled, the control size must be greater than 32x32. `flags` is one of the following:
 
-#### C_DROPDOWN
+* `CSCROLL_NONE`: display no scrollbars
+* `CSCROLL_H`: display horizontal scrollbar
+* `CSCROLL_V`: display vertical scrollbar
+* `CSCROLL_BOTH`: display both scrollbars
 
-#### C_LISTFULL
+```c
+// example
+_transfer Ctrl cc_area = {1, C_AREA, -1, COLOR_ORANGE, 0, 0, 100, 100};
 
-### Event reference
+_transfer Ctrl_Collection cd_collect = {cc_area, 200, 100, 0, 0, CSCROLL_H};
+_transfer Ctrl c_collect = {1, C_COLLECTION, -1, (unsigned short)&cd_collect, 10, 10, 100, 100};
+```
+
+### C_INPUT
+
+Displays a single-line text input field.
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    char* text;               // address of text buffer (in data segment)
+    unsigned short scroll;    // scroll position, in bytes
+    unsigned short cursor;    // cursor position, in bytes
+    signed short selection;   // number of selected characters relative to cursor
+    unsigned short len;       // current text length, in bytes
+    unsigned short maxlen;    // maximum text length, in bytes (not including 0-terminator)
+    unsigned char flags;      // flags (see below)
+    unsigned char textcolor;  // (foreground << 4) | background
+    unsigned char linecolor;  // (lower_right_color << 4) | upper_left_color
+} Ctrl_Input;
+```
+
+`flags` is an OR'd bitmask which may contain one or more the following:
+
+* `INPUT_PASSWORD`: show all chars as `*`
+* `INPUT_READONLY`: input is read-only
+* `INPUT_ALTCOLS`: use alternate colors (if this flag is not specified, the `textcolor` and `linecolor` options will be ignored)
+* `INPUT_MODIFIED`: represents a bit set when the text is modified
+
+`selection` = 0 when no characters are selected, greater than 0 when the cursor marks the start of the selection, and less than 0 when the cursor marks the end of the selection.
+
+The control height should always be 12. Note that, if we wish the input box to be prefilled, we must be sure to set the properties (`cursor`, `len`, etc.) correctly. (For input by the user, SymbOS will update these properties automatically.)
+
+```c
+// example
+_data char cd_input_buf[25];
+_transfer Ctrl_Input cd_input1 = {cd_input1_buf, 0, 0, 0, 0, 24, INPUT_ALTCOLS, (COLOR_RED << 4) | COLOR_YELLOW, (COLOR_RED << 4) | COLOR_BLACK};
+_transfer Ctrl c_input1 = {1, C_INPUT, -1, (unsigned short)&cd_input1, 10, 10, 100, 12};
+```
+
+### C_TEXTBOX
+
+Displays a multi-line text input box (text editor).
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    char* text;               // address of text buffer (in data segment)
+    unsigned short unused1;
+    unsigned short cursor;    // cursor position, in bytes
+    signed short selection;   // number of selected characters relative to cursor
+    unsigned short len;       // current text length, in bytes
+    unsigned short maxlen;    // maximum text length, in bytes (not including 0-terminator)
+    unsigned char flags;      // flags (see below)
+    unsigned char textcolor;  // (foreground << 4) | background, when using INPUT_ALTCOLS flag
+    unsigned char unused2;
+    char* font;               // font address, when using INPUT_ALTFONT flag
+    unsigned char unused3;
+    unsigned short lines;     // number of lines of text (should be 1 if textbox is empty)
+    signed short wrapwidth;   // wrapping width, in pixels (-1 for no wrapping)
+    unsigned short maxlines;  // maximum number of lines
+    signed short xvisible;    // (used internally, -8 to force reformatting)
+    signed short yvisible;    // (used internally, set to 0)
+    void* self;               // address of this data record
+    unsigned short xtotal;    // (used internally, set to 0)
+    unsigned short ytotal;    // (used internally, set to 0)
+    unsigned short xoffset;   // (used internally, set to 0)
+    unsigned short yoffset;   // (used internally, set to 0)
+    unsigned char wrapmode;   // WRAP_WINDOW or WRAP_WIDTH
+    unsigned char tabwidth;   // tab stop width (1-255, or 0 for no tab stop)
+    char buf[8];              // (used internally, set to 0)
+} Ctrl_TextBox;
+```
+
+`flags` is an OR'd bitmask which may contain one or more the following:
+
+* `INPUT_READONLY`: input is read-only
+* `INPUT_ALTCOLS`: use alternate colors (if this flag is not specified, the `textcolor` option will be ignored)
+* `INPUT_ALTFONT`: use alternate font (if this flag is not specified, the `font` option will be ignored)
+* `INPUT_MODIFIED`: represents a bit set when the text is modified
+
+`wrapmode` must be either `WRAP_WINDOW` (wrap at window border) or `WRAP_WIDTH` (wrap at the width specified in `wrapwidth`). To use no wrapping, set `wrapmode` = `WRAP_WIDTH` and `wrapwidth` = -1.
+
+`self` is a bit tricky: this must be the address of the data record itself, but this cannot be set in a static initializer because, at the time the compiler is parsing the initializer, the data record's symbol has not yet been fully defined! Instead, we must set this at runtime with a statement like:
+
+```c
+cd_textbox1.self = &cd_textbox1;
+```
+
+`selection` = 0 when no characters are selected, greater than 0 when the cursor marks the start of the selection, and less than 0 when the cursor marks the end of the selection.
+
+Note that, because the buffer must be stored in a continuous 16KB segment (usually the **data** segment), this control is effectively limited to no more than 16KB of text. Note also that, if we wish the textbox to be prefilled, we must be sure to set the properties (`cursor`, `len`, etc.) correctly. (For input by the user, SymbOS will update these properties automatically.)
+
+```c
+// example
+_data char textbuf[4096];
+_transfer Ctrl_TextBox cd_textbox1 = {
+    textbuf,        // text address
+	0, 0, 0, 0,     // unused1, cursor, selection, len
+	4095, 0, 0, 0,  // maxlen, flags, textcolor, unused2
+	0, 0, 1, -1,    // font, unused3, lines, wrapwidth
+	1000, 0, 0,     // maxlines, xvisible, yvisible
+	0,              // self
+	0, 0, 0, 0,     // xtotal, ytotal, xoffset, yoffset
+	WRAP_WIDTH, 8}; // wrapmode, tabwidth
+_transfer Ctrl c_textbox1 = {1, C_TEXTBOX, -1, (unsigned short)&cd_textbox1, 0, 0, 200, 100};
+
+int main(int argc, char* argc[]) {
+	cd_textbox1.self = &cd_textbox1; // fill "self" property at runtime
+	/* ... */
+}
+```
+
+### C_LISTBOX
+
+Displays a list box, which may have one or more columns. The structure of lists is somewhat complicated, and is described below.
+
+*Parameter*: Address of a `List` data record:
+
+```c
+typedef struct {
+    unsigned short lines;    // number of list rows
+    unsigned short scroll;   // index of first shown row
+    void* rowdata;           // address of the row data (see below)
+    unsigned short unused1;
+    unsigned char columns;   // number of columns (from 1 to 64)
+    unsigned char sorting;   // sorting flags (see below)
+    void* coldata;           // address of the column data (see below)
+    unsigned short clicked;  // index of last clicked row
+    unsigned char flags;     // flags (see below)
+    unsigned char unused2;
+} List;
+```
+
+`flags` for `List` is an OR'd bitmask which may contain one or more of the following:
+
+* `LIST_SCROLL`: show scrollbar
+* `LIST_MULTI`: allow multiple selections
+
+`sorting` is the index of the column to sort by (from 1 to 64), optionally OR'd with `SORT_AUTO` to automatically sort on first display and/or `SORT_REVERSE` to sort in descending order (rather than the default, ascending order).
+
+`rowdata` and `coldata` must point to additional data structures in a specific format and sequence. Column definitions consist of a series of `List_Column` structs directly after one another in the **transfer** segment, as many structs are there are columns:
+
+```c
+typedef struct {
+    unsigned char flags;     // flags (see below)
+    unsigned char unused1;
+    unsigned short width;    // width in pixels
+    char* text;              // address of title text
+    unsigned short unused2;
+} List_Column;
+```
+
+`flags` for `List_Column` consists of `ALIGN_LEFT`, `ALIGN_RIGHT`, or `ALIGN_CENTER`; OR'd with `LTYPE_TEXT` (for text data), `LTYPE_IMAGE` (for image data), `LTYPE_16` (for a 16-bit number), or `LTYPE_32` (for a 32-bit number). This controls how the column is aligned and sorted, as well as what is displayed on each row.
+
+The format of row definitions is a bit trickier. Internally, each row consists of a 16-bit flags word, followed by as many 16-bit value words as there are columns; these store either the value of the row in that column (for `LTYPE_16`) or the address of the data shown in that column. For a 1-column list, we can represent this structure with a series of `List_Row` structs, directly after one another:
+
+```c
+typedef struct {
+    unsigned short flags;    // flags (see below)
+    char* value;             // address of row content (or value for LTYPE_16 - cast to char*)
+} List_Row;
+```
+
+`flags` for `List_Row` (and its variants) is a 14-bit numeric value associated with the row. If the row is selected, the high bit of `flags` will be set; this can be tested with `row.flags & ROW_MARKED`.
+
+Additional struct types for multi-column rows (up to 4 columns) are defined in `symbos.h`; for example:
+
+```c
+typedef struct {
+    unsigned short flags;
+    char* value1;
+    char* value2;
+} List_Row2Col;
+```
+
+The control width must be at least 11, and the control height must be at least 16. Note that column names will not be displayed in the base `C_LISTBOX` control type; to shwo them, use `C_LISTFULL` instead.
+
+```c
+// example
+_transfer List_Row2Col cd_list1_r1 = {1, "Row 1", "Value 1"};
+_transfer List_Row2Col cd_list1_r2 = {2, "Row 2", "Value 2"};
+_transfer List_Row2Col cd_list1_r3 = {3, "Row 3", "Value 3"};
+
+_transfer List_Column cd_list1_col1 = {ALIGN_LEFT | LTYPE_TEXT, 0, 80, "Column 1"};
+_transfer List_Column cd_list1_col2 = {ALIGN_LEFT | LTYPE_TEXT, 0, 80, "Column 2"};
+
+_transfer List cd_list1 = {3, 0, &cd_list1_r1, 0, 2, 1 | SORT_AUTO, &cd_list1_col1, 0, LIST_MULTI};
+
+_transfer Ctrl c_list1 = {1, C_LISTBOX, -1, (unsigned short)&cd_list1, 0, 0, 160, 100};
+```
+
+### C_LISTFULL
+
+Equivalent to `C_LISTBOX`, but also displays column titles. Clicking a column title will sort by that column. Control width must be at least 11, control height must be at least 26.
+
+*Parameter*: Same as for `C_LISTBOX`.
+
+### C_LISTTITLE
+
+Displays the title of a listbox, in isolation. Control height must always be 10.
+
+*Parameter*: Same as for `C_LISTBOX`.
+
+### C_DROPDOWN
+
+Equivalent to `C_LISTBOX`, but displays a dropdown list selector instead of a full list box. The control width must be at least 10, and the control height must be 11. The `LIST_SCROLL` flag should be used whenever the list is longer than 10 entries, and the `LIST_MULTI` flag should never be used.
+
+Note that, even though dropdown lists generally only have one column and do not display a column title, we must still define a valid column struct as described under `C_LISTBOX`.
+
+*Parameter*: Same as for `C_LISTBOX`.
+
+## Event reference
+
+### MSR_DSK_WCLICK
+
+The primary event sent for most interactions with a window's controls.
+
+* `msg[0]`: `MSR_DSK_WCLICK`
+* `msg[1]`: Window ID
+* `msg[2]`: Action type, one of:
+	* `DSK_ACT_CLOSE`: Close button has been clicked, or the user has typed Alt+F4.
+	* `DSK_ACT_MENU`: A menu option has been clicked, with:
+		* `msg[8]` = Value of the clicked menu entry
+	* `DSK_ACT_CONTENT` = A control has been clicked or modified, with:
+		* `msg[3]`: Sub-action, one of:
+			* `DSK_SUB_MLCLICK`: Left mouse button clicked
+			* `DSK_SUB_MRCLICK`: Right mouse button clicked
+			* `DSK_SUB_MDCLICK`: Left mouse button double clicked
+			* `DSK_SUB_MMCLICK`: Middle mouse button clicked
+			* `DSK_SUB_KEY`: Key pressed, with key ASCII value in `msg[4]`
+		* `*(int*)&msg[4]` = Mouse X position relative to window content
+		* `*(int*)&msg[6]` = Mouse y position relative to window content
+		* `msg[8]` = control ID
+	* `DSK_ACT_TOOLBAR`: Equivalent to `DSK_ACT_CONTENT`, but for controls in the toolbar.
+	* `DSK_ACT_KEY`: A key has been pressed without modifying any control:
+		* `msg[4]` = key ASCII value
+
+### MSR_DSK_WFOCUS
+
+The focus status of a window has changed.
+
+* `msg[0]`: `MSR_DSK_WFOCUS`
+* `msg[1]`: Window ID
+* `msg[2]`: Event type, one of:
+	* 0 = window lost focus
+	* 1 = window received focus
+
+### MSR_DSK_CFOCUS
+
+Sent when the focus status of a control has changed.
+
+* `msg[0]`: `MSR_DSK_CFOCUS`
+* `msg[1]`: Window ID
+* `msg[2]`: Number of newly focused control (not the control ID/value, but an index starting from 1)
+* `msg[3]`: Event type, one of:
+	* 0 = User navigated with mouse
+	* 1 = User navigated with Tab key
+	
+### MSR_DSK_WRESIZ
+
+A window has been resized by the user (including maximizing or restoring a maximized or minimized window). The new window size can be read from the window's `w` and `h` properties, although we must also check whether the window's `state` property is `WIN_MAXIMIZED`; in this case the `w` and `h` properties will reflect the restored size of the window, not its maximized size.
+
+* `msg[0]`: `MSR_DSK_WRESIZE`
+* `msg[1]`: Window ID
+
+The maximized size of a window's main content area will depend on the window layout (i.e., toolbar height and whether it has a menu or statusbar), but can be calculated from the screen size (`Screen_Width()` and `Screen_Height()`).
+
+### MSR_DSK_WSCROLL
+
+The user has scrolled the main window content of a window. The new scroll position can be read from the window's `xscroll` and `yscroll` properties.
+
+* `msg[0]`: `MSR_DSK_WSCROLL`
+* `msg[1]`: Window ID
+
+### MSR_DSK_MENCTX
+
+The user has clicked or cancelled an open context menu.
+
+* `msg[0]`: `MSR_DSK_MENCTX`
+* `msg[1]`: Event type, one of:
+	* 0 = menu cancelled
+	* 1 = entry clicked
+* `*(int*)&msg[2]`: Value associated with the clicked entry
+* `msg[4]`: Menu entry type, one of:
+	* 0 = normal entry
+	* 1 = checked entry
+	
+### MSR_DSK_EVTCLK
+
+The user has clicked a system tray icon associated with this application.
+
+* `msg[0]`: `MSR_DSK_EVTCLK`
+* `msg[1]`: Value associated with the system tray icon
+* `msg[2]`: Mouse button pressed, one of:
+	* `SYSTRAY_LEFT` = left click
+	* `SYSTRAY_RIGHT` = right click
+	* `SYSTRAY_DOUBLE` = double left click
+	
+### MSR_DSK_WMODAL
+
+The user has clicked a window that is modal and cannot be focused. (This is useful for creating windows that disappear if the user clicks the main window.)
+
+* `msg[0]`: `MSR_DSK_WMODAL`
+* `msg[1]`: Modal window ID
+
+## Advanced topics
 
 ### Menus
 
-### Lists
+Compared to lists (see `C_LISTBOX`), menus are comparatively simple. We define a menu using a `Menu` struct directly followed by a series of `Menu_Entry` structs:
+
+```c
+typedef struct {
+    unsigned short entries;  // number of Menu_Entry structs to follow
+} Menu;
+
+typedef struct {
+    unsigned short flags;    // flags (see below)
+    char* text;              // address of entry text
+    unsigned short value;    // value to return when clicked, or address of submenu
+    unsigned short unused;
+} Menu_Entry;
+```
+
+`flags` is an OR'd bitmask that may consist of one or more of the following flags:
+
+* `MENU_ACTIVE`: entry is active and can be clicked (we usually want this)
+* `MENU_CHECKED`: entry has a checkmark
+* `MENU_SUBMENU`: entry opens a submenu
+* `MENU_SEPARATOR`: entry is a separator line
+
+If `MENU_SUBMENU` is set, `value` points to the `Menu` struct defining the submenu to open. Note that `MENU_CHECKED` will not be updated automatically---it is our responsibility to receive menu events and take the necessary action, such as toggling the `MENU_CHECKED` flag for a given entry.
+
+Windows can have main menus if their `WIN_MENU` flag is set and their `menu` property points to a `Menu` struct similar to the above. Menus can also be opened independently (see the [Context_Menu()](syscalls.md#context-menu) system call).
+
+```c
+// example
+_transfer Menu submenu = {2};
+_transfer Menu_Entry submenu_row1 = {MENU_ACTIVE, "Entry 1", 1};
+_transfer Menu_Entry submenu_row2 = {MENU_ACTIVE, "Entry 2", 2};
+
+_transfer Menu mainmenu = {3};
+_transfer Menu_Entry mainmenu_row1 = {MENU_ACTIVE | MENU_SUBMENU, "Submenu", (unsigned short)&submenu};
+_transfer Menu_Entry mainmenu_row2 = {MENU_ACTIVE | MENU_CHECKED, "Option", 2};
+_transfer Menu_Entry mainmenu_row3 = {0, "Inactive", 3};
+```
 
 ### Toolbars
 
@@ -712,5 +1100,45 @@ The control group data record for a toolbar is structurally identical to the mai
 
 ### Resizing calculations
 
+The default behavior of resizable windows is to show only a portion of the main window content (optionally with scrollbars to allow the user to scroll to the rest of the content). If we instead want to resize or rearrange the window's content to match the window's new size, we will need to recognize the "window resized" event (`MSR_DSK_WRESIZ`), manually recalculate the `x`, `y`, `w`, and `h` properties of the affected controls, and redraw any controls that have moved or been resized by this calculation.
+
+There is one case where the SymbOS desktop manager can do this for us, however: when we have a single control (e.g., an image or textbox) that fills the entire window content. Here, we can set the `calcrule` property of the window's main `Ctrl_Group` to a matching `Calc_Rule` struct in the **transfer** segment:
+
+```c
+typedef struct {
+    unsigned short xbase; // x base
+    unsigned char xmult;  // x multiplier
+    unsigned char xdiv;   // x divisor
+    unsigned short ybase; // y base
+    unsigned char ymult;  // y multiplier
+    unsigned char ydiv;   // y divisor
+    unsigned short wbase; // width base
+    unsigned char wmult;  // width multiplier
+    unsigned char wdiv;   // width divisor
+    unsigned short hbase; // height base
+    unsigned char hmult;  // height multiplier
+    unsigned char hdiv;   // height divisor
+} Calc_Rule;
+```
+
+When a window is resized, the `x`, `y`, `w`, and `h` properties of each `Ctrl` in the `Ctrl_Group` will be resized according to the formula:
+
+* `x` = `xbase` + (area_width * `xmult` / `xdiv`)
+* `y` = `ybase` + (area_height * `ymult` / `ydiv`)
+* `w` = `wbase` + (area_width * `wmult` / `wdiv`)
+* `h` = `hbase` + (area_height * `hmult` / `hdiv`)
+
+The difficulty with this method is that it applies to every control in the control group equally, overwriting their individual `x`, `y`, `w`, and `h` properties with the same identical coordinates. This means that calculation rules are really only effective for control groups with only one control, and even then, really only effective when that control fills the entire window content (we can't just resize a control to fill part of the window and fill in the rest with a `C_AREA` control, since the `C_AREA` control will also be resized according to the same rule). There may possibly be ways around this by using nested `C_COLLECTION` controls, but barring that, the calculation rule to resize a single control to fill the entire window content is:
+
+```c
+_transfer Calc_Rule calcrule = {0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1};
+```
+
 ### Modal windows
 
+Windows can be "modal", that is, unable to be focused or interacted with as long as another window (here called the "topmost" window) is open. To establish a modal relationship, we need to set two values:
+
+* Set the `WIN_MODAL` flag for the topmost window, i.e.: `form2.flags |= WIN_MODAL`.
+* Set the `.modal` property of the lower window to the window ID of the topmost window, plus 1, i.e.: `form1.modal = form1id + 1`.
+
+When the topmost window closes, unset both properties. If the user clicks the lower window while this relationship has been established, the deskop manager sends a `MSR_DSK_WMODAL` message to notify the application. (This is particularly useful to create dialogs that should be closed automatically if the user clicks the main window.)

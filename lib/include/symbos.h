@@ -316,6 +316,34 @@
 #define SLIDER_H 1
 #define SLIDER_VALUE 0
 #define SLIDER_SCROLL 2
+#define CSCROLL_NONE 0
+#define CSCROLL_H 1
+#define CSCROLL_V 2
+#define CSCROLL_BOTH 3
+#define INPUT_PASSWORD 1
+#define INPUT_READONLY 2
+#define INPUT_ALTCOLS 4
+#define INPUT_ALTFONT 8
+#define INPUT_MODIFIED 128
+#define WRAP_WINDOW 2
+#define WRAP_WIDTH 3
+#define LIST_SCROLL 1
+#define LIST_MULTI 2
+#define SORT_AUTO 64
+#define SORT_REVERSE 128
+#define LTYPE_TEXT 0
+#define LTYPE_IMAGE 4
+#define LTYPE_16 8
+#define LTYPE_32 12
+#define ROW_MARKED 0x8000
+#define MENU_ACTIVE 1
+#define MENU_CHECKED 2
+#define MENU_SUBMENU 4
+#define MENU_SEPARATOR 8
+
+#define SYSTRAY_LEFT 0
+#define SYSTRAY_RIGHT 1
+#define SYSTRAY_DOUBLE 2
 
 #define C_AREA 0
 #define C_TEXT 1
@@ -337,7 +365,7 @@
 #define C_COLLECTION 25
 #define C_INPUT 32
 #define C_TEXTBOX 33
-#define C_LIST 40
+#define C_LISTTITLE 40
 #define C_LISTBOX 41
 #define C_DROPDOWN 42
 #define C_LISTFULL 43
@@ -679,19 +707,19 @@ typedef struct {
 } Menu_Entry;
 
 typedef struct {
-    unsigned short x;
+    unsigned short xbase;
     unsigned char xmult;
     unsigned char xdiv;
-    unsigned short y;
+    unsigned short ybase;
     unsigned char ymult;
     unsigned char ydiv;
-    unsigned short w;
+    unsigned short wbase;
     unsigned char wmult;
     unsigned char wdiv;
-    unsigned short h;
+    unsigned short hbase;
     unsigned char hmult;
     unsigned char hdiv;
-} CalcRule;
+} Calc_Rule;
 
 typedef struct {
     unsigned short value;
@@ -829,7 +857,7 @@ typedef struct {
     char* text;
     unsigned short scroll;
     unsigned short cursor;
-    unsigned short selection;
+    signed short selection;
     unsigned short len;
     unsigned short maxlen;
     unsigned char flags;
@@ -841,19 +869,19 @@ typedef struct {
     char* text;
     unsigned short unused1;
     unsigned short cursor;
-    unsigned short selection;
+    signed short selection;
     unsigned short len;
     unsigned short maxlen;
     unsigned char flags;
-    unsigned textcolor;
+    unsigned char textcolor;
     unsigned char unused2;
     char* font;
     unsigned char unused3;
     unsigned short lines;
-    unsigned short linewidth;
+    signed short wrapwidth;
     unsigned short maxlines;
-    unsigned short xvisible;
-    unsigned short yvisible;
+    signed short xvisible;
+    signed short yvisible;
     void* self;
     unsigned short xtotal;
     unsigned short ytotal;
@@ -865,6 +893,19 @@ typedef struct {
 } Ctrl_TextBox;
 
 typedef struct {
+    unsigned short lines;
+    unsigned short scroll;
+    void* rowdata;
+    unsigned short unused1;
+    unsigned char columns;
+    unsigned char sorting;
+    void* coldata;
+    unsigned short clicked;
+    unsigned char flags;
+    unsigned char unused2;
+} List;
+
+typedef struct {
     unsigned char flags;
     unsigned char unused1;
     unsigned short width;
@@ -874,42 +915,29 @@ typedef struct {
 
 typedef struct {
     unsigned short flags;
-    char* text;
-} List_Line;
+    char* value;
+} List_Row;
 
 typedef struct {
     unsigned short flags;
-    char* text1;
-    char* text2;
-} List_Line2Col;
+    char* value1;
+    char* value2;
+} List_Row2Col;
 
 typedef struct {
     unsigned short flags;
-    char* text1;
-    char* text2;
-    char* text3;
-} List_Line3Col;
+    char* value1;
+    char* value2;
+    char* value3;
+} List_Row3Col;
 
 typedef struct {
     unsigned short flags;
-    char* text1;
-    char* text2;
-    char* text3;
-    char* text4;
-} List_Line4Col;
-
-typedef struct {
-    unsigned short linecount;
-    unsigned short scroll;
-    void* lines;
-    unsigned short unused1;
-    unsigned char columncount;
-    unsigned char sortflags;
-    void* columns;
-    unsigned short clicked;
-    unsigned char flags;
-    unsigned char unused2;
-} List_Title;
+    char* value1;
+    char* value2;
+    char* value3;
+    char* value4;
+} List_Row4Col;
 
 typedef struct {
     unsigned char bytew;
