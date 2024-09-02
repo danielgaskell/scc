@@ -72,6 +72,7 @@ nearbyintf.o
 nextafterf.o
 pause.o
 perror.o
+error.o
 popen.o
 powf.o
 printf.o
@@ -201,3 +202,5 @@ strcat.o
 strcpy.o
 memcpy.o
 memset.o
+time.o
+systime.o

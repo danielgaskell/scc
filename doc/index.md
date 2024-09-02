@@ -8,21 +8,48 @@
 
 # Introduction
 
-Writing C will rot your brain. Only a true C programmer would look at the following code fragment and think it was an "elegant" solution to anything:
+SCC is an ANSI C compiler that produces executables for [SymbOS](https://symbos.org).
+
+SCC is not the only way to write code for SymbOS; for a more Visual Basic-like experience with a GUI form editor and event-driven programming (albeit with sparse documentation and a lot of quirks), check out the [Quigs IDE](https://symbos.org/quigs.htm). There is also [extensive documentation and example code](https://symbos.org/download.htm) for writing SymbOS applications in pure Z80 assembler. But if you already know C and want to write SymbOS software, or you want to port existing C code to SymbOS, or you just want something more powerful than Quigs but less mind-numbing than assembly, read on.
+
+(This documentation assumes you are familiar with standard C syntax, particularly structs, pointers, and typecasting, as well as the various weird ways you can combine them.)
+
+## Why C?
+
+Writing C will rot your brain. Only a true C programmer would look at the following code and think it was an "elegant" solution to anything:
 
 ```c
-addr = (((_MemStruct)membank).ptr->addr & (ver > 4 ? 7 : attr));
+addr = ((_MemStruct)membank).ptr->addr & (ver > 4 ? 7 : attr);
 *((char*)(++addr)) += 'A';
 ```
 
-C is a terrible, very bad, no-good language that provides you with an army of ways to shoot yourself in the foot. It is also obviously the best language for many kinds of systems programming, where we want to express ideas in a relatively readable, high-level way while retaining the knowledge of where every byte is going and why:
+C is an awful language that is nonetheless ideal for many kinds of 8-bit programming, where we want to express ideas in a relatively high-level way while retaining the knowledge of where every byte is going and why. C is particularly good at dealing with byte-level structured data and pointers, which makes it a good fit for SymbOS. For example, SymbOS GUI controls are defined by exact blocks of bytes laid out in the correct order. These can be conveniently represented in C as structs, allowing us to reference the control's properties by name:
 
 ```c
-_data char buffer[256]; // declare a 256-byte static buffer in the SymbOS "data" segment
+typedef struct {
+    char* text;               // address of text buffer
+    unsigned short scroll;    // scroll position, in bytes
+    unsigned short cursor;    // cursor position, in bytes
+    signed short selection;   // number of selected characters relative to cursor
+    unsigned short len;       // current text length, in bytes
+    unsigned short maxlen;    // maximum text length, in bytes
+    unsigned char flags;      // flags
+    unsigned char textcolor;  // text color
+    unsigned char linecolor;  // line color
+} Ctrl_Input;
+```
 
-// subroutine: AND every byte in buffer[] with the byte 'mask'.
-void and_buffer(char mask) {
+With this type of intrastructure in place, we can express complex ideas in just a few lines of code:
+
+```c
+// declare a 256-byte static buffer in the SymbOS "data" segment
+_data char buffer[256];
+
+// subroutine: convert the text in the specified GUI textbox (passed by reference)
+// to a number, then AND it with every byte in buffer[].
+void filter_buffer(Ctrl_Input* textbox) {
 	int i = 0;
+	char mask = atoi(textbox->text);
 	while (i < sizeof(buffer)) {
 		buffer[i] &= mask;
 		i++;
@@ -30,11 +57,7 @@ void and_buffer(char mask) {
 }
 ```
 
-This middle-level flexibility---in addition to the vast amount of open-source code already written in C---makes C an extremely useful language for programming on 8-bit systems.
-
-SCC is an ANSI C compiler that produces executables for [SymbOS](https://symbos.org). If you want a nice Visual Basic-style experience with a GUI form editor and event-driven programming, you should probably check out the [Quigs IDE](https://symbos.org/quigs.htm) instead. But if you already know C and want to write SymbOS software, or you want to port existing C code to SymbOS, or you just want to do something more low-level and complicated than is possible in Quigs, read on.
-
-(This documentation assumes you are familiar with standard C syntax, particularly structs, pointers, and typecasting, as well as the various weird ways you can combine them.)
+C is also a mature language with a vast amount of open-source code written in it, so there is ample material for porting or adapting and it is possible to find code examples for just about every algorithm imaginable.
 
 ## Using SCC
 

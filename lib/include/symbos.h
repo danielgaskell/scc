@@ -794,14 +794,14 @@ typedef struct {
 typedef struct {
     char* text;
     unsigned char color;
-    unsigned char flags;
-} Ctrl_Text;
+    unsigned char color2;
+} Ctrl_TFrame;
 
 typedef struct {
     char* text;
     unsigned char color;
-    unsigned char color2;
-} Ctrl_TFrame;
+    unsigned char flags;
+} Ctrl_Text;
 
 typedef struct {
     char* text;
