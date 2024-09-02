@@ -724,16 +724,16 @@ typedef struct {
 } Menu_Entry;
 
 typedef struct {
-    unsigned short xbase;
+    signed short xbase;
     unsigned char xmult;
     unsigned char xdiv;
-    unsigned short ybase;
+    signed short ybase;
     unsigned char ymult;
     unsigned char ydiv;
-    unsigned short wbase;
+    signed short wbase;
     unsigned char wmult;
     unsigned char wdiv;
-    unsigned short hbase;
+    signed short hbase;
     unsigned char hmult;
     unsigned char hdiv;
 } Calc_Rule;

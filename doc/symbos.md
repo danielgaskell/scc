@@ -165,7 +165,7 @@ typedef struct {
     unsigned char controls;   // total number of controls in the group
     unsigned char pid;        // process ID of owner (set by Win_Open for main group)
     void* first;              // address of first control's data
-    void* calcrule;           // address of resizing calculation (see below)
+    void* calcrule;           // address of first resizing calculation (see below), or 0 for none
     unsigned short unused1;
     unsigned char retctrl;    // control ID to "click" on pressing Return
     unsigned char escctrl;    // control ID to "click" on pressing Escape
@@ -1102,39 +1102,39 @@ The control group data record for a toolbar is structurally identical to the mai
 
 ### Resizing calculations
 
-The default behavior of resizable windows is to show only a portion of the main window content (optionally with scrollbars to allow the user to scroll to the rest of the content). If we instead want to resize or rearrange the window's content to match the window's new size, we will need to recognize the "window resized" event (`MSR_DSK_WRESIZ`), manually recalculate the `x`, `y`, `w`, and `h` properties of the affected controls, and redraw any controls that have moved or been resized by this calculation.
-
-There is one case where the SymbOS desktop manager can do this for us, however: when we have a single control (e.g., an image or textbox) that fills the entire window content. Here, we can set the `calcrule` property of the window's main `Ctrl_Group` to a matching `Calc_Rule` struct in the **transfer** segment:
+The default behavior of resizable windows is to show only a portion of the main window content (optionally with scrollbars to allow the user to scroll to the rest of the content). However, we can also tell the desktop manager to automatically move and resize the controls on a window using "calculation rules." Calculation rules are defined by a series of `Calc_Rule` structs:
 
 ```c
 typedef struct {
-    unsigned short xbase; // x base
+    signed short xbase; // x base
     unsigned char xmult;  // x multiplier
     unsigned char xdiv;   // x divisor
-    unsigned short ybase; // y base
+    signed short ybase; // y base
     unsigned char ymult;  // y multiplier
     unsigned char ydiv;   // y divisor
-    unsigned short wbase; // width base
+    signed short wbase; // width base
     unsigned char wmult;  // width multiplier
     unsigned char wdiv;   // width divisor
-    unsigned short hbase; // height base
+    signed short hbase; // height base
     unsigned char hmult;  // height multiplier
     unsigned char hdiv;   // height divisor
 } Calc_Rule;
 ```
 
-When a window is resized, the `x`, `y`, `w`, and `h` properties of each `Ctrl` in the `Ctrl_Group` will be resized according to the formula:
+The calculation rules for a control group should be placed immediately after one another in the **transfer** segment, one `Calc_Rule` per control, and the `calcrule` property of the window's main `Ctrl_Group` set to the address of the first `Calc_Rule`. When the window is resized, the `x`, `y`, `w`, and `h` properties of each `Ctrl` in the window's main `Ctrl_Group` will be resized according to the formula:
 
-* `x` = `xbase` + (area_width * `xmult` / `xdiv`)
-* `y` = `ybase` + (area_height * `ymult` / `ydiv`)
-* `w` = `wbase` + (area_width * `wmult` / `wdiv`)
-* `h` = `hbase` + (area_height * `hmult` / `hdiv`)
+* `x` = `xbase` + (window_width * `xmult` / `xdiv`)
+* `y` = `ybase` + (window_height * `ymult` / `ydiv`)
+* `w` = `wbase` + (window_width * `wmult` / `wdiv`)
+* `h` = `hbase` + (window_height * `hmult` / `hdiv`)
 
-The difficulty with this method is that it applies to every control in the control group equally, overwriting their individual `x`, `y`, `w`, and `h` properties with the same identical coordinates. This means that calculation rules are really only effective for control groups with only one control, and even then, really only effective when that control fills the entire window content (we can't just resize a control to fill part of the window and fill in the rest with a `C_AREA` control, since the `C_AREA` control will also be resized according to the same rule). There may possibly be ways around this by using nested `C_COLLECTION` controls, but barring that, the calculation rule to resize a single control to fill the entire window content is:
+For example, to resize a single control to fill the entirety of the window content except for a 12-pixel area at the top of the window content:
 
 ```c
-_transfer Calc_Rule calcrule = {0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1};
+_transfer Calc_Rule calcrule = {0, 0, 1, 12, 0, 1, 0, 1, 1, -12, 1, 1};
 ```
+
+(An alternative approach is to recognize the "window resized" event (`MSR_DSK_WRESIZ`), manually recalculate the `x`, `y`, `w`, and `h` properties of the affected controls, and redraw any controls that have moved or been resized by this calculation. However, using calculation rules will result in a smoother experience because the desktop manager can recalculate controls as the window is being resized, rather than redrawing them twice.)
 
 ### Modal windows
 
