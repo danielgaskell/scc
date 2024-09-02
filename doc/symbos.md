@@ -27,7 +27,7 @@ For the most part, console applications meant to run in SymShell can be written 
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
-	printf("Hello world!\n");
+    printf("Hello world!\n");
 }
 ```
 
