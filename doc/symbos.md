@@ -1102,7 +1102,7 @@ The control group data record for a toolbar is structurally identical to the mai
 
 ### Resizing calculations
 
-The default behavior of resizable windows is to show only a portion of the main window content (optionally with scrollbars to allow the user to scroll to the rest of the content). However, we can also tell the desktop manager to automatically move and resize the controls on a window using "calculation rules." Calculation rules are defined by a series of `Calc_Rule` structs:
+The default behavior of resizable windows is to show only a portion of the main window content (optionally with scrollbars to allow the user to scroll to the rest of the content). However, we can also tell the desktop manager to automatically move and resize the controls on a window using "calculation rules." Calculation rules are defined by a series of `Calc_Rule` structs, one struct per control in the window's main control group, with the format:
 
 ```c
 typedef struct {
@@ -1134,7 +1134,7 @@ For example, to resize a single control to fill the entirety of the window conte
 _transfer Calc_Rule calcrule = {0, 0, 1, 12, 0, 1, 0, 1, 1, -12, 1, 1};
 ```
 
-(An alternative approach is to recognize the "window resized" event (`MSR_DSK_WRESIZ`), manually recalculate the `x`, `y`, `w`, and `h` properties of the affected controls, and redraw any controls that have moved or been resized by this calculation. However, using calculation rules will result in a smoother experience because the desktop manager can recalculate controls as the window is being resized, rather than redrawing them twice.)
+(An alternative approach is to recognize the "window resized" event `MSR_DSK_WRESIZ`, manually recalculate the `x`, `y`, `w`, and `h` properties of the affected controls, and redraw any controls that have moved or been resized by this calculation. However, using calculation rules will result in a smoother experience because the desktop manager can recalculate controls as the window is being resized, rather than redrawing them twice.)
 
 ### Modal windows
 
