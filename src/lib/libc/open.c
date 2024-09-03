@@ -20,9 +20,9 @@ int open(const char *path, int flags, ...) {
         }
     }
     if (_fileerr) {
-        if (fd == ERR_FORBIDDEN)
+        if (_fileerr == ERR_FORBIDDEN)
             errno = EACCES;
-        else if (fd == ERR_TOOMANY)
+        else if (_fileerr == ERR_TOOMANY)
             errno = ENFILE;
         else if (flags & O_CREAT)
             errno = ENOSPC;

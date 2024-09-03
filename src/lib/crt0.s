@@ -72,6 +72,9 @@ start2:
 	ld hl,__codestart
 	ld de,(__segcodelen)
 	add hl,de
+	ld de,256 ; for EXE header
+	or a ; reset carry
+	sbc hl,de
 	ld (__malloc_max),hl
 	ld de,(__heapsize)
 	or a ; reset carry

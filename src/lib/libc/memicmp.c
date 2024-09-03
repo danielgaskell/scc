@@ -14,5 +14,5 @@ int memicmp(const void *mem1, const void *mem2, size_t len)
 		p1++;
 		p2++;
 	}
-	return *p1 - *p2;
+	return toupper(*p1) - toupper(*p2);
 }

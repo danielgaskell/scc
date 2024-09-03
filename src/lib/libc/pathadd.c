@@ -50,5 +50,6 @@ char* Dir_PathAdd(char* path, char* addition, char* dest) {
     while (*(ptr2 - 1) == '\\') // do not end on a backslash
         --ptr2;
     *ptr2 = 0;
+
     return dest;
 }
