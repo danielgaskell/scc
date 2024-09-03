@@ -180,6 +180,7 @@ toupper.o
 isspace.o
 isalnum.o
 memcmp.o
+memicmp.o
 write.o
 read.o
 lseek.o

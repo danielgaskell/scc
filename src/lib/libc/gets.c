@@ -20,6 +20,7 @@
 // problem by reading into the known-good 256-byte _io_buf as an intermediate.
 char *gets_s(char *str, size_t maxlen) {
     signed char result;
+    unsigned char len;
     if (str == NULL || maxlen == 0) {
         errno = ERANGE;
         return 0;
@@ -33,9 +34,10 @@ char *gets_s(char *str, size_t maxlen) {
         stdin->mode |= __MODE_ERR;
         return 0;
     }
-    if (strlen(_io_buf) > maxlen)
+    len = strlen(_io_buf);
+    if (len > maxlen)
         return 0;
-    memcpy(str, _io_buf, strlen(_io_buf) + 1);
+    memcpy(str, _io_buf, (int)len + 1);
     return str;
 }
 
@@ -44,7 +46,7 @@ char *gets(char *str) {
 }
 
 int puts(const char *str) {
-	register int n;
+	int n;
 	if (((n = fputs(str, stdout)) == EOF)
 	    || (putc('\n', stdout) == EOF))
 		return (EOF);

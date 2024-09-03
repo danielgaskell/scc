@@ -672,7 +672,7 @@ typedef struct {
 } Ctrl_Tab;
 ```
 
-The control height must be 11. SymbOS will keep track of the selected tab for us, but it is our responsibility to decide what tab events actually do (for example, hiding one page of controls and revealing another).
+The control height must be 11. SymbOS will keep track of the selected tab for us, but it is our responsibility to decide what a click event on a tab actually does (for example, hiding one page of controls and revealing another). A good way to switch between several pages of controls is to create each page as a separate `Ctrl_Group` and have a `C_COLLECTION` control pointing to the `Ctrl_Group` of the visible page. When the tab bar is clicked, change which `Ctrl_Group` the collection's `controls` property points to and redraw it.
 
 ```c
 // example
@@ -723,7 +723,7 @@ Contains a collection of subcontrols. A collection behaves similarly to the main
 
 ```c
 typedef struct {
-    void* controls;          // address of first Ctrl struct in the collection
+    void* controls;          // address of Ctrl_Group defining the controls in the collection
     unsigned short wfull;    // full width of content, in pixels
     unsigned short hfull;    // full height of content, in pixels
     unsigned short xscroll;  // horizontal scroll position, in pixels
@@ -742,9 +742,15 @@ If scrollbars are enabled, the control size must be greater than 32x32. `flags` 
 ```c
 // example
 _transfer Ctrl cc_area = {1, C_AREA, -1, COLOR_ORANGE, 0, 0, 100, 100};
-
-_transfer Ctrl_Collection cd_collect = {cc_area, 200, 100, 0, 0, CSCROLL_H};
+_transfer Ctrl_Group cg_collect = {1, 0, &cc_area};
+_transfer Ctrl_Collection cd_collect = {cg_collect, 200, 100, 0, 0, CSCROLL_H};
 _transfer Ctrl c_collect = {1, C_COLLECTION, -1, (unsigned short)&cd_collect, 10, 10, 100, 100};
+
+int main(int argc, char* argv[]) {
+	cg_collect.pid = _sympid; // ensure collection's Ctrl_Group has the correct process ID for sending back events
+	
+	/* ... */
+}
 ```
 
 ### C_INPUT
@@ -1121,18 +1127,29 @@ typedef struct {
 } Calc_Rule;
 ```
 
-The calculation rules for a control group should be placed immediately after one another in the **transfer** segment, one `Calc_Rule` per control, and the `calcrule` property of the window's main `Ctrl_Group` set to the address of the first `Calc_Rule`. When the window is resized, the `x`, `y`, `w`, and `h` properties of each `Ctrl` in the window's main `Ctrl_Group` will be resized according to the formula:
+The calculation rules for a control group should be placed immediately after one another in the **transfer** segment, one `Calc_Rule` per control, and the `calcrule` property of the window's main `Ctrl_Group` set to the address of the first `Calc_Rule`. When the window is resized, the `x`, `y`, `w`, and `h` properties of each `Ctrl` in the window's main `Ctrl_Group` will be automatically recalculated according to the formula:
 
 * `x` = `xbase` + (window_width * `xmult` / `xdiv`)
 * `y` = `ybase` + (window_height * `ymult` / `ydiv`)
 * `w` = `wbase` + (window_width * `wmult` / `wdiv`)
 * `h` = `hbase` + (window_height * `hmult` / `hdiv`)
 
-For example, to resize a single control to fill the entirety of the window content except for a 12-pixel area at the top of the window content:
+An easy way to think about these formulas is in terms of which control margins you want to remain a constant distance from the corresponding side of the window area:
+
+* To keep a control's left margin constant, use `xbase` = left_margin, `xmult` = 0, `xdiv` = 1.
+* To keep a control's right margin constant, use `xbase` = -(control_width + right_margin), `xmult` = 1, `xdiv` = 1.
+* To keep both left and right margins constant, stretching the control to fit, use `xbase` = left_margin, `xmult` = 0, `xdiv` = 1, `wbase` = -(left_margin + right_margin), `wmult` = 1, `wdiv` = 1.
+* To keep a control's top margin constant, use `ybase` = top_margin, `ymult` = 0, `ydiv` = 1.
+* To keep a control's bottom margin constant, use `ybase` = -(control_height + bottom_margin), `ymult` = 1, `ydiv` = 1.
+* To keep both top and bottom margins constant, stretching the control to fit, use `ybase` = top_margin, `ymult` = 0, `ydiv` = 1, `hbase` = -(top_margin + bottom_margin), `hmult` = 1, `hdiv` = 1.
+
+For example, to resize a single control to fill the entirety of the window content except for a 12-pixel area at the top of the window content (left margin = 0, right margin = 0, top margin = 12, bottom margin = 0):
 
 ```c
 _transfer Calc_Rule calcrule = {0, 0, 1, 12, 0, 1, 0, 1, 1, -12, 1, 1};
 ```
+
+When using calculation rules, we should be careful about setting the maximum and minimum window sizes in the `Window` record to sizes where we know the calculations will be valid. For example, if we have a control with a left margin of 25 and a right margin of 100 and we let the user resize the window to only 50 pixels wide, the calculated width of the control will be negative! We can avoid this situation by defining an appropriate minimum width, such as 150.
 
 (An alternative approach is to recognize the "window resized" event `MSR_DSK_WRESIZ`, manually recalculate the `x`, `y`, `w`, and `h` properties of the affected controls, and redraw any controls that have moved or been resized by this calculation. However, using calculation rules will result in a smoother experience because the desktop manager can recalculate controls as the window is being resized, rather than redrawing them twice.)
 

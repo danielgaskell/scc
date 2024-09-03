@@ -34,6 +34,7 @@ extern void *memccpy(void *__dest, const void *__src, int __c, size_t __n);
 extern void *memchr(const void *__src, int __c, size_t __n);
 extern void *memset(void *__s, int __c, size_t __n);
 extern int memcmp(const void *__s1, const void *__s2, size_t __n);
+extern int memicmp(const void *__s1, const void *__s2, size_t __n);
 
 extern void *memmove(void *__dest, const void *__src, size_t __n);
 

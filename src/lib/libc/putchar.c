@@ -2,6 +2,6 @@
 
 int putchar(int ch)
 {
-        unsigned char c = ch;
-        return write(1, &c, 1);
+    unsigned char c = ch;
+    return write(1, &c, 1);
 }

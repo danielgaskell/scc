@@ -831,6 +831,8 @@ A quirk to know: Due to a limitation of the AMSDOS filesystem used by, e.g., CPC
 
 As usual, the `stdio.h` implementation includes some logic to paper over this issue when using functions such as `fgets()`, but when accessing files directly with system calls we will need to keep this in mind. Files stored on FAT filesystems (i.e., most mass storage devices) do not have this limitation, although any files copied from an AMSDOS filesystem to a FAT filesystem may retain their garbage padding at the end.
 
+Most file operations will set `_fileerr` to an error code on failure; see [error codes](#error-codes).
+
 ### File_Open()
 
 ```c
@@ -1161,6 +1163,8 @@ If `_shellpid` = 0, there is no SymShell instance. `_shellver` is a two-digit nu
 Most shell functions allow specifying a *channel*. In general, channel 0 is the standard input/output, which is usually the keyboard (in) and text window (out) but may also be a file or stream if some type of redirection is active. This is similar to the behavior of stdin/stdout in standard C (although note that there is no direct equivalent to stderr). Channel 1 is always the physical keyboard (in) or text window (out), even if redirection is active on channel 0. Usually we want channel 0.
 
 Note that SymShell returns the Windows-style ASCII character 13 (`\r`) for the "Enter" key, *not* the Unix-style ASCII character 10 (`\n`), as is more common in C. Likewise, when sending text to the console, note that SymShell expects the Windows-style line terminator `\r\n` rather than the Unix-style `\n` that is more common in C. If we only send `\n`, SymShell will take this literally, only performing a line feed (`\n`, going down a line) but not a carriage return (`\r`, going back to the start of the next line)! The stdio implementation (`printf()`, etc.) includes some logic to paper over these differences and understand the Unix-style convention, but when working with SymShell functions directly, we will need to be more careful.
+
+Most shell functions will set `_shellerr` to an error code on failure; see [error codes](#error-codes).
 
 ### Shell_CharIn()
 
@@ -1735,3 +1739,49 @@ International English synonyms (`COLOUR`, `GREY`) are also available.
 | 14 |              | COLOR_PINK    |
 | 15 |              | COLOR_LRED    |
 
+### Error codes
+
+The following errors are primarily issued by file commands (stored in `_fileerr`):
+
+* `ERR_DEVINIT`: Device not initialized
+* `ERR_DAMAGED`: Media is damaged
+* `ERR_NOPART`: Partition does not exist
+* `ERR_UNPART`: Unsupported media or partition
+* `ERR_READ`: Error during sector read/write
+* `ERR_SEEK`: Error during seek
+* `ERR_ABORT`: Abort during volume access
+* `ERR_NOVOL`: Unknown volume
+* `ERR_TOOMANY`: No free filehandle
+* `ERR_NODEV`: Device does not exist
+* `ERR_NOPATH`: Path does not exist
+* `ERR_NOFILE`: File does not exist
+* `ERR_FORBIDDEN`: Access is forbidden
+* `ERR_BADNAME`: Invalid path or filename
+* `ERR_NOHANDLE`: Filehandle does not exist
+* `ERR_DEVSLOT`: Device slot already occupied
+* `ERR_FILEORG`: Error in file organization
+* `ERR_BADDEST`: Invalid destination name
+* `ERR_EXISTS`: File/path already exists
+* `ERR_BADCODE`: Invalid subcommand code
+* `ERR_BADATTRIB`: Invalid attribute
+* `ERR_DIRFULL`: Directory is full
+* `ERR_DISKFULL`: Media is full
+* `ERR_PROTECT`: Media is write-protected
+* `ERR_NOTREADY`: Device not ready
+* `ERR_NOTEMPTY`: Directory is not empty
+* `ERR_BADDEV`: Invalid destination device
+* `ERR_FILESYS`: Not supported by file system
+* `ERR_UNDEV`: Unsupported device
+* `ERR_RONLY`: File is read-only
+* `ERR_NOCHANNEL`: Device channel unavailable
+* `ERR_NOTDIR`: Destination is not a directory
+* `ERR_NOTFILE`: Destination is not a file
+* `ERR_UNDEFINED`: Undefined error
+
+The following errors are primarily issued by SymShell commands (stored in `_shellerr`):
+
+* `ERR_NOPROC`: Process ID is not registered with SymShell
+* `ERR_DEVFULL`: Destination device is full
+* `ERR_RINGFULL`: Internal ring buffer is full
+* `ERR_MOREPROC`: Too many processes registered with SymShell
+* `ERR_NOSHELL`: No SymShell session available (`_shellpid` = 0)

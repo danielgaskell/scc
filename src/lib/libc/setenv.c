@@ -10,8 +10,8 @@
 
 int setenv(char *name, char *value, int replace)
 {
-	register char **ep;
-	register size_t size = 0;
+	char **ep;
+	size_t size = 0;
 	size_t namelen = strlen(name);
 	size_t vallen = strlen(value);
 	char *p;

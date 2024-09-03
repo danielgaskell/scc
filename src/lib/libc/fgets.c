@@ -11,16 +11,19 @@
 /* Nothing special here ... */
 char *fgets(char *s, size_t count, FILE * f)
 {
-	register size_t i = count;
-	register int ch;
+	size_t i = count;
+	int ch;
 	char *ret = s;
 
 	if (f == stdin) {
         // defer to the gets_s implementation of console input, except that
         // we need the trailing newline included by fgets() but not by gets()
         ret = gets_s(s, count);
-        if (ret)
-            ret[strlen(ret)] = '\n';
+        if (ret) {
+            i = strlen(ret);
+            ret[i] = '\n';
+            ret[i+1] = 0;
+        }
         return ret;
 
 	} else {

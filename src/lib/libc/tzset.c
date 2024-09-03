@@ -24,7 +24,7 @@ static uint8_t tzset_done;
 
 static uint8_t dpair(char **p, unsigned long *v, uint16_t mul)
 {
-        register char *x = *p;
+        char *x = *p;
         long n;
         if (!isdigit(*x))
                 return 2;	/* Error */
@@ -94,7 +94,7 @@ static char *parse_tzspec(char *in, long *l)
 
 static char *tzunit(char *inp, char *tzstr, long *p, int required)
 {
-        register char *in = inp;
+        char *in = inp;
         char *pe = tzstr + 5;
         while(*in && isalpha(*in)) {
                 if (tzstr < pe)
@@ -114,7 +114,7 @@ static char *tzunit(char *inp, char *tzstr, long *p, int required)
                 }
         }
         return pe;
-        
+
 }
 
 static char *parse_dst(char *p, int n)
@@ -160,12 +160,12 @@ static char *parse_dst(char *p, int n)
 		np = p + 1;
 	}
 	return np;
-}	
+}
 
 void tzset(void)
 {
         char *tz = getenv("TZ");
-        register char *p;
+        char *p;
 
         if (tzset_done)
                 return;
@@ -227,7 +227,7 @@ static void convert_dow(struct tm *tm)
         dsday[0] = do_find_day(tm, dswom[0], dsdow[0], leap);
         dsday[1] = do_find_day(tm, dswom[1], dsdow[1], leap);
 }
-        
+
 /*
  *	tm is the time structure parsed assuming no local time. secs is
  *	the number of seconds of the day that have passed.
@@ -238,7 +238,7 @@ static int8_t calc_is_dst(struct tm *tm, uint32_t secs)
 {
 	uint16_t yday = tm->tm_yday;
 	uint_fast8_t south = 0;
-	
+
 	switch(dsmode) {
 	default:
 	case 0:

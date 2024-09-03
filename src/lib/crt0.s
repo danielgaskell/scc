@@ -72,11 +72,12 @@ start2:
 	ld hl,__codestart
 	ld de,(__segcodelen)
 	add hl,de
+	ld (__malloc_max),hl
+	ld de,(__heapsize)
+	or a ; reset carry
+	sbc hl,de
 	ld (__malloc_heap),hl
 	ld (__malloc_top),hl
-	ld de,(__heapsize)
-	add hl,de
-	ld (__malloc_max),hl
 	
 	; load argv and call main
 	call __load_argv

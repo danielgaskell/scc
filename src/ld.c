@@ -108,7 +108,7 @@ static addr_t dot;			/* Working address as we link */
 
 static unsigned progress;		/* Did we make forward progress ?
 					   Used while library linking */
-static const char *segmentorder = "CLDBXdt";	/* Segment default order */
+static const char *segmentorder = "CDBXLdt";	/* Segment default order */
 
 static int_fast8_t rel_shift;		/* Relocation scaling */
 static addr_t rel_mask;			/* Relocation mask */
@@ -834,13 +834,13 @@ static void set_segment_bases(void)
 		insert_internal_symbol("__code", CODE, 0);
 		insert_internal_symbol("__data", DATA, 0);
 		insert_internal_symbol("__bss", BSS, 0);
-		insert_internal_symbol("__literal", LITERAL, 0);
 		insert_internal_symbol("__end", BSS, size[3]);
 		insert_internal_symbol("__zp", ZP, 0);
 		insert_internal_symbol("__discard", DISCARD, 0);
 		insert_internal_symbol("__common", COMMON, 0);
 		insert_internal_symbol("__buffers", BUFFERS, 0);
 		insert_internal_symbol("__commondata", COMMONDATA, 0);
+		insert_internal_symbol("__literal", LITERAL, 0);
 		insert_internal_symbol("__symdata", SYMDATA, 0);
 		insert_internal_symbol("__symtrans", SYMTRANS, 0);
 		insert_internal_symbol("__code_size", ABSOLUTE, size[CODE]);
@@ -1476,7 +1476,7 @@ static void write_binary(FILE * op, FILE *mp)
 	else {
 		/* ZP is ok in Fuzix but is not initialized in a defined way */
 		for (i = ldmode == LD_FUZIX ? 5 : 4; i < OSEG; i++) {
-			if (i != LITERAL && size[i] && i != SYMDATA && i != SYMTRANS) {
+			if (size[i] > 0 && i != LITERAL && i != SYMDATA && i != SYMTRANS) {
 				fprintf(stderr, "Unsupported data in non-standard segment %d.\n", i);
 				break;
 			}

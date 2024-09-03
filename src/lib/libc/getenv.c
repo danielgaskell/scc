@@ -2,16 +2,16 @@
  * Copyright (C) 1995,1996 Robert de Bath <rdebath@cix.compulink.co.uk>
  * This file is part of the Linux-8086 C library and is distributed
  * under the GNU Library General Public License.
- */  
-    
+ */
+
 #include "stdlib.h"
 #include "string.h"
 
-char *getenv(char *name) 
+char *getenv(char *name)
 {
-	register char *p, **ep = environ;
-	register int l = strlen(name);
-	
+	char *p, **ep = environ;
+	int l = strlen(name);
+
 	if (ep == 0 || l == 0)
 		return 0;
 	while ((p = *ep++) != NULL) {

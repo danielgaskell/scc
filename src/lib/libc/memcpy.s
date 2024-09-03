@@ -5,20 +5,22 @@
 
 	.export _memcpy
 _memcpy:
-	pop iy
+	pop af
 	pop de
 	pop hl
 	pop bc
+	push af         ; push return address back to stack
 	ld (addr),de	; save starting address
 	ld a,b			; skip if BC = 0 (ldir wraps rather than doing nothing)
 	or c
 	jr z,skip
 	ldir
 skip:
+	pop af
 	push bc
 	push hl
 	push de
-	push iy
+	push af
 	ld hl,(addr)
 	ret
 

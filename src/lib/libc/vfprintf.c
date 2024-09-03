@@ -25,8 +25,8 @@ extern void _fnum(double val, char fmt, int prec, char *ptmp);
 static int prtfld(FILE * op, size_t maxlen, size_t ct, unsigned char *buf, int ljustf, char sign,
 		  char pad, int width, int preci, int buffer_mode)
 {
-	register unsigned char ch;
-	register int cnt = 0, len = strlen((char *)buf);
+	unsigned char ch;
+	int cnt = 0, len = strlen((char *)buf);
 
 	if (*buf == '-')
 		sign = *buf++;
@@ -69,9 +69,9 @@ static int prtfld(FILE * op, size_t maxlen, size_t ct, unsigned char *buf, int l
 
 int _vfnprintf(FILE * op, size_t maxlen, const char *fmt, va_list ap)
 {
-	register int i, ljustf, lval, preci, dpoint, width, radix, cnt = 0;
+	int i, ljustf, lval, preci, dpoint, width, radix, cnt = 0;
 	char pad, sign, hash;
-	register char *ptmp, *add;
+	char *ptmp, *add;
 	unsigned long val;
 	char tmp[64];
 	char buf[34];
@@ -271,5 +271,8 @@ int _vfnprintf(FILE * op, size_t maxlen, const char *fmt, va_list ap)
 
 int vfprintf(FILE * op, const char *fmt, va_list ap)
 {
-        return _vfnprintf(op, ~0, fmt, ap);
+    int result = _vfnprintf(op, ~0, fmt, ap);
+    if (op->fd < 3) // stdin, stdout, stderr
+        fflush(op);
+    return result;
 }

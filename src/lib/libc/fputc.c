@@ -2,7 +2,7 @@
 
 int fputc(int ch, FILE * fp)
 {
-	register int v;
+	int v;
 
 	v = fp->mode;
 	/* If last op was a read ... */

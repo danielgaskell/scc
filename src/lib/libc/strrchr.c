@@ -9,7 +9,7 @@
 /********************** Function strrchr ************************************/
 char *strrchr(const char *s, int c)
 {
-	register const char *p = s + strlen(s);
+	const char *p = s + strlen(s);
 
 	/* For null it's just like strlen */
 	if (c == '\0')

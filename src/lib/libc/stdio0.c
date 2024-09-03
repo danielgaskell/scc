@@ -75,10 +75,10 @@ int fflush(FILE * fp)
 
 FILE *__IO_list = NULL;		/* For fflush at exit */
 
-static unsigned char bufin[BUFSIZ];
-static unsigned char bufout[BUFSIZ];
+unsigned char bufin[BUFSIZ];
+unsigned char bufout[BUFSIZ];
 #ifndef buferr
-static unsigned char buferr[BUFSIZ];
+unsigned char buferr[BUFSIZ];
 #endif
 
 FILE _stdin =

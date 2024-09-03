@@ -4,10 +4,10 @@
  */
 /*
  * getopt -- public domain version of standard System V routine
- * 
+ *
  * Strictly enforces the System V Command Syntax Standard; provided by D A
  * Gwyn of BRL for generic ANSI C implementations
- * 
+ *
  * #define STRICT to prevent acceptance of clustered options with arguments
  * and ommision of whitespace between option and arg.
  */
@@ -40,12 +40,12 @@ int getopt(int argc, char *const argv[], const char *optstring)
 				/* returns letter, '?', EOF */
 {
 #ifdef STRICT
-   register int osp;		/* saved `sp' for param test */
+   int osp;		/* saved `sp' for param test */
 #else
-   register int oind;		/* saved `optind' for param test */
+   int oind;		/* saved `optind' for param test */
 #endif
-   register int c;		/* option letter */
-   register char *cp;		/* -> option in `optstring' */
+   int c;		/* option letter */
+   char *cp;		/* -> option in `optstring' */
    static int sp = 1;		/* position within argument */
 
    optarg = NULL;
