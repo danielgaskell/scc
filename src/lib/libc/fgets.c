@@ -7,7 +7,6 @@
 /* This is an implementation of the C standard IO package. */
 
 #include "stdio-l.h"
-#include <symbos.h>
 
 /* Nothing special here ... */
 char *fgets(char *s, size_t count, FILE * f)
