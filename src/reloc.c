@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
     // update the header with transfer information
     printf("\nCode segment: %i", hdr.len_code);
     if (hdr.extra_code)
-        printf(" (+%i)", hdr.extra_code);
+        printf(" (+%i)", hdr.extra_code - 256);
     printf("\nData segment: %i", hdr.len_data);
     if (hdr.extra_data)
         printf(" (+%i)", hdr.extra_code);

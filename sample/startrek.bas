@@ -72,7 +72,7 @@
  315 @(m) = 0: i = 8 * u + v - 9: j = @(i) / abs(@(i)): @(i) = @(i) - 100 * j: k = k - 1
  320 i = 8 * @(m + 6) + @(m + 12) + 62: @(i) = 0: n = n - 1: print " ***destroyed***": return
  325 if n = 0 return
- 330 print "Klingon attack": if o then print "starbase print tects Enterprise": return
+ 330 print "Klingon attack": if o then print "Starbase protects Enterprise": return
  335 t = 0: for m = 135 to 140: if @(m) = 0 goto 350
  340 a = (@(m) + rnd(@(m))) / 2: gosub 295: t = t + s: i = @(m + 6): j = @(m + 12)
  345 print #3,s," units hit from Klingon at s-",#1,i,j

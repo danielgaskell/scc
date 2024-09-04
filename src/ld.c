@@ -1522,6 +1522,8 @@ static void write_binary(FILE * op, FILE *mp)
         }
         if (heapsize) {
             extra = atoi(heapsize);
+            if (extra > 0)
+                extra += 256; // unclear why this is needed - path suffix seems to overwrite last 256 bytes of extra if present
             xfseek(op, 56);
             fwrite(&extra, 2, 1, op);
             xfseek(op, 258);

@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <malloc.h>
+#include <symbos.h>
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
@@ -380,9 +381,13 @@ static void load(void) {
     printf("File not found: %s\n", ip);
     return;
   }
-  code[0] = '\0';
+  code[0] = 0;
   codeend = code;
+  printf("Loading...\n");
+  //fread(code, 1, CODELEN, fp); // FIXME obviously better way to this, but debug why the other one crashes sometimes
+  //codeend += strlen(code);
   while (fgets(line, LINE_MAX, fp) != NULL) {
+    printf(line);
     codeend += strlen(line);
     if (codeend >= code + CODELEN) {
       printf("Out of memory\n");
@@ -391,6 +396,7 @@ static void load(void) {
     strcat(code, line);
   }
   fclose(fp);
+  printf("OK\n");
   ip = code;
 }
 

@@ -79,6 +79,8 @@ start2:
 	ld de,(__heapsize)
 	or a ; reset carry
 	sbc hl,de
+	ld de,256 ; for path, which overwrites codeextra for some reason (?)
+	add hl,de
 	ld (__malloc_heap),hl
 	ld (__malloc_top),hl
 	
