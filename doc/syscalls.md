@@ -712,6 +712,38 @@ Resizes the window `winID` so that the main content of the window has the width 
 
 *SymbOS name*: `Window_Set_Size_Command` (`MSC_DSK_WINSIZ`).
 
+### TextBox_Pos()
+
+```c
+unsigned char TextBox_Pos(Window* win, Ctrl* textbox);
+```
+
+Requests the current cursor position of a multiline textbox control as a column and row (passed as a pointer to its `Ctrl` struct with the parameter `textbox`). For internal reasons, this command will only work if the textbox currently has keyboard focus, and we must also pass a pointer to its host window's `Window` struct as the parameter `win`.
+
+*Return value*: On success, returns 1, and the cursor column and line (starting at 0) will be loaded into the `column` and `line` properties of the textbox's `Ctrl_TextBox` struct. On failure, returns 0. (Yes, this is convoluted. If we just need the cursor position in bytes from the start of the file, we can examine the `cursor` position of the textbox's `Ctrl_TextBox` struct directly.)
+
+*SymbOS name*: `KEYPUT 29`.
+
+### TextBox_Redraw()
+
+```c
+void TextBox_Redraw(Window* win, Ctrl* textbox);
+```
+
+Tells the specified multi-line textbox (passed as a pointer to its `Ctrl` struct with the parameter `textbox`) that its content has been modified and it should reformat and redraw its text. For internal reasons, this command will only work if the textbox currently has keyboard focus, and we must also pass a pointer to its host window's `Window` struct as the parameter `win`.
+
+*SymbOS name*: `KEYPUT 30`.
+
+### TextBox_Select()
+
+```c
+void TextBox_Select(Window* win, Ctrl* textbox, int cursor, int selection);
+```
+
+Updates the cursor position and selection of the specified multi-line textbox (passed as a pointer to its `Ctrl` struct with the parameter `textbox`), scrolling and redrawing the textbox as necessary. `cursor` is the new cursor position, in bytes from the start of the complete text; `selection` is the number of characters to select (0 for none, greater than 0 for the cursor to mark the start of the selection, and less than 0 for the cursor to mark the end of the selection). For internal reasons, this command will only work if the textbox currently has keyboard focus, and we must also pass a pointer to its host window's `Window` struct with the parameter `win`.
+
+*SymbOS name*: `KEYPUT 31`.
+
 ## Onscreen popups
 
 ### MsgBox()

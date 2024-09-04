@@ -709,6 +709,10 @@ extern unsigned short Color_Get(char color);
 extern void Color_Set(char color, unsigned short value);
 extern void Screen_Redraw(void);
 
+extern unsigned char TextBox_Pos(void* win, void* textbox);
+extern void TextBox_Redraw(void* win, void* textbox);
+extern void TextBox_Select(void* win, void* textbox, int cursor, int selection);
+
 /* ========================================================================== */
 /* Desktop Data Records                                                       */
 /* ========================================================================== */
@@ -906,7 +910,9 @@ typedef struct {
     unsigned short yoffset;
     unsigned char wrapping;
     unsigned char tabwidth;
-    char buf[8];
+    int column;
+    int line;
+    char reserved[4];
 } Ctrl_TextBox;
 
 typedef struct {

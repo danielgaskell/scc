@@ -822,7 +822,9 @@ typedef struct {
     unsigned short yoffset;   // (used internally, set to 0)
     unsigned char wrapmode;   // WRAP_WINDOW or WRAP_WIDTH
     unsigned char tabwidth;   // tab stop width (1-255, or 0 for no tab stop)
-    char buf[8];              // (used internally, set to 0)
+	int column;               // TextBox_Pos() returns values here
+    int line;                 // TextBox_Pos() returns values here
+    char reserved[4];         // (used internally, set to 0)
 } Ctrl_TextBox;
 ```
 
@@ -848,6 +850,8 @@ cd_textbox1.self = &cd_textbox1;
 ```
 
 `selection` = 0 when no characters are selected, greater than 0 when the cursor marks the start of the selection, and less than 0 when the cursor marks the end of the selection.
+
+To update the contents, cursor, or selection of the textbox, it is recommended to use the special system calls [`TextBox_Redraw()`](syscalls.md#textbox-redraw) and [`TextBox_Select()`](syscalls.md#textbox-select) rather than trying to update all the relevant properties manually.
 
 Note that, because the buffer must be stored in a continuous 16KB segment (usually the **data** segment), this control is effectively limited to no more than 16KB of text. Note also that, if we wish the textbox to be prefilled, we must be sure to set the properties (`cursor`, `len`, etc.) correctly. (For input by the user, SymbOS will update these properties automatically.)
 
