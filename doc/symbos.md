@@ -808,12 +808,12 @@ typedef struct {
     unsigned char flags;      // flags (see below)
     unsigned char textcolor;  // (foreground << 4) | background, when using INPUT_ALTCOLS flag
     unsigned char unused2;
-    char* font;               // font address, when using INPUT_ALTFONT flag
+    char* font;               // font address, when using INPUT_ALTFONT flag (in data segment)
     unsigned char unused3;
-    unsigned short lines;     // number of lines of text (should be 1 if textbox is empty)
+    unsigned short lines;     // number of lines of text
     signed short wrapwidth;   // wrapping width, in pixels (-1 for no wrapping)
     unsigned short maxlines;  // maximum number of lines
-    signed short xvisible;    // (used internally, -8 to force reformatting)
+    signed short xvisible;    // (used internally, set to -8 initially to force reformatting)
     signed short yvisible;    // (used internally, set to 0)
     void* self;               // address of this data record
     unsigned short xtotal;    // (used internally, set to 0)
@@ -824,6 +824,12 @@ typedef struct {
     unsigned char tabwidth;   // tab stop width (1-255, or 0 for no tab stop)
     char buf[8];              // (used internally, set to 0)
 } Ctrl_TextBox;
+```
+
+The data record must be immediately followed by a buffer consisting of as many 16-bit words (e.g., `unsigned short`) as there are the maximum number of lines in the text data (`maxlines`). This buffer will hold the length (in bytes) of each line in the textbox, with the high bit set if this length includes a Windows-style `\r\n` end-of-line marker at the end of the line. Due to a quirk in SCC's linker, which currently treats initialized and uninitialized arrays differently, this buffer must be given an initial value (such as `{0}`) to ensure that it is placed directly after the `Ctrl_TextBox` data structure in the **transfer** segment. (This may be improved in future releases.) For example:
+
+```c
+_transfer unsigned short lines[1000] = {0};
 ```
 
 `flags` is an OR'd bitmask which may contain one or more the following:
@@ -849,14 +855,15 @@ Note that, because the buffer must be stored in a continuous 16KB segment (usual
 // example
 _data char textbuf[4096];
 _transfer Ctrl_TextBox cd_textbox1 = {
-    textbuf,        // text address
-	0, 0, 0, 0,     // unused1, cursor, selection, len
-	4095, 0, 0, 0,  // maxlen, flags, textcolor, unused2
-	0, 0, 1, -1,    // font, unused3, lines, wrapwidth
-	1000, 0, 0,     // maxlines, xvisible, yvisible
-	0,              // self
-	0, 0, 0, 0,     // xtotal, ytotal, xoffset, yoffset
-	WRAP_WIDTH, 8}; // wrapmode, tabwidth
+    textbuf,         // text address
+	0, 0, 0, 0,      // unused1, cursor, selection, len
+	4095, 0, 0, 0,   // maxlen, flags, textcolor, unused2
+	0, 0, 0, -1,     // font, unused3, lines, wrapwidth
+	1000, 0, 0,      // maxlines, xvisible, yvisible
+	0,               // self
+	-8, 0, 0, 0,     // xtotal, ytotal, xoffset, yoffset
+	WRAP_WIDTH, 50}; // wrapmode, tabwidth
+_transfer unsigned short textbox1_lines[1000] = {0}; // line-length buffer
 _transfer Ctrl c_textbox1 = {1, C_TEXTBOX, -1, (unsigned short)&cd_textbox1, 0, 0, 200, 100};
 
 int main(int argc, char* argc[]) {
