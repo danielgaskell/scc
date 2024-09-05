@@ -7,9 +7,11 @@
 
 void _Shell_MsgWait(void) {
     unsigned char response = _symmsg[0] + 128;
-    Msg_Send(_sympid, _shellpid, _symmsg);
-    while (_symmsg[0] != response)
-        Msg_Sleep(_sympid, _shellpid, _symmsg);
+    while (Msg_Send(_sympid, _shellpid, _symmsg) == 0);
+    while (_symmsg[0] != response) {
+        Idle();
+        Msg_Receive(_sympid, _shellpid, _symmsg);
+    }
     if (_symmsg[3] > 1)
         _shellerr = _symmsg[3] + 16;
     else
@@ -86,7 +88,7 @@ void Shell_Exit(unsigned char type) {
     if (_shellpid) {
         _symmsg[0] = 68;
         _symmsg[1] = type;
-        Msg_Send(_sympid, _shellpid, _symmsg);
+        while(Msg_Send(_sympid, _shellpid, _symmsg) == 0);
     }
     _shellerr = ERR_NOSHELL;
 }

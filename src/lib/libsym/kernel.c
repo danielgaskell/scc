@@ -6,9 +6,11 @@
 void _Kern_MsgWait(void) {
     unsigned char response;
     response = _symmsg[0] + 128;
-    Msg_Send(_sympid, 1, _symmsg);
-    while (_symmsg[0] != response)
-        Msg_Sleep(_sympid, 1, _symmsg);
+    while (Msg_Send(_sympid, 1, _symmsg) == 0);
+    while (_symmsg[0] != response) {
+        Idle();
+        Msg_Receive(_sympid, 1, _symmsg);
+    }
 }
 
 signed char Timer_Add(unsigned char bank, void* header) {

@@ -375,6 +375,7 @@ static void save(void) {
 
 static void load(void) {
   FILE *fp;
+  int readlen;
 
   getfilename();
   if ((fp = fopen(ip, "r")) == NULL) {
@@ -384,17 +385,19 @@ static void load(void) {
   code[0] = 0;
   codeend = code;
   printf("Loading...\n");
-  //fread(code, 1, CODELEN, fp); // FIXME obviously better way to this, but debug why the other one crashes sometimes
-  //codeend += strlen(code);
-  while (fgets(line, LINE_MAX, fp) != NULL) {
-    printf(line);
+  readlen = fread(code, 1, CODELEN, fp);
+  codeend += readlen;
+  if (readlen == CODELEN)
+    printf("Out of memory\n");
+  /*while (fgets(line, LINE_MAX, fp) != NULL) { // FIXME: this is the original (awful) way of loading files, which occasionally triggered freezes on SymbOS - figure out why, but for now, the new way is 9283% better anyway.
+    //printf(line);
     codeend += strlen(line);
     if (codeend >= code + CODELEN) {
       printf("Out of memory\n");
       break;
     }
     strcat(code, line);
-  }
+  }*/
   fclose(fp);
   printf("OK\n");
   ip = code;

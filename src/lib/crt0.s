@@ -65,6 +65,12 @@ __segcode:
 	.word __codestart
 __heapsize:			; note: must be at byte 258! written by linker
 	.word 4096
+.export __debugtrace
+__debugtrace:       ; note: must be at byte 260!
+	.word 0
+.export __debugstack
+__debugstack:       ; note: must be at byte 262!
+	.word 0
 
 ; entry point
 start2:

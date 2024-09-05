@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <symbos.h>
 
 ssize_t read(int fd, void *buf, int len) {
     char* ptr;

@@ -525,6 +525,8 @@ extern char* _segtrans;
 extern unsigned short _segcodelen;
 extern unsigned short _segdatalen;
 extern unsigned short _segtranslen;
+extern unsigned short _debugtrace;
+extern unsigned short _debugstack;
 
 extern unsigned char _fileerr;
 extern unsigned char _shellerr;

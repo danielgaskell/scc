@@ -15,16 +15,20 @@ unsigned char FileBox(char* path, char* filter, unsigned char flags, unsigned ch
     *((char**)(_symmsg + 8)) = FileBoxExt;
     *((unsigned short*)(_symmsg + 10)) = entries;
     *((unsigned short*)(_symmsg + 12)) = bufsize;
-    Msg_Send(_sympid, 3, _symmsg);
-    while (_symmsg[0] != 159)
-        Msg_Sleep(_sympid, 3, _symmsg);
+    while (Msg_Send(_sympid, 3, _symmsg) == 0);
+    while (_symmsg[0] != 159) {
+        Idle();
+        Msg_Receive(_sympid, 3, _symmsg);
+    }
     if (_symmsg[1] != 255)       // initial open failed
         return _symmsg[1];
     if (modalWin)
         ((Window*)modalWin)->modal = _symmsg[2];
     _symmsg[0] = 0;
-    while (_symmsg[0] != 159)   // wait for result
-        Msg_Sleep(_sympid, 3, _symmsg);
+    while (_symmsg[0] != 159) {  // wait for result
+        Idle();
+        Msg_Receive(_sympid, 3, _symmsg);
+    }
     if (modalWin)
         ((Window*)modalWin)->modal = 0;
     return _symmsg[1];
