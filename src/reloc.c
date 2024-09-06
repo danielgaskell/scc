@@ -51,6 +51,12 @@ struct exec2 {
 
 static struct symbos_hdr hdr;
 
+char bufin[768];
+uint16_t bufout[256];
+unsigned char* bufinptr;
+unsigned char* bufinend;
+char readeof;
+
 // Expanded read() that more consistently returns read length (seems to be a mingw problem...?)
 int rread(int fd, void* buf, unsigned int maxchars) {
     int preseek, readerr;
@@ -67,34 +73,36 @@ int main(int argc, char *argv[])
     uint8_t ar[3];
     uint16_t count;
     uint16_t addr;
+    uint16_t len;
+    uint16_t writei;
     int efd, rfd;
     static const uint8_t cff = 0xFF;
     uint8_t d;
 
     if (argc != 3) {
-        fprintf(stderr, "%s binary relocs\n", argv[0]);
+        fprintf(stderr, "usage: %s binary relocs\n", argv[0]);
         exit(1);
     }
     efd = open(argv[1], O_RDWR | O_BINARY);
     if (efd == -1) {
-        perror(argv[1]);
+        fprintf(stderr, "%s: cannot open for writing.\n", argv[1]);
         exit(1);
     }
     rfd = open(argv[2], O_RDONLY | O_BINARY);
     if (rfd == -1) {
-        perror(argv[2]);
+        fprintf(stderr, "%s: cannot open for reading.\n", argv[2]);
         exit(1);
     }
     if (rread(efd, &hdr, sizeof(hdr)) != sizeof(hdr)) {
         fprintf(stderr, "%s: not valid.\n", argv[1]);
         exit(1);
     }
-    if (lseek(efd, 0, SEEK_END) < 0) {
-        perror("lseek");
+    if (lseek(efd, hdr.len_code + hdr.len_data + hdr.len_transfer, SEEK_SET) < 0) {
+        fprintf(stderr, "seek failure");
         exit(1);
     }
     if (lseek(rfd, 0, SEEK_SET) < 0) {
-        perror("lseek");
+        fprintf(stderr, "seek failure");
         exit(1);
     }
     /* Non ZP block */
@@ -102,12 +110,24 @@ int main(int argc, char *argv[])
     //   - 1byte = 0 if zp, 1 if not?
     //   - 2byte = addr, big-endian(!)
     count = 0;
-    while(rread(rfd, ar, 3) == 3) {
-        if (ar[0] == 0)
-            continue;
-        addr = ((ar[1] << 8) + ar[2]) - 1 + hdr.origin;
-        write(efd, &addr, 2);
-        ++count;
+    readeof = 0;
+    while (!readeof) {
+        len = rread(rfd, bufin, sizeof(bufin));
+        if (len < sizeof(bufin))
+            readeof = 1;
+        bufinptr = bufin;
+        bufinend = bufin + len;
+        writei = 0;
+        while (bufinptr < bufinend) {
+            if (*bufinptr == 0) {
+                bufinptr += 3;
+                continue;
+            }
+            bufout[writei++] = ((*(bufinptr + 1) << 8) + *(bufinptr + 2)) - 1 + hdr.origin;
+            bufinptr += 3;
+            ++count;
+        }
+        write(efd, &bufout[0], writei*2);
     }
 
     // update the header with transfer information
@@ -122,7 +142,7 @@ int main(int argc, char *argv[])
         printf(" (+%i)", hdr.extra_code);
     printf("\nRelocation entries: %i\n", count);
     if (lseek(efd, 0, SEEK_SET) < 0) {
-        perror("lseek");
+        fprintf(stderr, "seek failure");
         exit(1);
     }
     hdr.reloc_count = count;
@@ -134,7 +154,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "WARNING: Data segment is >16k!\n");
     if (hdr.len_transfer + hdr.extra_transfer > 16*1024)
         fprintf(stderr, "WARNING: Transfer segment is >16k!\n");
-    if (hdr.len_code + hdr.extra_code + hdr.len_data + hdr.extra_data + hdr.len_transfer + hdr.extra_transfer + 0x100 > 64*1024)
+    if ((long)hdr.len_code + (long)hdr.extra_code + (long)hdr.len_data + (long)hdr.extra_data + (long)hdr.len_transfer + (long)hdr.extra_transfer + 0x100L > 65535L)
         fprintf(stderr, "WARNING: Primary file size is >64k!\n");
 
     close(efd);

@@ -4,23 +4,15 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-
-static void wr2(const char *str)
-{
-	const char *p = str;
-
-	while (*p)
-		++p;
-	write(2, str, (unsigned int) (p - str));
-}
+#include <symbos.h>
 
 void perror(const char *str)
 {
 	if (!str)
 		str = "error";
-	wr2(str);
-	wr2(": ");
+	Shell_Print(str);
+	Shell_Print(": ");
 	str = strerror(errno);
-	wr2(str);
-	wr2("\n");
+	Shell_Print(str);
+	Shell_Print("\r\n");
 }

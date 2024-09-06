@@ -51,10 +51,15 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <signal.h>
+//#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef SYMBUILD
+#include <symbos.h>
+#include <iobuf.h>
+#else
 #include <windows.h>
+#endif
 #include <malloc.h>
 
 /*
@@ -468,7 +473,7 @@ static void run_command(void)
 	pid_t pid, p;
 	const char **ptr;
 	int status;
-	int i;
+	int i, t, j;
 
 	if (print_passes) {
 	    i = 0;
@@ -477,7 +482,25 @@ static void run_command(void)
         printf("\n");
 	}
 	fflush(stdout);
+#ifdef SYMBUILD
+    _io_buf[0] = 0;
+    t = 0;
+    j = 0;
+    for (i = 0; arglist[i]; ++i) {
+        j = strlen(arglist[i]);
+        if (t + j > MAX_PATH) {
+            fprintf(stderr, "cc: too many arguments: %s...\n", _io_buf);
+            fatal();
+        }
+        strcat(_io_buf, arglist[i]);
+        strcat(_io_buf, 0);
+        t += j;
+    }
+    status = App_Run(_symbank, _io_buf, 1);
+    // FIXME: connect app to same shell session, and wait for app to finish
+#else
 	status = _spawnvp(_P_WAIT, arglist[0], arglist);
+#endif
 	if (status != 0) {
         fprintf(stderr, "cc: %s failed with signal %d.\n", arglist[0], status);
 		fatal();
@@ -968,7 +991,11 @@ int main(int argc, char *argv[]) {
 
 	//signal(SIGCHLD, SIG_DFL);
 
+#ifdef SYMBUILD
+    Dir_PathAdd(0, "", BINPATH);
+#else
     GetModuleFileName(NULL, BINPATH, MAX_PATH);
+#endif
     *(strrchr(BINPATH, '.') - 3) = 0;
     strcpy(LIBPATH, BINPATH);
     strcat(LIBPATH, "\\..\\lib");
@@ -1163,7 +1190,7 @@ int main(int argc, char *argv[]) {
 		one_input();
 
 	symtab = xstrdup(".symtmp", 6);
-	snprintf(symtab + 7, 6, "%x", getpid());
+	//snprintf(symtab + 7, 6, "%x", getpid());
 	processing_loop();
 	unused_files();
 	if (keep_temp < 2)

@@ -128,7 +128,10 @@ extern int fdatasync(int fd);*/
 
 #endif /* __UNISTD_H */
 
+#ifndef __KTIME_T
+#define __KTIME_T
 typedef struct {
         uint32_t low;
         uint32_t high;
 } __ktime_t;
+#endif

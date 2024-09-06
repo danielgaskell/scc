@@ -150,6 +150,8 @@ lgammaf_r.o
 mkstemps.o
 fopen.o
 sprintf.o
+scanf.o
+sscanf.o
 vfscanf.o
 expf.o
 localtim_r.o
@@ -192,8 +194,11 @@ strlen.o
 creat.o
 open.o
 sysshell.o
+unlink.o
 errno.o
+dirread.o
 sysfile.o
+sysdir.o
 isupper.o
 islower.o
 xitoa.o

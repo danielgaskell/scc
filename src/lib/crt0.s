@@ -33,7 +33,7 @@ __exehead_exeid:	.byte 83	; SymExe10
 					.byte 101
 					.byte 49
 					.byte 48
-__exehead_extcode:	.word 4096
+__exehead_extcode:	.word 4352
 __exehead_extdata:	.word 0
 __exehead_exttrans:	.word 0
 					.ds 26

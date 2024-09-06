@@ -75,24 +75,24 @@ int fflush(FILE * fp)
 
 FILE *__IO_list = NULL;		/* For fflush at exit */
 
-unsigned char bufin[BUFSIZ];
-unsigned char bufout[BUFSIZ];
+unsigned char _bufin[BUFSIZ];
+unsigned char _bufout[BUFSIZ];
 #ifndef buferr
-unsigned char buferr[BUFSIZ];
+unsigned char _buferr[BUFSIZ];
 #endif
 
 FILE _stdin =
-	{bufin, bufin, bufin, bufin, bufin + sizeof(bufin),
+	{_bufin, _bufin, _bufin, _bufin, _bufin + sizeof(_bufin),
 	 0, _IOFBF | __MODE_READ | __MODE_IOTRAN};
 FILE* stdin = &_stdin;
 
 FILE _stdout =
-	{bufout, bufout, bufout, bufout, bufout + sizeof(bufout),
+	{_bufout, _bufout, _bufout, _bufout, _bufout + sizeof(_bufout),
 	 1, _IOFBF | __MODE_WRITE | __MODE_IOTRAN};
 FILE* stdout = &_stdout;
 
 FILE _stderr =
-	{buferr, buferr, buferr, buferr, buferr + sizeof(buferr),
+	{_buferr, _buferr, _buferr, _buferr, _buferr + sizeof(_buferr),
 	 2, _IONBF | __MODE_WRITE | __MODE_IOTRAN};
 FILE* stderr = &_stderr;
 

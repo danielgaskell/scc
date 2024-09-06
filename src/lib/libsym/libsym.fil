@@ -1,6 +1,4 @@
 argv.o
-dirread.o
-dir.o
 filebox.o
 memsizex.o
 msgbox.o
@@ -8,7 +6,6 @@ popups.o
 system.o
 systray.o
 textbox.o
-time.o
 wincore.o
 winxtra.o
 deskmode.o

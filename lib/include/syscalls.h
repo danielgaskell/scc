@@ -65,10 +65,13 @@ struct hd_geometry {
 	uint32_t start;
 };
 
+#ifndef __KTIME_T
+#define __KTIME_T
 typedef struct {
         uint32_t low;
         uint32_t high;
 } __ktime_t;
+#endif
 
 struct sockaddr;
 struct sockaddr_in;
@@ -109,6 +112,7 @@ extern void _exit(int code);
 extern int open(const char *path, int flags, ...);
 extern int close(int fd);
 extern int creat(const char *path, mode_t mode);
+extern int unlink(const char *path);
 extern ssize_t read(int fd, void *buf, int len);
 extern ssize_t write(int fd, const void *buf, int len);
 extern int chdir(const char *path); /* FIXME */

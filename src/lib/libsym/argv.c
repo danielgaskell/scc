@@ -22,8 +22,7 @@ void _load_argv(void) {
                 in_quotes = 1;
                 ++ptr;
             }
-            ++_argc;
-            _argv[_argc] = ptr;
+            _argv[_argc++] = ptr;
             if (in_quotes == 0 && ptr[0] == '%' && ptr[1] == 's' && ptr[2] == 'p') {
                 // found shell ID, parse it
                 _shellpid = (ptr[3]-'0')*10 + (ptr[4]-'0');

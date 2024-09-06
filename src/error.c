@@ -6,7 +6,7 @@
 
 static char buf[20];
 
-static char *uitoa(unsigned int i)
+static char *uitoa2(unsigned int i)
 {
 	register char *p = buf + sizeof(buf);
 	register int c;
@@ -41,7 +41,7 @@ static void writec(const char c)
 
 static void writeval(unsigned n)
 {
-	writes(uitoa(n));
+	writes(uitoa2(n));
 }
 
 void format_error(unsigned line, const char *p, const unsigned c)
