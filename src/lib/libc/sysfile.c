@@ -23,71 +23,109 @@ unsigned char File_Command(void) {
 
 unsigned char File_New(unsigned char bank, char* path, unsigned char attrib) {
     unsigned char result;
+    _msemaon();
     _symmsg[1] = 17;
     _symmsg[3] = attrib;
     *((char**)(_symmsg + 8)) = path;
     _symmsg[11] = bank;
     result = File_Command();
-    if (result)
+    if (result) {
+        _msemaoff();
         return result;
-    return _symmsg[3]; // file ID
+    }
+    result = _symmsg[3]; // file ID
+    _msemaoff();
+    return result;
 }
 
 unsigned char File_Open(unsigned char bank, char* path) {
     unsigned char result;
+    _msemaon();
     _symmsg[1] = 18;
     *((char**)(_symmsg + 8)) = path;
     _symmsg[11] = bank;
     result = File_Command();
-    if (result)
+    if (result) {
+        _msemaoff();
         return result;
-    return _symmsg[3]; // file ID
+    }
+    result = _symmsg[3]; // file ID
+    _msemaoff();
+    return result;
 }
 
 unsigned char File_Close(unsigned char id) {
+    unsigned char result;
+    _msemaon();
     _symmsg[1] = 19;
     _symmsg[3] = id;
-    return File_Command();
+    result = File_Command();
+    _msemaoff();
+    return result;
 }
 
 unsigned short File_Read(unsigned char id, unsigned char bank, char* addr, unsigned short len) {
+    unsigned short result;
+    _msemaon();
     _symmsg[1] = 20;
     _symmsg[3] = id;
     *((unsigned short*)(_symmsg + 4)) = len;
     _symmsg[6] = bank;
     *((char**)(_symmsg + 8)) = addr;
-    if (File_Command() == 0)
-        return *((unsigned short*)(_symmsg + 4));
+    if (File_Command() == 0) {
+        result = *((unsigned short*)(_symmsg + 4));
+        _msemaoff();
+        return result;
+    }
+    _msemaoff();
     return 0;
 }
 
 unsigned char File_ReadLine(unsigned char id, unsigned char bank, char* addr) {
+    unsigned char result;
+    _msemaon();
     _symmsg[1] = 20;
     _symmsg[3] = id;
     _symmsg[6] = bank;
     *((char**)(_symmsg + 8)) = addr;
-    if (File_Command() == 0)
-        return _symmsg[6];
+    if (File_Command() == 0) {
+        result = _symmsg[6];
+        _msemaoff();
+        return result;
+    }
+    _msemaoff();
     return 0;
 }
 
 unsigned short File_Write(unsigned char id, unsigned char bank, char* addr, unsigned short len) {
+    unsigned short result;
+    _msemaon();
     _symmsg[1] = 21;
     _symmsg[3] = id;
     *((unsigned short*)(_symmsg + 4)) = len;
     _symmsg[6] = bank;
     *((char**)(_symmsg + 8)) = addr;
-    if (File_Command() == 0)
-        return *((unsigned short*)(_symmsg + 4));
+    if (File_Command() == 0) {
+        result = *((unsigned short*)(_symmsg + 4));
+        _msemaoff();
+        return result;
+    }
+    _msemaoff();
     return 0;
 }
 
 long File_Seek(unsigned char id, long offset, unsigned char ref) {
+    long result;
+    _msemaon();
     _symmsg[1] = 22;
     _symmsg[3] = id;
     _symmsg[4] = ref;
     *((long*)(_symmsg + 10)) = offset;
-    if (File_Command() == 0)
-        return *((long*)(_symmsg + 10));
+    if (File_Command() == 0) {
+        result = *((long*)(_symmsg + 10));
+        _msemaoff();
+        return result;
+    }
+    _msemaoff();
     return -1;
 }

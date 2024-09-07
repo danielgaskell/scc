@@ -29,6 +29,7 @@ These headers are not 100% comprehensive; SymbOS provides some additional system
 * [Time functions](#time-functions)
 * [System tray](#system-tray)
 * [Network interface](#network-interface)
+* [Multithreading](#multithreading)
 * [Reference tables](#reference-tables)
 
 ## System variables
@@ -769,7 +770,7 @@ Opens a message box onscreen. `line1`, `line2`, and `line3` are three text strin
 
 `modalWin` specifies the address of a `Window` data record that should be declared modal, if any; this window will not be able to be focused until the message box is closed. If `modalWin` = 0, no window will be declared modal.
 
-Note that only pure info messages (BUTTON_OK, not modal) can have multiple instances open on the screen at the same time. SymbOS implements more complex message boxes as a single window shared by all processes; if the message box cannot be opened because it is already in use by another process, this function will return `MSGBOX_FAILED` (0).
+Note that only pure info messages (BUTTON_OK, not modal) can have multiple instances open on the screen at the same time. SymbOS implements more complex message boxes as a single window shared by all processes; if the message box cannot be opened because it is already in use by another process, this function will return `MSGBOX_FAILED` (0). This function is also NOT thread-safe.
 
 *Return value*: One of:
 
@@ -1428,7 +1429,7 @@ signed char Proc_Add(unsigned char bank, void* header, unsigned char priority);
 
 Launches a new process based on the information given in bank `bank`, address `header`. The process will be started with the priority `priority`, from 1 (highest) to 7 (lowest). The standard priority for application is 4.
 
-Usually if we just want to run an executable file from disk, we should use [`App_Run()`](#app-run), not `Proc_Add()`. This function is for a lower-level operation, starting a new process running code we have already defined in memory. This may be code we have loaded from a file, or even part of our application's own main code, meaning that **we can use `Proc_Add()` to implement multithreading.** (See below for examples.)
+Usually if we just want to run an executable file from disk, we should use [`App_Run()`](#app-run), not `Proc_Add()`. This function is for a lower-level operation, starting a new process running code we have already defined in memory. This may be code we have loaded from a file, or even part of our application's own main code; see [`thread_start()`](#multithreading) for a wrapper function that uses this to implement multithreading.
 
 `header` must point to a data structure in the **transfer** segment with the struct type `ProcHeader`:
 
@@ -1448,24 +1449,24 @@ typedef struct {
 In addition, when the process is launched, its internal stack will begin at the address immediately before this header and grow downwards. So, we must define space for the stack immediately before the header in the **transfer** segment. `startAddr` can be an absolute address, or (as in the example below) the address of a `void` function in our own main code to run as a separate thread. Due to a quirk in SCC's linker, which currently treats initialized and uninitialized arrays differently, this buffer must be given an initial value (such as `{0}`) to ensure that it is placed directly before the `ProcHeader` data structure in the **transfer** segment. (This may be improved in future releases.) For example:
 
 ```c
-char threadID;
+char subprocID;
 
-void threadfunc(void) {
-	/* ... thread code, do something here ... */
-	Proc_Delete(threadID); // end the thread's process (rather than returning)
+void proccode(void) {
+	/* ... process code, do something here ... */
+	Proc_Delete(subprocID); // end the subprocess (rather than returning)
 }
 
 _transfer char procstack[256] = {0};
-_transfer ProcHeader threadhead = {0, 0, 0, 0, 0, 0, // initial register values
-                                   threadfunc};      // address of routine to run
+_transfer ProcHeader prochead = {0, 0, 0, 0, 0, 0, // initial register values
+                                 proccode};        // address of routine to run
 								 
 int main(int argc, char* argv[]) {
-	threadID = Proc_Add(_symbank, &threadhead, 4);
+	subprocID = Proc_Add(_symbank, &prochead, 4);
 	/* ... */
 }
 ```
 
-Congratulations! Multithreading! Now we just have to worry about all the other problems that come with multithreading (race conditions, deadlocks, concurrent access, reentrancy, SymShell not knowing your thread's process ID...) In particular, some libc functions and most system call wrappers are NOT reentrant; most system calls share the same static buffer `_symmsg` for passing messages, so trying to run multiple system calls at the same time on different threads is a recipe for trouble. When in doubt, check the library source code to verify that a function does not rely on any static/global variables, or write your own reentrant substitute (e.g., using only local variables, or with a semaphore system that sets a global variable when the shared resource is being used and, if it is already set, loops until it is unset by whatever other thread is using the resource). Any use of 32-bit data types (**long**, **float**, **double**) is also currently not thread-safe, as these internally rely on static "extended" registers.
+(See [`Multithreading`](#multithreading) for a simpler way to implement threads within our own code, as well as some important discussion about behaviors to avoid when doing this.)
 
 *Return value*: On success, returns the process ID of the newly launched process. On failure, returns -1.
 
@@ -1959,7 +1960,7 @@ Performs a DNS lookup and attempts to resolve the host IP/URL stored in the stri
 ### DNS_Verify()
 
 ```c
-signed char DNS_Verify(char* addr);
+unsigned char DNS_Verify(char* addr);
 ```
 
 Verifies whether the IP/URL stored in the string at memory address `addr` is a valid IP or domain address. This function does not interact with the network hardware, so can be used to quickly determine whether an address is valid before initiating a full network request.
@@ -1967,6 +1968,49 @@ Verifies whether the IP/URL stored in the string at memory address `addr` is a v
 *Return value*: On success, returns `DNS_IP` for a valid IP address, `DNS_DOMAIN` for a valid domain address, or `DNS_INVALID` for an invalid address. On failure, sets `_neterr` and returns `DNS_INVALID`.
 
 *SymbOS name*: `DNS_Verify` (`DNSVFY`).
+
+## Multithreading
+
+Yes, **SCC supports multithreading** (!), thanks to SymbOS's elegant system for spawning subprocesses. Internally, threads are implemented as subprocesses of the main application (see [`Proc_Add()`](#proc_add) and [`Proc_Delete()`](#proc_delete), but the convenience functions `thread_start()` and `thread_quit()` are provided to reduce the amount of setup required.
+
+**Warning**: When multithreading, we have to worry about all the problems that come with multithreading---race conditions, deadlocks, concurrent access, reentrancy, SymShell not knowing your thread's process ID, etc. The current implementation of libc is also not generally designed with thread-safety in mind, so while most small utility functions (`memcpy()`, `strcat()`, etc.) are thread-safe, others are not---in particular, much of `stdio.h`. Any function that relies on temporarily storing data in a static buffer (rather than local variables) is not thread-safe and may misbehave if two threads call it at the same time. When in doubt, check the library source code to verify that a function does not rely on any static/global variables, or write your own reentrant substitute (e.g., using only local variables, or with a semaphore system that sets a global variable when the shared resource is being used and, if it is already set, loops until it is unset by whatever other thread is using the resource). Any use of 32-bit data types (**long**, **float**, **double**) is also currently not thread-safe, as these internally rely on static "extended" registers, meaning that only one thread at a time can safely use 32-bit data types.
+
+Standard SymbOS system calls that do not use 32-bit data types (`File_Open()`, etc.) should all be thread-safe, as these use a semaphore system to ensure that only one message is passed in `_symmsg` at the same time.
+
+### thread_start()
+
+```c
+signed char thread_start(void* routine, char* env, unsigned short envlen);
+```
+
+Spawns a new thread by launching `routine`, which should be a `void` function in our code that takes no parameters. Stack and other information for the new thread will be stored in the environment buffer `env`, which must be in the **transfer** segment. The length of this buffer is passed as `envlen` and should generally be at least 256 bytes (more if the thread will make heavy use of the stack, e.g., with deep recursion or large local buffers).
+
+Example:
+
+```c
+_transfer char env1[256];
+
+void threadmain(void) {
+	/* ...thread code goes here, which may call other functions... */
+	/* ... */
+	thread_quit(env); // quit thread (see below)
+}
+
+int main(int argc, char* argv[]) {
+	thread_start(threadmain, env1, sizeof(env1));
+	/* ...main thread continues here... */
+}
+```
+
+*Return value*: On success, returns the process ID of the new thread, which will also be stored as the last byte in `env`. On failure, returns -1.
+
+### thread_quit()
+
+```c
+void thread_quit(char* env);
+```
+
+Quits the running thread associated with the environment buffer `env`. (This function will not return, so it should only be used inside the thread in question, to quit itself. To forcibly end a running thread from inside a different thread, use [`Proc_Delete()`](#proc_delete).)
 
 ## Reference tables
 

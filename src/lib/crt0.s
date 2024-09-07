@@ -219,6 +219,23 @@ _Msg_Receive:
 _Idle:
 	rst #0x30
 	ret
+	
+; _msemaon(): _symmsg semaphore on
+.export __msemaon
+__msemaon:
+	ld a,(__symmsgsema)
+	or a
+	jr nz,__msemaon
+	ld a,1
+	ld (__symmsgsema),a
+	ret
+	
+; _msemaoff(): _symmsg semaphore off
+.export __msemaoff
+__msemaoff:
+	ld a,0
+	ld (__symmsgsema),a
+	ret
 
 ; some data
 .export __malloc_heap
@@ -249,6 +266,7 @@ __segtrans:
 	.word __segtrans
 __symmsg:		.word __symmsgbuf	; C pointer to actual message buffer
 __symmsgbuf:	.ds 14
+__symmsgsema:   .byte 0             ; multithreading semaphore for _symmsg
 
 ; program stack and initialization space
 			.ds 512

@@ -13,6 +13,7 @@ typedef struct {
 _transfer MSGBOX _msgbox;
 
 unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, unsigned char type, char* icon, void* modalWin) {
+    unsigned char result;
     pen = pen*4 + 2;
     if (modalWin)
         type |= MSGBOX_MODAL;
@@ -23,6 +24,7 @@ unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, un
 	_msgbox.line3 = line3;
 	_msgbox.pen3 = pen;
 	_msgbox.icon = icon;
+	_msemaon();
 	_symmsg[0] = 29;
     *((char**)(_symmsg + 1)) = (char*)&_msgbox;
 	_symmsg[3] = _symbank;
@@ -41,5 +43,7 @@ unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, un
         }
         ((Window*)modalWin)->modal = 0;
     }
-    return _symmsg[1];
+    result = _symmsg[1];
+    _msemaoff();
+    return result;
 }

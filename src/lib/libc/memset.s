@@ -10,7 +10,7 @@ _memset:
 	pop de
 	pop bc
 	push af
-	ld (addr),hl	; save starting address
+	push hl			; save starting address
 	ld a,b			; skip if BC = 0 (since ldir wraps)
 	or c
 	jr z,skip
@@ -24,13 +24,10 @@ _memset:
 	inc de
 	ldir			; propagate value through
 skip:
+	pop hl
 	pop af
 	push bc
 	push de
 	push hl
 	push af
-	ld hl,(addr)
 	ret
-
-addr:
-	.word 0

@@ -1048,12 +1048,20 @@ extern signed char UDP_Receive(unsigned char handle, char* addr);
 extern signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, unsigned long ip, unsigned short rport);
 extern signed char UDP_Skip(unsigned char handle);
 extern unsigned long DNS_Resolve(char* addr);
-extern signed char DNS_Verify(char* addr);
+extern unsigned char DNS_Verify(char* addr);
 
 /* ========================================================================== */
 /* Time utility functions                                                     */
 /* ========================================================================== */
 extern void Time2Obj(unsigned long timestamp, SymTime* obj);
 extern unsigned long Obj2Time(SymTime* obj);
+
+/* ========================================================================== */
+/* Multithreading utility functions                                           */
+/* ========================================================================== */
+extern signed char thread_start(void* routine, char* env, unsigned short envlen);
+extern void thread_quit(char* env);
+extern void _msemaon(void);
+extern void _msemaoff(void);
 
 #endif
