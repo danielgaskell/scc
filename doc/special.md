@@ -88,9 +88,9 @@ SCC uses an approximately cdecl calling convention: all arguments are passed on 
 * `.abs`: output subsequent code at the absolute address specified by `.org` (this may not link correctly into a SymbOS executable)
 * `.org ____`: set absolute address of subsequent code to `____`
 * `.export ____`: export symbol `____` for linking
-* `.byte ____`: emit the raw byte `____` (also '.db' or 'db' or `defb`). Multiple values can be separated by commas.
-* `.word ____`: emit the raw 2-byte word `____` (also '.dw' or 'dw' or `defw`). Multiple values can be separated by commas.
-* `.ds ____`: emit `____` bytes filled with 0x00 (also 'ds' or `defs` or `.blkb`)
+* `.byte ____`: emit the raw byte `____` (also `.db` or `db` or `defb`). Multiple values can be separated by commas.
+* `.word ____`: emit the raw 2-byte word `____` (also `.dw` or `dw` or `defw`). Multiple values can be separated by commas.
+* `.ds ____`: emit `____` bytes filled with 0x00 (also `ds` or `defs` or `.blkb`)
 * `.ascii "____"`: emit the text string `"____"` as raw ASCII text (also `defm`). Single quotes `'` can also be used to delimit the string if the string includes double quotes.
 
 In assembly generated during compilation, you may see additional segment directives like `.data` and `.bss` (the internal "data" and "bss" segments, actually linked as part of the SymbOS **code** segment) or `.literal` (the internal "literal" segment, actually linked as part of the SymbOS **data** segment). **Do not confuse `.data` with `.symdata`!** To put data in the SymbOS **data** segment, use `.symdata`, not `.data.`.
