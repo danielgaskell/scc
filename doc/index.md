@@ -106,6 +106,7 @@ Images can be converted to SGX format using software such as [MSX Viewer 5](http
 * A proper libc port [work in progress] so existing code can be compiled unmodified.
 * Headers, typedefs, and support functions for most SymbOS system calls (`symbos.h`).
 * Clean handling of SymbOS segments, with data, buffers, and literals located correctly in the executable without duplication (other compilers struggle with this). Keywords `_data` and `_transfer` allow specifying the segment of globals.
+* Multithreading (yes, [really](syscalls.md#multithreading)!)
 * The underlying code is 8-bit-friendly, so it should (eventually!) be possible to build SCC to run natively on SymbOS.
 
 ## Limitations
