@@ -204,7 +204,7 @@ loop:
 		   Pass 1 we generate according to those
 		   Pass 2 we set them in stone (the shrinkage from pass 1
 					        allowing us a lot more)
-		   Pass 3 we output accodingly */
+		   Pass 3 we output accordingly */
 		if (pass == 0) {
 			if ((sp->s_type&TMMODE) != TNEW
 			&&  (sp->s_type&TMASG) == 0)

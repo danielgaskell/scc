@@ -1,7 +1,7 @@
 @echo off
 
 echo as.c
-..\bin\cc -N "as" -o ..\bin\symbos\as.com as.c
+..\bin\cc -N "as" -DSYMBUILD -o ..\bin\symbos\as.com as.c
 echo.
 echo cc.c
 ..\bin\cc -N "cc" -DSYMBUILD -DBIN_PATH=256 -DMAX_PATH=256 -o ..\bin\symbos\cc.com cc.c

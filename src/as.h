@@ -14,6 +14,10 @@
 #include	<ctype.h>
 #include	<setjmp.h>
 
+#ifdef SYMBUILD
+extern unsigned char _debugtrace;
+#endif
+
 /*
  * Table sizes, etc.
  */
@@ -24,6 +28,7 @@
 #define	NERR	10			/* Size of error buffer */
 #define	NCODE	128			/* # of characters in code buffer */
 #define	NINPUT	128			/* # of characters in input line */
+#define NINBUF  1024        /* # of characters in input buffer */
 #define	NLPP	60			/* # of lines on a page */
 #define	XXXX	0			/* Unused value */
 
@@ -230,7 +235,7 @@ typedef	struct	SYM	{
 extern	char	*cp;
 extern	char	*ip;
 extern	char	ib[];
-extern	FILE	*ifp;
+extern	int 	ifp;
 extern	FILE	*ofp;
 extern	FILE	*lfp;
 extern	int	line;
@@ -283,12 +288,8 @@ extern void outab2(uint8_t);
 extern void outabchk2(ADDR *);
 extern void outrab(ADDR *);
 extern void outraw(ADDR *);
-extern void outrat(ADDR *);
-extern void outrad(ADDR *);
 extern void outrabrel(ADDR *);
 extern void outrawrel(ADDR *);
-extern void outratrel(ADDR *);
-extern void outradrel(ADDR *);
 extern void outeof(void);
 extern void outbyte(uint8_t);
 extern void outflush(void);

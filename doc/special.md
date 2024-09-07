@@ -16,13 +16,23 @@ cc -h 16384 source.c
 
 ## Quirks of `stdio.h`
 
-Due to a limitation of the filesystem, files stored on AMSDOS filesystems (e.g., CPC floppy disks) will often be terminated with an EOF character 0x1A and then some garbage padding (see [File Access](syscalls.md#file-access)). To improve compatibility, `stdio.h` functions treat character 0x1A as EOF. If we need to read a binary file that includes legitimate 0x1A characters, the file should be opened in binary (`b`) mode, e.g.:
+### File sizes
+
+Due to a limitation of the filesystem, files stored on AMSDOS filesystems (e.g., CPC floppy disks) will often be terminated with an EOF character 0x1A and then some garbage padding (see [File Access](syscalls.md#file-access)). To improve compatibility, most `stdio.h` functions treat character 0x1A as EOF. If we need to read a binary file that includes legitimate 0x1A characters, the file should be opened in binary (`b`) mode, e.g.:
 
 ```c
 f = fopen("data.dat", "rb");
 ```
 
 ...with the tradeoff being that we now need to pay attention to the fact that there may be garbage data at the end of the file. (This problem does not apply to the FAT filesystems used by most mass storage devices.)
+
+### `fseek()`
+
+`fseek()` and `lseek()` past the existing end of a file will generally follow the POSIX behavior of filling in the intervening space with zeros (to create a "sparse file"). However, for multiple internal reasons, this will occur at the time of the seek, rather than if/when the file is written to.
+
+### `printf()`
+
+Because of how SCC handles variable argument lists, SCC's implementation of `printf()` and its relatives (`vsprintf()`, etc.) are pickier than some others about the data types of passed arguments matching the data types indicated in the format string. In particular, 32-bit values should be cast to `(int)` before being printed with `%i`, and 8-bit and 16-bit values should be case to `(long)` before being printed with `%l`. (Since 8-bit values are passed internally as 16-bit values on the stack, it is not necessary to case 16-bit values to 8-bit or vice versa.)
 
 ## Interfacing with assembly code
 

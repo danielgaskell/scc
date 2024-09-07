@@ -15,11 +15,7 @@ static off_t segbase[OSEG];
 static uint16_t segpad[OSEG];
 static uint8_t full[OSEG];	/* So we can tell a full wrap from a 0 start */
 
-#ifdef ADDR32
-static addr_t mask = 0xFFFFFFFF;
-#else
 static addr_t mask = 0xFFFF;
-#endif
 static int_fast8_t shift = 0;
 static unsigned rel_check = 0;
 
@@ -153,37 +149,24 @@ static void outaddr(addr_t a, unsigned s)
 }
 
 /* Ditto allowing for quoting changes */
-static void outqaddr(addr_t a, unsigned s)
+static void outqaddr(unsigned short a, unsigned char s)
 {
-#ifdef TARGET_BIGENDIAN
-	unsigned shift = 8 * (s - 1);
-	while(s--) {
-		outabyte(a >> shift);
-		a <<= 8;
-	}
-#else
-	while(s--) {
-		outabyte(a);
-		a >>= 8;
-	}
-#endif
+    if (s == 1) {
+        outabyte(a);
+    } else {
+        outabyte(a);
+        outabyte(a >> 8);
+    }
 }
 
-static void outqcaddr(addr_t a, unsigned s)
+static void outqcaddr(unsigned short a, unsigned char s)
 {
-#ifdef TARGET_BIGENDIAN
-	unsigned shift = 8 * (s - 1);
-	while(s--) {
-		outab2(a >> shift);
-		a <<= 8;
-	}
-	outab(a >> shift);
-#else
-	while(s--) {
-		outab2(a);
-		a >>= 8;
-	}
-#endif
+    if (s == 1) {
+        outab2(a);
+    } else {
+        outab2(a);
+        outab2(a >> 8);
+    }
 }
 
 /*
@@ -193,11 +176,11 @@ static void outqcaddr(addr_t a, unsigned s)
  *	A_LOW and A_HIGH indicate 8bit partial relocations. We handle these
  *	internally.
  */
-static void outreloc(register ADDR *a, int bytes)
+static void outreloc(ADDR *a, int bytes)
 {
 	int s = (bytes - 1) << 4;
-	unsigned n = a->a_value;
-	unsigned f = a->a_flags;
+	unsigned short n = a->a_value;
+	unsigned short f = a->a_flags;
 
 	/* We must insert a relocation record for anything relocatable,
 	   but also for anything which is a symbol, as the linker may
@@ -243,15 +226,8 @@ static void outreloc(register ADDR *a, int bytes)
 			outabyte(n);
 		else if (f & A_HIGH) {
 			/* FIXME: > 2 bytes */
-#ifdef TARGET_BIGENDIAN
-			outabyte(n >> 8);
-			/* We need this to relocate but it is not really in
-			   the program stream so don't count it as such */
-			outbyte(n);
-#else
 			outbyte(n);
 			outabyte(n >> 8);
-#endif
 		} else
 			outqaddr(n, bytes);
 	} else {
@@ -282,16 +258,6 @@ static void outreloc(register ADDR *a, int bytes)
 				outqcaddr(n, bytes);
 		}
 	}
-}
-
-void outrad(ADDR *a)
-{
-	outreloc(a, 4);
-}
-
-void outrat(ADDR *a)
-{
-	outreloc(a, 3);
 }
 
 void outraw(ADDR *a)
@@ -371,10 +337,10 @@ void outab2(uint8_t b)
 	list_addbyte(b);
 }
 
-void outabchk2(register ADDR *a)
+void outabchk2(ADDR *a)
 {
 	uint8_t b;
-	register unsigned v = a->a_value;
+	unsigned short v = a->a_value;
 	if (a->a_flags & A_LOW)
 		b = v;
 	else if (a->a_flags & A_HIGH)
@@ -460,16 +426,6 @@ void outrawrel(ADDR *a)
 	outrel(a, 2);
 }
 
-void outratrel(ADDR *a)
-{
-	outrel(a, 3);
-}
-
-void outradrel(ADDR *a)
-{
-	outrel(a, 4);
-}
-
 static void putsymbol(SYM *s, FILE *ofp)
 {
 	uint8_t flag = 0;
@@ -543,7 +499,7 @@ void outeof(void)
 	if (noobj || pass < 3)
 		return;
 
-	/* Target specifc flush of anything pending */
+	/* Target specific flush of anything pending */
 	doflush();
 
 	dumpseginfo();

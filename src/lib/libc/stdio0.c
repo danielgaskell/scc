@@ -7,6 +7,7 @@
 /* This is an implementation of the C standard IO package. */
 
 #include "stdio-l.h"
+#include <symbos.h>
 
 /* This needs to live with __stdio_init vars as they depend upon one another */
 int fflush(FILE * fp)

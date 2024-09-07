@@ -9,6 +9,7 @@
 
 #include <unistd.h>
 #include <stdint.h>
+#include <fcntl.h>
 #include "obj.h"
 #include "as.h"
 
@@ -18,15 +19,20 @@
 #include "as4.c"
 #include "as6.c"
 
-FILE	*ifp;
+int     ifp;
 FILE	*ofp;
 FILE	*lfp;
 char	eb[NERR];
 char	ib[NINPUT];
 char	lb[NINPUT];
+char    fb[NINBUF];
 char	*cp;
 char	*ep;
 char	*ip;
+char    *fp = NULL;
+char    *fep = NULL;
+char    *foep = NULL;
+char    *fop;
 char	*fname;
 char 	*listname;
 VALUE	dot[OSEG];
@@ -64,16 +70,7 @@ static int listbytes;
 
 static void list_header(void)
 {
-#ifdef ADDR32
-	fprintf(lfp, "%1X %08X : ",
-#else
-	fprintf(lfp, "%1X %04X : ",
-#endif
-#ifdef TARGET_WORD_MACHINE
-		segment, dot[segment] / 2);
-#else
-		segment, dot[segment]);
-#endif
+	fprintf(lfp, "%c %04X : ", "ACDBZXSLsbdt"[segment], dot[segment]);
 	listbytes = 0;
 }
 
@@ -108,6 +105,45 @@ void list_endline(void)
 	}
 }
 
+// buffered line read (much faster than fgets on SymbOS)
+unsigned char getlineb(char* buf, unsigned int maxlen, int fid) {
+    #ifndef SYMBUILD
+    int oldseek;
+    #endif
+    int readlen;
+    unsigned char c;
+    fop = buf;
+    foep = fop + maxlen;
+    while (fop < foep) {
+        if (fp >= fep) {
+            #ifndef SYMBUILD
+            oldseek = lseek(fid, 0, SEEK_CUR); // get read length manually - mingw problem
+            read(fid, fb, NINBUF);
+            readlen = lseek(fid, 0, SEEK_CUR) - oldseek;
+            #else
+            readlen = read(fid, fb, NINBUF);
+            #endif
+            if (readlen == 0) {
+                *fop = 0;
+                return fop != buf; // still return success if we've read something
+            }
+            fp = fb;
+            fep = fb + readlen;
+        }
+        c = *fp++;
+        if (c == 0x1A) { // AMSDOS EOF
+            fep = fp;
+            break;
+        }
+        if (c != '\r')
+            *fop++ = c;
+        if (c == '\n')
+            break;
+    }
+    *fop = 0;
+    return 1;
+}
+
 int main(int argc, char *argv[])
 {
 	char *ifn;
@@ -134,8 +170,8 @@ int main(int argc, char *argv[])
 		usage();
 	ifn = argv[optind];
 
-	if ((ifp=fopen(ifn, "rb")) == NULL) {
-		fprintf(stderr, "%s: cannot open\n", ifn);
+	if ((ifp=open(ifn, O_RDONLY | O_BINARY)) == -1) {
+		fprintf(stderr, "%s: cannot open.\n", ifn);
 		exit(BAD);
 	}
 
@@ -169,8 +205,8 @@ int main(int argc, char *argv[])
 			continue;
 		line = 1;
 		memset(dot, 0, sizeof(dot));
-		fseek(ifp, 0L, 0);
-		while (fgets(ib, NINPUT, ifp) != NULL) {
+		lseek(ifp, 0L, 0);
+		while (getlineb(ib, NINPUT, ifp)) {
 			/* Pre-processor output */
 			if (*ib == '#' && ib[1] == ' ') {
 				free(fname);
@@ -202,6 +238,8 @@ int main(int argc, char *argv[])
 		if (unlink(ofn))
 			perror(ofn);
 	}
+
+	close(ifp);
 	/* Return an error code if no object was created */
 	exit(noobj);
 }

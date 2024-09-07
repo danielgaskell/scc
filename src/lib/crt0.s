@@ -112,7 +112,8 @@ _exit:
 	or b
 	jr z,_symexit1
 	ld hl,(__exit_stdio+0)
-	push hl
+	ld de,_symexit1
+	push de
 	push hl
 	ret					; simulate 'call hl'
 _symexit1:
@@ -250,7 +251,7 @@ __symmsg:		.word __symmsgbuf	; C pointer to actual message buffer
 __symmsgbuf:	.ds 14
 
 ; program stack and initialization space
-			.ds 256
+			.ds 512
 .export __symstack
 __symstack:
 			.ds 12			;register predefinition
