@@ -32,7 +32,7 @@ f = fopen("data.dat", "rb");
 
 ### `printf()`
 
-Because of how SCC handles variable argument lists, SCC's implementation of `printf()` and its relatives (`vsprintf()`, etc.) are pickier than some others about the data types of passed arguments matching the data types indicated in the format string. In particular, 32-bit values should be cast to `(int)` before being printed with `%i`, and 8-bit and 16-bit values should be case to `(long)` before being printed with `%l`. (Since 8-bit values are passed internally as 16-bit values on the stack, it is not necessary to case 16-bit values to 8-bit or vice versa.)
+Because of how SCC handles variable argument lists, SCC's implementation of `printf()` and its relatives (`vsprintf()`, etc.) are pickier than some others about the data types of passed arguments matching the data types indicated in the format string. In particular, 32-bit values should be cast to `(int)` before being printed with `%i`, and 8-bit and 16-bit values should be case to `(long)` before being printed with `%l`. (Since 8-bit values are passed internally as 16-bit values on the stack, it is not necessary to cast 16-bit values to 8-bit or vice versa.)
 
 ## Interfacing with assembly code
 
