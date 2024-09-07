@@ -1445,7 +1445,7 @@ typedef struct {
 } ProcHeader;
 ```
 
-In addition, when the process is launched, its internal stack will begin at the address immediately before this header and grow downwards. So, we must define space for the stack immediately before the header in the **transfer** segment. `startAddr` can be an absolute address, or (as in the example below) the address of a `void` function in our own main code to run as a separate thread. Example:
+In addition, when the process is launched, its internal stack will begin at the address immediately before this header and grow downwards. So, we must define space for the stack immediately before the header in the **transfer** segment. `startAddr` can be an absolute address, or (as in the example below) the address of a `void` function in our own main code to run as a separate thread. Due to a quirk in SCC's linker, which currently treats initialized and uninitialized arrays differently, this buffer must be given an initial value (such as `{0}`) to ensure that it is placed directly before the `ProcHeader` data structure in the **transfer** segment. (This may be improved in future releases.) For example:
 
 ```c
 char threadID;
@@ -1455,7 +1455,7 @@ void threadfunc(void) {
 	Proc_Delete(threadID); // end the thread's process (rather than returning)
 }
 
-_transfer char procstack[256];
+_transfer char procstack[256] = {0};
 _transfer ProcHeader threadhead = {0, 0, 0, 0, 0, 0, // initial register values
                                    threadfunc};      // address of routine to run
 								 
@@ -2081,7 +2081,7 @@ The following errors are primarily issued by SymShell commands (stored in `_shel
 * `ERR_MOREPROC`: Too many processes registered with SymShell
 * `ERR_NOSHELL`: No SymShell session available (`_shellpid` = 0)
 
-The following errors are issued by the network interface (stored in `_neterr`):
+The following errors are primarily issued by the network interface (stored in `_neterr`):
 
 * `ERR_OFFLINE`: Offline/not connected/no network daemon
 * `ERR_NOHW`: No hardware setup
