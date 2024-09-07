@@ -28,6 +28,7 @@ These headers are not 100% comprehensive; SymbOS provides some additional system
 * [Clipboard functions](#clipboard-functions)
 * [Time functions](#time-functions)
 * [System tray](#system-tray)
+* [Network interface](#network-interface)
 * [Reference tables](#reference-tables)
 
 ## System variables
@@ -1705,6 +1706,268 @@ Remove the icon with the ID `id` from the system tray.
 
 *SymbOS name*: `SystrayIcon_Remove_Command` (`MSC_DSK_STTREM`).
 
+## Network interface
+
+Network capabilities are only available if an appropriate network daemon is running. Use `Net_Init()` to initialize the network and connect to the daemon.
+
+Network errors are recorded in the global variable `_neterr`, documented [below](#error-codes).
+
+### Net_Init()
+
+```c
+unsigned char Net_Init(void);
+```
+
+Initializes the network interface, if present. This should be called before using any other network functions.
+
+*Return value*: On success, sets `_netpid` to the process ID of the network daemon and returns 0. On failure, returns `ERR_OFFLINE`.
+
+### TCP_OpenClient()
+
+```c
+signed char TCP_OpenClient(unsigned long ip, unsigned short lport, signed short rport);
+```
+
+Opens a client TCP connection to the IPv4 address `ip` (formatted as a 32-bit number) on local port `lport`, connecting to remote port `rport`. For client connections, `rport` should usually be set to -1 to obtain a dynamic port number.
+
+*Return value*: On success, returns a socket handle to the new connection. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Open` (`TCPOPN`).
+
+### TCP_OpenClient()
+
+```c
+signed char TCP_OpenServer(unsigned short lport);
+```
+
+Opens a server TCP connection on local port `lport`.
+
+*Return value*: On success, returns a socket handle to the new connection. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Open` (`TCPOPN`).
+
+### TCP_Close()
+
+```c
+signed char TCP_Close(unsigned char handle);
+```
+
+Closes and releases the TCP connection associated with the socket `handle`, without first sending a disconnect signal. (This is intended for when the remote host has already closed the connection with us; see also `TCP_Disconnect()`.)
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Close` (`TCPCLO`).
+
+### TCP_Status()
+
+```c
+signed char TCP_Status(unsigned char handle, NetStat* obj);
+```
+
+Returns the status of the TCP connection associated with the socket `handle` and stores the results in the `NetStat` struct `obj`, which has the format:
+
+```c
+typedef struct {
+    unsigned char status;    // status (see below)
+    unsigned long ip;        // remote IP address
+    unsigned short rport;    // remote port
+	unsigned char datarec;   // 1 = data received, 0 = none
+    unsigned short bytesrec; // received bytes waiting in buffer
+} NetStat;
+```
+
+`status` may be one of `TCP_OPENING`, `TCP_OPENED`, `TCP_CLOSING`, or `TCP_CLOSED`.
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Status` (`TCPSTA`).
+
+### TCP_Receive()
+
+```c
+signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, unsigned short len, TCP_Trans* obj);
+```
+
+Moves data which has been received from the remote host associated with socket `handle` to the memory at bank `bank`, address `addr`. Up to `len` bytes will be moved (or the actual amount in the buffer, whichever is less).
+
+`obj` is an optional pointer to a `TCP_Trans` struct, into which additional information about the transfer will be loaded. This parameter may be set to NULL to omit this information. The structure of the struct is:
+
+```c
+typedef struct {
+    unsigned short transferred;  // bytes transferred to destination
+    unsigned short remaining;    // bytes remaining in the buffer
+} TCP_Trans;
+```
+
+*Return value*: On success, returns 0 and loads information into `obj`, if specified. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Receive` (`TCPRCV`).
+
+### TCP_Send()
+
+```c
+signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len, TCP_Trans* obj);
+```
+
+Sends data from memory bank `bank`, address `addr`, to the host associated with the socket `handle`. Up to `len` bytes will be sent, although note that not all the requested data may be sent at once; if some remains (check `obj.remaining`), the application should idle briefly and then try to send the remainder.
+
+`obj` is an optional pointer to a `TCP_Trans` struct, into which additional information about the transfer will be loaded. This parameter may be set to NULL to omit this information. The structure of the struct is:
+
+```c
+typedef struct {
+    unsigned short transferred;  // bytes transferred to destination
+    unsigned short remaining;    // bytes remaining in the buffer
+} TCP_Trans;
+```
+
+*Return value*: On success, returns 0 and loads information into `obj`, if specified. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Send` (`TCPSND`).
+
+### TCP_Skip()
+
+```c
+signed char TCP_Skip(unsigned char handle, unsigned short len);
+```
+
+Skips and throws away `len` bytes of data which have already been received from the host associated with the socket `handle`. `len` must be equal to or smaller than the total number of bytes in the buffer (see `TCP_Status()`).
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Skip` (`TCPSKP`).
+
+### TCP_Flush()
+
+```c
+signed char TCP_Flush(unsigned char handle);
+```
+
+Flushes the send buffer immediately. Some network hardware or software may hold data in the send buffer for a brief period of time before sending; this command requests to send it immediately.
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Flush` (`TCPFLS`).
+
+### TCP_Disconnect()
+
+```c
+signed char TCP_Disconnect(unsigned char handle);
+```
+
+Sends a disconnect signal to the remote host associated with the socket `handle`, closes the TCP connection, and releases the socket. (This is intended for we want to initiate the disconnection with the remote host; see also `TCP_Close()`.)
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Disconnect` (`TCPDIS`).
+
+### UDP_Open()
+
+```c
+signed char UDP_Open(unsigned char type, unsigned short lport, unsigned char bank);
+```
+
+Opens a UDP session on local port `lport`. Data for this session will be stored in RAM bank `bank`
+
+*Return value*: On success, returns a socket handle to the new session. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `UDP_Open` (`UDPOPN`).
+
+### UDP_Close()
+
+```c
+signed char UDP_Close(unsigned char handle);
+```
+
+Closes and releases the UDP session associated with the socket `handle`.
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `UDP_Close` (`UDPCLO`).
+
+### UDP_Status()
+
+```c
+signed char UDP_Status(unsigned char handle, NetStat* obj);
+```
+
+Returns the status of the UDP session associated with the socket `handle` and stores the results in the `NetStat` struct `obj`, which has the same format as for `TCP_Status()`:
+
+```c
+typedef struct {
+    unsigned char status;    // status
+    unsigned long ip;        // remote IP address
+    unsigned short rport;    // remote port
+	unsigned char datarec;   // n/a
+    unsigned short bytesrec; // received bytes waiting in buffer
+} NetStat;
+```
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `UDP_Status` (`UDPSTA`).
+
+### UDP_Receive()
+
+```c
+signed char UDP_Receive(unsigned char handle, char* addr);
+```
+
+Moves data which has been received from the remote host associated with socket `handle` to the memory at address `addr` (in the bank specified to `UDP_Open()`). The entire packet will be transferred at once, so be sure that there is enough space for an entire packet at the destination address. UDP packets have a theoretical limit of 65507 bytes, but we can also check how much data is waiting with `UDP_Status()`.
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `UDP_Receive` (`UDPRCV`).
+
+### UDP_Send()
+
+```c
+signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, unsigned long ip, unsigned short rport)
+```
+
+Sends a data packet from the memory address `addr` (in the bank specified to `UDP_Open()`) to the host associated with the socket `handle`. If sending fails becaus the buffer is full, the application should idle briefly and try again.
+
+`obj` is an optional pointer to a `TCP_Trans` struct, into which additional information about the transfer will be loaded. This parameter may be set to NULL to omit this information. The structure of the struct is:
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `UDP_Send` (`UDPSND`).
+
+### UDP_Skip()
+
+```c
+signed char UDP_Skip(unsigned char handle);
+```
+
+Skips and throws away a complete packet which has already been received from the host associated with the socket `handle`.
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `UDP_Skip` (`UDPSKP`).
+
+### DNS_Resolve()
+
+```c
+unsigned long DNS_Resolve(char* addr);
+```
+
+Performs a DNS lookup and attempts to resolve the host IP/URL stored in the string at memory address `addr` into an IPv4 address.
+
+*Return value*: On success, returns the IPv4 address (as a 32-bit integer). On failure, sets `_neterr` and returns 0.
+
+*SymbOS name*: `DNS_Resolve` (`DNSRSV`).
+
+### DNS_Verify()
+
+```c
+signed char DNS_Verify(char* addr);
+```
+
+Verifies whether the IP/URL stored in the string at memory address `addr` is a valid IP or domain address. This function does not interact with the network hardware, so can be used to quickly determine whether an address is valid before initiating a full network request.
+
+*Return value*: On success, returns `DNS_IP` for a valid IP address, `DNS_DOMAIN` for a valid domain address, or `DNS_INVALID` for an invalid address. On failure, sets `_neterr` and returns `DNS_INVALID`.
+
+*SymbOS name*: `DNS_Verify` (`DNSVFY`).
+
 ## Reference tables
 
 ### Keyboard scancodes
@@ -1817,3 +2080,21 @@ The following errors are primarily issued by SymShell commands (stored in `_shel
 * `ERR_RINGFULL`: Internal ring buffer is full
 * `ERR_MOREPROC`: Too many processes registered with SymShell
 * `ERR_NOSHELL`: No SymShell session available (`_shellpid` = 0)
+
+The following errors are issued by the network interface (stored in `_neterr`):
+
+* `ERR_OFFLINE`: Offline/not connected/no network daemon
+* `ERR_NOHW`: No hardware setup
+* `ERR_NOIP`: No IP configuration
+* `ERR_HARDWARE`: Unknown hardware error
+* `ERR_WIFI`: WiFi error (SymbiFace 3)
+* `ERR_NOSOCKET`: No more free sockets
+* `ERR_BADSOCKET`: Socket does not exist
+* `ERR_SOCKETTYPE`: Wrong socket type
+* `ERR_SOCKETUSED`: Socket is already in use by another process
+* `ERR_BADDOMAIN`: Invalid domain string
+* `ERR_TIMEOUT`: Connection timeout
+* `ERR_RECURSION`: Recursion not supported
+* `ERR_TRUNCATED`: Truncated response
+* `ERR_TOOLARGE`: Packet too large
+* `ERR_CONNECT`: TCP connection not yet established

@@ -2,6 +2,7 @@ argv.o
 filebox.o
 memsizex.o
 msgbox.o
+network.o
 popups.o
 system.o
 systray.o
