@@ -17,7 +17,7 @@
     - Arrays: one @() array with 1024 entries
     - Operators: (, ), ^, MOD, *, /, +, 0, <, >, <=, >=, <>, =, AND, OR, NOT
     - Functions: ABS(n), ASC("c"), RND(n), SGN(n), SQR(n), FRE
-    - Commands: var = expr, END, GOTO line, GOSUB line, RETURN, NEXT, REM, '
+    - Commands: var = expr, END, GOTO line, GOSUB line, RETURN, NEXT var, REM, '
                 IF expr GOTO/GOSUB line
                 IF expr THEN ...
                 FOR var = expr TO expr
@@ -220,7 +220,7 @@ static int stmt(int curline) { // return 0 on error, 1 for continue, -1 to exit
       } else if (accept("for")) {          // for i=expr to expr
           v2 = var();
           expect("=");        // skip '='
-          vars[v] = expr(0);
+          vars[v2] = expr(0);
           expect("to");       // skip "to"
           for_limit[v2] = expr(0);
           for_off[v2]   = ip;
