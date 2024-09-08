@@ -18,12 +18,16 @@
     - Operators: (, ), ^, MOD, *, /, +, 0, <, >, <=, >=, <>, =, AND, OR, NOT
     - Functions: ABS(n), ASC("c"), RND(n), SGN(n), SQR(n), FRE
     - Commands: var = expr, END, GOTO line, GOSUB line, RETURN, NEXT, REM, '
-                IF expr GOTO line
+                IF expr GOTO/GOSUB line
                 IF expr THEN ...
                 FOR var = expr TO expr
                 PRINT "Text"; #width, expr;
                 INPUT "Prompt: ", var
     - Interactive commands: RUN, LIST, NEW, SAVE, LOAD, BYE
+
+  This interpreter is not actually a very good BASIC for SymbOS (it's limited
+  and its evaluation method is *extremely* slow) but serves as an interesting
+  demo of SCC's capabilities.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +36,6 @@
 #include <ctype.h>
 #include <math.h>
 #include <malloc.h>
-#include <symbos.h>
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
@@ -56,9 +59,6 @@ static int num(void) { return strtol(ip, &ip, 10); }
 
 /* returns the end of the current line */
 static char *eol(void) { return strchr(ip, '\n'); }
-
-/* skips while cond(c) is true */
-#define eat(cond) for (int c; ((c = *ip) != 0) && (cond); ip++)
 
 /* skips whitespace */
 void space(void) {
@@ -286,11 +286,10 @@ static int stmt(int curline) { // return 0 on error, 1 for continue, -1 to exit
   //----------[print]-----------------------------------------------------
       } else if (accept("print") || accept("?")) { // 'print' [[#num ',' ] expr { ',' [#num ','] expr }] [','] {':' stmt} eol
           print_nl = 1;
-
           for (;;) {
               width = 0;
               space();
-              if (*ip == ':' || *ip == '\n' || *ip == '\'') { break; }
+              if (*ip == ':' || *ip == '\n' || *ip == '\r' || *ip == '\'') { break; }
               print_nl = 1;
               if (accept("#")) {
                   width = expr(0);
@@ -325,6 +324,7 @@ static int stmt(int curline) { // return 0 on error, 1 for continue, -1 to exit
     ip = eol(); return 1;          //********* return 1
   }
   space();
+  if (ip[0] == '\r') ++ip;
   if (ip[0] == '\n') { return 1; }
 
   printf("Syntax error: %.*s\n", (int)MIN(strlen(ip), 40), ip);
@@ -349,12 +349,12 @@ static void run(void) {
 static void getfilename(void) {
   char *p;
   space();
-  if (ip[0] == '\n') {
+  if (ip[0] == '\n' || ip[0] == '\r') {
     printf("File: ");
     ip = line;
     if (fgets(line, LINE_MAX, stdin) == NULL) return;
   }
-  if (ip[0] == '\n') { return; }
+  if (ip[0] == '\n' || ip[0] == '\r') { return; }
   if (ip[0] == '"') { ip++; }
   p = eol();
   p[0] = '\0';
