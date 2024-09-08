@@ -1,5 +1,6 @@
    1 ' StarTrek for TinyBasic, modified by Ed Davis and Daniel Gaskell, public domain
-   2 input "Do you want instructions? (y or n): ",a: if a = asc("y") gosub 700
+   2 ' Note that the initial setup takes an *extremely* long time at 4 MHz!
+   3 input "Do you want instructions? (y or n): ",a: if a = asc("y") gosub 700
    5 y = 2999: input "Do you want a difficult game? (y or n): ", a
   10 print "Stardate 3200:  Your mission is ";: if a = asc("y") then y = 999
   15 k = 0: b = 0: d = 30: for i = 0 to 63: j = abs(rnd(99) < 5): b = b + j
