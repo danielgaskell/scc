@@ -6,6 +6,8 @@ The following calls are all available after including `symbos.h`:
 #include <symbos.h>
 ```
 
+When cross-compiling on a modern computer, it is usually easiest to just include the entirety of `symbos.h`. However, this is a large file, so when compiling on SymbOS, we can reduce compilation time by only including the sub-headers that are actually needed (e.g., `symbos/shell.h` or `symbos/windows.h`). See the section introductions for what functions are in which sub-header.
+
 These headers are not 100% comprehensive; SymbOS provides some additional system calls not implemented in `symbos.h`, mainly low-level calls for dealing with storage devices, system configuration, and complicated applications that alter system functionality or execute code in multiple banks (SCC is not well-suited for this). These calls are discussed in the [SymbOS developer documentation](https://symbos.org/download.htm). It is assumed that, if you need these calls, you are probably already doing something complicated enough that a few extra wrapper functions won't be useful.
 
 ## Contents
@@ -51,9 +53,11 @@ unsigned short _segdatalen;  // length of the data segment
 unsigned short _segtranslen; // length of the transfer segment
 ```
 
-The other contents of the application header can be accessed directly with the struct `_symheader`, not documented here (see definition in `symbos.h`).
+The other contents of the application header can be accessed directly with the struct `_symheader`, not documented here (see definition in `symbos/header.h`).
 
 ## Messaging
+
+In addition to `symbos.h`, these functions can be found in `symbos/core.h`.
 
 ### Msg_Send()
 
@@ -121,6 +125,8 @@ Return CPU time to SymbOS and idle until something wakes it up---for example, an
 ## Memory management
 
 Applications are able to address more that 64KB of memory by reserving additional blocks of banked memory. These blocks cannot be addressed directly using C pointers and variables, but we can read/write/copy data to them using system functions.
+
+In addition to `symbos.h`, these functions can be found in `symbos/memory.h`.
 
 ### Mem_Reserve()
 
@@ -210,6 +216,8 @@ Returns the total number of existing 64KB extended RAM banks.
 
 ## Memory read/write
 
+In addition to `symbos.h`, these functions can be found in `symbos/memory.h`.
+
 ### Bank_ReadWord()
 
 ```c
@@ -272,6 +280,8 @@ Returns the bank number in which the app's main process is running. (Normally it
 
 ## System status
 
+In addition to `symbos.h`, these functions can be found in `symbos/core.h`.
+
 ### Sys_Counter()
 
 ```c
@@ -293,6 +303,8 @@ Returns the idle process counter, which increments every 64 microseconds. This c
 *SymbOS name*: `Multitasking_GetCounter` (`MTGCNT`).
 
 ## Screen status
+
+In addition to `symbos.h`, these functions can be found in `symbos/device.h`.
 
 ### Screen_Mode()
 
@@ -421,6 +433,8 @@ Returns the height (in pixels) of the text string at bank `bank`, address `addre
 
 ## Mouse status
 
+In addition to `symbos.h`, these functions can be found in `symbos/device.h`.
+
 ### Mouse_X()
 
 ```c
@@ -456,6 +470,8 @@ lbut = Mouse_Buttons() & BUTTON_LEFT;
 *SymbOS name*: `Device_MouseKeyStatus` (`MOSKEY`).
 
 ## Keyboard status
+
+In addition to `symbos.h`, these functions can be found in `symbos/device.h`.
 
 ### Key_Down()
 
@@ -514,6 +530,8 @@ Like `Key_Test()`, but tests up to six keys simultaneously. This may save time w
 *SymbOS name*: `Device_KeyMulti` (`KEYMUL`).
 
 ## Window management
+
+In addition to `symbos.h`, these functions can be found in `symbos/windows.h`.
 
 ### Win_Open()
 
@@ -748,6 +766,8 @@ Updates the cursor position and selection of the specified multi-line textbox (p
 
 ## Onscreen popups
 
+In addition to `symbos.h`, these functions can be found in `symbos/popups.h`.
+
 ### MsgBox()
 
 ```c
@@ -867,6 +887,8 @@ As usual, the `stdio.h` implementation includes some logic to paper over this is
 
 Most file operations will set `_fileerr` to an error code on failure; see [error codes](#error-codes).
 
+In addition to `symbos.h`, these functions can be found in `symbos/file.h`.
+
 ### File_Open()
 
 ```c
@@ -968,6 +990,8 @@ len = File_Seek(f, 0, SEEK_END); // get length by seeking to file end
 *SymbOS name*: `File_Pointer` (`FILPOI`).
 
 ## Directory access
+
+In addition to `symbos.h`, these functions can be found in `symbos/file.h`.
 
 ### Dir_Read()
 
@@ -1200,6 +1224,8 @@ Note that SymShell returns the Windows-style ASCII character 13 (`\r`) for the "
 
 Most shell functions will set `_shellerr` to an error code on failure; see [error codes](#error-codes).
 
+In addition to `symbos.h`, these functions can be found in `symbos/shell.h`.
+
 ### Shell_CharIn()
 
 ```c
@@ -1320,6 +1346,8 @@ Shell_PathAdd(_symbank, "A:\ARCHIVE", "C:\SYMBOS", abspath);
 
 SymbOS makes a distinction between an *application ID*, which is associated with a single application, and a *process ID*, which is associated with a single process. An application may potentially open multiple processes, although most do not. *Pay close attention to which is required by a given function!*
 
+In addition to `symbos.h`, these functions can be found in `symbos/proc.h`.
+
 ### App_Run()
 
 ```c
@@ -1411,7 +1439,7 @@ If the application could not be found or was not successfully loaded, returns an
 
 *SymbOS name*: `Program_SharedService_Command` (`MSC_SYS_PRGSRV`).
 
-## App_Release()
+### App_Release()
 
 ```c
 void App_Release(char appID);
@@ -1421,7 +1449,7 @@ Decrements the service counter incremented by `App_Service()`, so SymbOS knows w
 
 *SymbOS name*: `Program_SharedService_Command` (`MSC_SYS_PRGSRV`).
 
-## Proc_Add()
+### Proc_Add()
 
 ```c
 signed char Proc_Add(unsigned char bank, void* header, unsigned char priority);
@@ -1472,7 +1500,7 @@ int main(int argc, char* argv[]) {
 
 *SymbOS name*: `Multitasking_Add_Process_Command` (`MSC_KRL_MTADDP`).
 
-## Proc_Delete()
+### Proc_Delete()
 
 ```c
 void Proc_Delete(unsigned char pid);
@@ -1482,7 +1510,7 @@ Forcibly stops execution of the process with the process ID `pid`. (This is most
 
 *SymbOS name*: `Multitasking_Delete_Process_Command` (`MSC_KRL_MTDELP`).
 
-## Proc_Sleep()
+### Proc_Sleep()
 
 ```c
 void Proc_Sleep(unsigned char pid);
@@ -1492,7 +1520,7 @@ Forcibly puts the process with the process ID `pid` into "sleep" mode. It will n
 
 *SymbOS name*: `Multitasking_Sleep_Process_Command` (`MSC_KRL_MTSLPP`).
 
-## Proc_Wake()
+### Proc_Wake()
 
 ```c
 void Proc_Wake(unsigned char pid);
@@ -1502,7 +1530,7 @@ Wakes up the process with the process ID `pid` from "sleep" mode.
 
 *SymbOS name*: `Multitasking_Sleep_Process_Command` (`MSC_KRL_MTSLPP`).
 
-## Proc_Priority()
+### Proc_Priority()
 
 ```c
 void Proc_Priority(unsigned char pid, unsigned char priority);
@@ -1520,7 +1548,9 @@ A **counter** is the simplest method. A byte in memory can be registered as a co
 
 A **timer** is more complicated. It is essentially a new process that is only given CPU time for brief, regular intervals every 1/50th or 1/60th of a second (depending on the screen vsync frequency of the platform). See `Timer_Add()` and `Proc_Add()` for details on how to define this process.
 
-## Counter_Add()
+In addition to `symbos.h`, these functions can be found in `symbos/proc.h`.
+
+### Counter_Add()
 
 ```c
 unsigned char Counter_Add(unsigned char bank, char* addr, unsigned char pid, unsigned char speed);
@@ -1532,7 +1562,7 @@ Registers a new **counter** byte at bank `bank`, address `addr`, incrementing ev
 
 *SymbOS name*: `Timer_Add_Counter_Command` (`MSC_KRL_TMADDT`).
 
-## Counter_Delete()
+### Counter_Delete()
 
 ```c
 void Counter_Delete(unsigned char bank, char* addr);
@@ -1542,7 +1572,7 @@ Unregisters the **counter** byte at bank `bank`, address `addr` so it no longer 
 
 *SymbOS name*: `Timer_Delete_Counter_Command` (`MSC_KRL_TMDELT`).
 
-## Counter_Clear()
+### Counter_Clear()
 
 ```c
 void Counter_Clear(unsigned char pid);
@@ -1552,7 +1582,7 @@ Unregisters all **counter** bytes associated with the process ID *pid*.
 
 *SymbOS name*: `Timer_Delete_AllProcessCounters_Command` (`MSC_KRL_TMDELP`).
 
-## Timer_Add()
+### Timer_Add()
 
 ```c
 signed char Timer_Add(unsigned char bank, void* header);
@@ -1573,7 +1603,7 @@ void timer_loop(void) {
 
 *SymbOS name*: `Multitasking_Add_Timer_Command` (`MSC_KRL_MTADDT`).
 
-## Timer_Delete()
+### Timer_Delete()
 
 ```c
 void Timer_Delete(unsigned char id);
@@ -1584,6 +1614,8 @@ Stops execution of a timer previously launched by `Timer_Add()`. The parameter `
 *SymbOS name*: `Multitasking_Delete_Timer_Command` (`MSC_KRL_MTDELT`).
 
 ## Clipboard functions
+
+In addition to `symbos.h`, these functions can be found in `symbos/clip.h`.
 
 ### Clip_Put()
 
@@ -1632,6 +1664,8 @@ Returns the length of data in the clipboard, in bytes.
 ## Time functions
 
 These functions may only behave as expected on systems that have a realtime clock (RTC).
+
+In addition to `symbos.h`, these functions can be found in `symbos/time.h`.
 
 ### Time_Get()
 
@@ -1685,6 +1719,8 @@ An SCC utility function that converts the `SymTime` struct at the address `addr`
 
 ## System tray
 
+In addition to `symbos.h`, these functions can be found in `symbos/systray.h`.
+
 ### Systray_Add()
 
 ```c
@@ -1712,6 +1748,8 @@ Remove the icon with the ID `id` from the system tray.
 Network capabilities are only available if an appropriate network daemon is running. Use `Net_Init()` to initialize the network and connect to the daemon.
 
 Network errors are recorded in the global variable `_neterr`, documented [below](#error-codes).
+
+In addition to `symbos.h`, these functions can be found in `symbos/network.h`.
 
 ### Net_Init()
 
@@ -1977,6 +2015,8 @@ Yes, **SCC supports multithreading** (!), thanks to SymbOS's elegant system for 
 
 Standard SymbOS system calls that do not use 32-bit data types (`File_Open()`, etc.) should all be thread-safe, as these use a semaphore system to ensure that only one message is passed in `_symmsg` at the same time.
 
+In addition to `symbos.h`, these functions can be found in `symbos/threads.h`.
+
 ### thread_start()
 
 ```c
@@ -2016,6 +2056,8 @@ Quits the running thread associated with the environment buffer `env`. (This fun
 
 ### Keyboard scancodes
 
+In addition to `symbos.h`, these definitions can be found in `symbos/device.h`.
+
 | Code | Code | Code | Code | Code | 
 | ---- | ---- | ---- | ---- | ---- |
 | `SCAN_0` | `SCAN_G` | `SCAN_W` | `SCAN_UP` | `SCAN_FIRE_1` |
@@ -2037,6 +2079,8 @@ Quits the running thread associated with the environment buffer `env`. (This fun
 
 ### Extended ASCII codes
 
+In addition to `symbos.h`, these definitions can be found in `symbos/device.h`.
+
 | Code | Code | Code | Code |
 | ---- | ---- | ---- | ---- |
 | `KEY_UP`    | `KEY_TAB`    | `KEY_ALT_M` | `KEY_ALT_0` |
@@ -2057,7 +2101,7 @@ Quits the running thread associated with the environment buffer `env`. (This fun
 
 ### Colors
 
-International English synonyms (`COLOUR`, `GREY`) are also available.
+In addition to `symbos.h`, these definitions can be found in `symbos/windows.h`. International English synonyms (`COLOUR`, `GREY`) are also available.
 
 | Value | 4-color   | 16-color      |
 | ---- | ---------- | ------------- |
