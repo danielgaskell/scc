@@ -33,9 +33,9 @@ void dotypedef(void)
 	need_semicolon();
 }
 
-unsigned one_declaration(register unsigned s, unsigned type, unsigned name, unsigned defstorage)
+unsigned one_declaration(unsigned s, unsigned type, unsigned name, unsigned defstorage)
 {
-	register struct symbol *sym;
+	struct symbol *sym;
 	unsigned offset;
 
 	/* It's quite valid C to just write "int;" but usually dumb except
@@ -99,9 +99,9 @@ unsigned one_declaration(register unsigned s, unsigned type, unsigned name, unsi
 
 void declaration(unsigned defstorage)
 {
-	register unsigned s = get_storage(defstorage);
+	unsigned s = get_storage(defstorage);
 	unsigned name;
-	register unsigned utype;
+	unsigned utype;
 	unsigned type;
 
 	type = get_type();

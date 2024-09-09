@@ -308,7 +308,7 @@ unsigned array_type(unsigned n)
 /* Make a sized version of the array type given */
 unsigned array_with_size(unsigned t, unsigned size)
 {
-	register struct symbol *sym = symbol_ref(t);
+	struct symbol *sym = symbol_ref(t);
 	unsigned x[9];	/* Max ptr depth of 8  + size */
 	unsigned *idx;
 
@@ -405,10 +405,10 @@ unsigned type_of_struct(struct symbol *sym)
  *	Generate the BSS at the end (and at scope end for static local)
  */
 
-static void symbol_bss(register struct symbol *s)
+static void symbol_bss(struct symbol *s)
 {
 	unsigned st = S_STORAGE(s->infonext);
-	register unsigned t = s->type;
+	unsigned t = s->type;
 	if ((PTR(t) || !IS_FUNCTION(t)) && st != S_EXTERN && st >= S_LSTATIC && st <= S_EXTDEF) {
 		if (st == S_EXTDEF || st == S_SYMDATA || st == S_SYMTRANS)
 			header(H_EXPORT, s->name, 0);
@@ -436,7 +436,7 @@ static void symbol_bss(register struct symbol *s)
 
 void write_bss(void)
 {
-	register struct symbol *s = symtab;
+	struct symbol *s = symtab;
 
 	while(s <= last_sym) {
 #ifdef DEBUG

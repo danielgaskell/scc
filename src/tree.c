@@ -251,7 +251,7 @@ void free_tree(register struct node *n)
 	free_node(n);
 }
 
-static void write_subtree(register struct node *n)
+static void write_subtree(struct node *n)
 {
 	/* Replace the array code with the simple type info of the
 	   node for the backend, otherwise some backends cannot work

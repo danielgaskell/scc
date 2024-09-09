@@ -16,7 +16,7 @@ echo cc2.c
 ..\bin\cc -N "cc2" -o ..\bin\symbos\cc2.com cc2.c
 echo.
 echo ld.c
-..\bin\cc -N "ld" -o ..\bin\symbos\ld.com ld.c
+..\bin\cc -h 16384 -N "ld" -o ..\bin\symbos\ld.com ld.c
 echo.
 echo reloc.c
 ..\bin\cc -h 0 -N "reloc" -o ..\bin\symbos\reloc.com reloc.c

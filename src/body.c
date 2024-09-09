@@ -347,8 +347,8 @@ void statement_block(unsigned need_brack)
 
 static void load_registers(void)
 {
-	register struct node *n;
-	register unsigned i = 1;
+	struct node *n;
+	unsigned i = 1;
 	unsigned t;
 
 	while(i <= NUM_REG) {
@@ -382,8 +382,8 @@ void function_body(unsigned st, unsigned name, unsigned type)
 	/* This makes me sad, but there isn't a nice way to work out
 	   the frame size ahead of time */
 	unsigned long hrw;
-	register unsigned *p;
-	register unsigned n;
+	unsigned *p;
+	unsigned n;
 
 	/* We are using both the ones allocated for locals and those registers */
 	func_flags = arg_flags & F_REGMASK;

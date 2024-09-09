@@ -1,22 +1,10 @@
 #include <symbos.h>
 #include <string.h>
+#include "shellmsg.h"
 
 /* ========================================================================== */
 /* SymShell system calls                                                      */
 /* ========================================================================== */
-
-void _Shell_MsgWait(void) {
-    unsigned char response = _symmsg[0] + 128;
-    while (Msg_Send(_sympid, _shellpid, _symmsg) == 0);
-    while (_symmsg[0] != response) {
-        Idle();
-        Msg_Receive(_sympid, _shellpid, _symmsg);
-    }
-    if (_symmsg[3] > 1)
-        _shellerr = _symmsg[3] + 16;
-    else
-        _shellerr = 0;
-}
 
 int Shell_CharIn(unsigned char channel) {
     int result;
@@ -112,20 +100,6 @@ void Shell_Exit(unsigned char type) {
         _symmsg[0] = 68;
         _symmsg[1] = type;
         while(Msg_Send(_sympid, _shellpid, _symmsg) == 0);
-        _msemaoff();
-    }
-    _shellerr = ERR_NOSHELL;
-}
-
-void Shell_PathAdd(unsigned char bank, char* path, char* addition, char* dest) {
-    if (_shellpid) {
-        _msemaon();
-        _symmsg[0] = 69;
-        *((char**)(_symmsg + 1)) = path;
-        *((char**)(_symmsg + 3)) = addition;
-        *((char**)(_symmsg + 5)) = dest;
-        _symmsg[7] = bank;
-        _Shell_MsgWait();
         _msemaoff();
     }
     _shellerr = ERR_NOSHELL;

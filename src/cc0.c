@@ -142,7 +142,7 @@ void fatal(const char *p)
 	exit(1);
 }
 
-#define BLOCK 512
+#define BLOCK 1024
 
 static uint8_t buffer[BLOCK];	/* 128 for CPM */
 static uint8_t *bufptr = buffer + BLOCK;
@@ -162,6 +162,10 @@ static unsigned bgetc(void)
 		bufptr = buffer;
 	}
 	bufleft--;
+	if (*bufptr == 0x1A) {
+        bufleft = 0;
+        return EOF;
+	}
 	return *bufptr++;
 }
 
@@ -353,7 +357,6 @@ static void write_symbol_table(void)
 	unsigned len = (uint8_t *) nextsym - (uint8_t *) symbase;
 	uint8_t n[2];
 
-	/* FIXME: proper temporary file! */
 	int fd = open(symtab, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0600);
 	if (fd == -1)
 		fatal(symtab);
@@ -568,98 +571,6 @@ static void exp_overflow(void)
 	warning("exponent under/overflow");
 }
 
-#ifdef IBMFLOAT
-
-/* Older IBM style floating point
-   Numbers are encoded as
-   Sign.1 Exponent.8 Mantissa.24
-
-   Unlike IEEE754 however the exponent is in nybbles and there may be
-   up to 3 leading zeros in the mantissa. Negative zero is also verboten */
-
-static void convert_fix32(int exp, uint32_t sum, uint32_t frac, int uexp)
-{
-	rtype = T_FLOATVAL;
-	if (sum == 0 && frac == 0) {
-		result = 0;
-		return;
-	}
-	/* Do the initial work bit by bit */
-	/* Start by getting it down to 28bits */
-	while (!(sum & 0x08000000)) {
-		sum <<= 1;
-		if (frac & 0x80000000)
-			sum |= 1;
-		frac <<= 1;
-		exp--;
-	}
-	/* A 28bit number will never overflow when multiplied by ten */
-	while (uexp > 0) {
-		sum *= 10;
-		/* Shift it down to keep it fitting */
-		while (sum & 0xF0000000) {
-			sum >>= 1;
-			exp++;
-		}
-		uexp--;
-	}
-	while (uexp < 0) {
-		sum /= 10;
-		while (!(sum & 0x08000000)) {
-			sum <<= 1;
-			exp--;
-		}
-		uexp++;
-	}
-
-	exp += 22;
-
-	/* Align the mantissa on a nybble basis */
-	while(exp & 3) {
-		sum >>= 1;
-		exp++;
-	}
-
-	/* Now work in nybbles */
-	exp >>= 2;
-
-	/* If the sum has too many bits then shift it down and adjust
-	   the exponent */
-	while (sum & 0xFF000000) {
-		sum >>= 4;
-		exp++;
-	}
-	/* If there are leading zero bits, then shift up and merge in frac */
-	while ((sum & 0x00F00000) == 0) {
-		sum <<= 4;
-		/* Copy 4 bits up at a time */
-		sum |= (frac >> 28);
-		frac <<= 4;
-		exp--;
-	}
-
-	/* Bias */
-	exp += 64;
-
-	/* No denormals */
-	if (exp < 1) {
-		exp_overflow();
-		result = 0;	/* Zero */
-		return;
-	}
-	if (exp > 127) {
-		exp_overflow();
-		result = 0x7F800000;	/* Infinity */
-		return;
-	}
-	/* Assemble result */
-	sum &= 0x00FFFFFF;
-	sum |= (exp << 24) & 0x7F800000UL;
-	result = sum;
-}
-
-#else
-
 static void convert_fix32(int exp, uint32_t sum, uint32_t frac, int uexp)
 {
 	rtype = T_FLOATVAL;
@@ -731,8 +642,6 @@ static void convert_fix32(int exp, uint32_t sum, uint32_t frac, int uexp)
 	sum |= (exp << 23) & 0x7F800000UL;
 	result = sum;
 }
-#endif
-
 
 /* After the E or P in a floating point value is a signed decimal exponent.
    Parse this */

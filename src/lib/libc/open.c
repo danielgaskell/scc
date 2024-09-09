@@ -5,7 +5,10 @@
 
 int open(const char *path, int flags, ...) {
     unsigned char fd;
-    Dir_PathAdd(0, path, _io_buf); // relative to EXE path if not specified
+    if (_shellpid)
+        Shell_PathAdd(_symbank, 0, path, _io_buf); // relative to shell path if shell and unspecified
+    else
+        Dir_PathAdd(0, path, _io_buf); // relative to EXE path if not shell and unspecified
     if (flags & O_TRUNC)
         fd = File_New(_symbank, _io_buf, 0);
     else

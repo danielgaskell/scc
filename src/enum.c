@@ -58,8 +58,8 @@ unsigned enum_body(void)
     unsigned enum_base = 0;
     unsigned type = CINT;
     unsigned ename;
-    register unsigned name;
-    register struct symbol *sym = NULL;
+    unsigned name;
+    struct symbol *sym = NULL;
 
     /* Optional */
     ename = symname();

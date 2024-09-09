@@ -193,8 +193,10 @@ isalpha.o
 strlen.o
 creat.o
 open.o
-sysshell.o
 unlink.o
+sysshell.o
+shellmsg.o
+shellpth.o
 errno.o
 dirread.o
 sysfile.o

@@ -269,7 +269,7 @@ __symmsgbuf:	.ds 14
 __symmsgsema:   .byte 0             ; multithreading semaphore for _symmsg
 
 ; program stack and initialization space
-			.ds 512
+			.ds 1024
 .export __symstack
 __symstack:
 			.ds 12			;register predefinition

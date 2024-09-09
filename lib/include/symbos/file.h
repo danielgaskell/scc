@@ -2,8 +2,8 @@
 #include <symcore.h>
 #endif
 
-#ifndef _SYMDEVICE
-#define _SYMDEVICE
+#ifndef _SYMFILE
+#define _SYMFILE
 
 #define ATTRIB_READONLY 1
 #define ATTRIB_HIDDEN 2
