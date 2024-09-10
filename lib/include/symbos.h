@@ -6,6 +6,7 @@
 #include <symbos/device.h>
 #include <symbos/file.h>
 #include <symbos/header.h>
+#include <symbos/keys.h>
 #include <symbos/memory.h>
 #include <symbos/network.h>
 #include <symbos/popups.h>

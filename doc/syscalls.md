@@ -6,7 +6,7 @@ The following calls are all available after including `symbos.h`:
 #include <symbos.h>
 ```
 
-When cross-compiling on a modern computer, it is usually easiest to just include the entirety of `symbos.h`. However, this is a large file, so when compiling on SymbOS, we can reduce compilation time by only including the sub-headers that are actually needed (e.g., `symbos/shell.h` or `symbos/windows.h`). See the section introductions for what functions are in which sub-header.
+When cross-compiling on a modern computer, it is usually easiest to just include the entirety of `symbos.h`. However, this is a large file, so when compiling on SymbOS, we can reduce compilation time and memory usage by only including the sub-headers that are actually needed (e.g., `symbos/shell.h` or `symbos/windows.h`). See the section introductions for what functions are in which sub-header.
 
 These headers are not 100% comprehensive; SymbOS provides some additional system calls not implemented in `symbos.h`, mainly low-level calls for dealing with storage devices, system configuration, and complicated applications that alter system functionality or execute code in multiple banks (SCC is not well-suited for this). These calls are discussed in the [SymbOS developer documentation](https://symbos.org/download.htm). It is assumed that, if you need these calls, you are probably already doing something complicated enough that a few extra wrapper functions won't be useful.
 
@@ -2056,7 +2056,7 @@ Quits the running thread associated with the environment buffer `env`. (This fun
 
 ### Keyboard scancodes
 
-In addition to `symbos.h`, these definitions can be found in `symbos/device.h`.
+In addition to `symbos.h`, these definitions can be found in `symbos/keys.h`.
 
 | Code | Code | Code | Code | Code | 
 | ---- | ---- | ---- | ---- | ---- |
@@ -2079,7 +2079,7 @@ In addition to `symbos.h`, these definitions can be found in `symbos/device.h`.
 
 ### Extended ASCII codes
 
-In addition to `symbos.h`, these definitions can be found in `symbos/device.h`.
+In addition to `symbos.h`, these definitions can be found in `symbos/keys.h`.
 
 | Code | Code | Code | Code |
 | ---- | ---- | ---- | ---- |

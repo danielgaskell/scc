@@ -87,7 +87,7 @@ void gen_tree(struct node *n)
  *
  *	If to_de is set we want the result in de, otherwise HL
  */
-unsigned generate_lref(register unsigned v, register unsigned size, unsigned to_de)
+unsigned generate_lref(unsigned v, unsigned size, unsigned to_de)
 {
 	const char *name;
 	const char *rp = "hl";
@@ -171,7 +171,7 @@ unsigned generate_lref(register unsigned v, register unsigned size, unsigned to_
 
 /* Get an lref value into A without destroying HL. DE is fair game. This one
    is allowed to fail */
-unsigned generate_lref_a(register unsigned v)
+unsigned generate_lref_a(unsigned v)
 {
 	/* Correct for current SP location */
 	v += sp;
@@ -211,9 +211,9 @@ unsigned generate_lref_a(register unsigned v)
  *	then says 0
  */
 
-static unsigned access_direct(register struct node *n)
+static unsigned access_direct(struct node *n)
 {
-	register unsigned op = n->op;
+	unsigned op = n->op;
 
 	/* We can direct access integer or smaller types that are constants
 	   global/static or string labels */
@@ -233,9 +233,9 @@ static unsigned access_direct(register struct node *n)
  *	we merge this with the similar hl one in the main table ?
  */
 
-static unsigned load_r_with(register const char *rp, register struct node *n)
+static unsigned load_r_with(const char *rp, struct node *n)
 {
-	register unsigned v = WORD(n->value);
+	unsigned v = WORD(n->value);
 
 	char r = *rp;
 
@@ -284,7 +284,7 @@ static unsigned load_r_with(register const char *rp, register struct node *n)
 	return 1;
 }
 
-static unsigned load_de_with(register struct node *n)
+static unsigned load_de_with(struct node *n)
 {
 	/* DE we can lref because our helpers don't touch DE so we can
 	   ex de,hl around it */
@@ -293,7 +293,7 @@ static unsigned load_de_with(register struct node *n)
 	return load_r_with("de", n);
 }
 
-static unsigned load_hl_with(register struct node *n)
+static unsigned load_hl_with(struct node *n)
 {
 	/* An HL lref is fine as we can trash HL and A to get HL */
 	if (n->op == T_LREF)
@@ -301,7 +301,7 @@ static unsigned load_hl_with(register struct node *n)
 	return load_r_with("hl", n);
 }
 
-static unsigned load_a_with(register struct node *n)
+static unsigned load_a_with(struct node *n)
 {
 	switch(n->op) {
 	case T_CONSTANT:
@@ -336,13 +336,13 @@ static unsigned load_a_with(register struct node *n)
 	return 1;
 }
 
-static void repeated_op(register const char *o, register unsigned n)
+static void repeated_op(const char *o, unsigned n)
 {
 	while(n--)
 		fprintf(fdo, "\t%s\n", o);
 }
 
-static void get_regvar(register unsigned reg, register struct node *n, unsigned s)
+static void get_regvar(unsigned reg, struct node *n, unsigned s)
 {
 	if (n && (n->flags & NORETURN))
 		return;
@@ -367,10 +367,9 @@ static void load_regvar(unsigned r, unsigned s)
 }
 
 /* We use "DE" as a name but A as register for 8bit ops... probably ought to rework one day */
-static unsigned gen_deop(const char *op, register struct node *n,
-				register struct node *r, unsigned sign)
+static unsigned gen_deop(const char *op, struct node *n, struct node *r, unsigned sign)
 {
-	register unsigned s = get_size(n->type);
+	unsigned s = get_size(n->type);
 	if (s > 2)
 		return 0;
 	/* Generate ld e, forms of de helpers if the value is below 256 as
@@ -400,8 +399,7 @@ static unsigned gen_deop(const char *op, register struct node *n,
 	return 1;
 }
 
-static unsigned gen_compc(const char *op, register struct node *n,
-			register struct node *r, unsigned sign)
+static unsigned gen_compc(const char *op, struct node *n, struct node *r, unsigned sign)
 {
 	unsigned s = get_size(n->type);
 	/* TODO: Z280 has CPW HL,DE CPW HL, const */
@@ -587,7 +585,7 @@ static int count_mul_cost(register unsigned n)
 }
 
 /* Write the multiply for any value > 0 */
-static void write_mul(register unsigned n)
+static void write_mul(unsigned n)
 {
 	unsigned pops = 0;
 	if ((n & 0xFF) == 0) {
@@ -632,7 +630,7 @@ static void gen_fast_mul(unsigned s, unsigned n)
 		write_mul(n);
 }
 
-static unsigned gen_fast_div(register unsigned n, unsigned s, unsigned u)
+static unsigned gen_fast_div(unsigned n, unsigned s, unsigned u)
 {
 	u &= UNSIGNED;
 	if (s != 2)
@@ -663,11 +661,11 @@ static unsigned gen_fast_div(register unsigned n, unsigned s, unsigned u)
 
 
 /* TODO : we could in theory optimize xor 255 with cpl ? */
-static unsigned gen_logicc(register struct node *n, unsigned s, const char *op,
+static unsigned gen_logicc(struct node *n, unsigned s, const char *op,
 				unsigned v, unsigned code)
 {
-	register unsigned h = (v >> 8) & 0xFF;
-	register unsigned l = v & 0xFF;
+	unsigned h = (v >> 8) & 0xFF;
+	unsigned l = v & 0xFF;
 
 	/* Rabbit has 16bit logic operators */
 	if (s == 2 && IS_RABBIT) {
@@ -708,7 +706,7 @@ static unsigned gen_logicc(register struct node *n, unsigned s, const char *op,
 	return 1;
 }
 
-static unsigned gen_fast_remainder(register unsigned n, unsigned s)
+static unsigned gen_fast_remainder(unsigned n, unsigned s)
 {
 	unsigned mask;
 	if (s != 2)
@@ -744,10 +742,10 @@ static unsigned gen_fast_remainder(register unsigned n, unsigned s)
  *	constant on the left subtracts in the rewrite rules into some kind of
  *	rsub operator.
  */
-unsigned gen_direct(register struct node *n)
+unsigned gen_direct(struct node *n)
 {
-	register unsigned s = get_size(n->type);
-	register struct node *r = n->right;
+	unsigned s = get_size(n->type);
+	struct node *r = n->right;
 	unsigned v;
 	unsigned nr = n->flags & NORETURN;
 
@@ -1163,9 +1161,9 @@ unsigned gen_direct(register struct node *n)
  *	of a single argument operator (for example to shortcut constant cases
  *	or simple name loads that can be done better directly)
  */
-unsigned gen_uni_direct(register struct node *n)
+unsigned gen_uni_direct(struct node *n)
 {
-	register struct node *r = n->right;
+	struct node *r = n->right;
 	unsigned v;
 	/* There are some uni operations on registers we can do
 	   non destructively but directly on BC */
@@ -1193,10 +1191,10 @@ static unsigned reg_canincdec(unsigned reg, struct node *n, unsigned s, int v)
 	return 1;
 }
 
-static unsigned reg_incdec(unsigned reg, unsigned s, register int v)
+static unsigned reg_incdec(unsigned reg, unsigned s, int v)
 {
 	char buf[16];
-	register char *op = "inc";
+	char *op = "inc";
 	if (v < 0) {
 		op = "dec";
 		v = -v;
@@ -1244,7 +1242,7 @@ static void reghelper(struct node *n, const char *p)
 	helper(n, p);
 }
 
-static void reg_logic(register struct node *n, unsigned s, unsigned op, const char *i)
+static void reg_logic(struct node *n, unsigned s, unsigned op, const char *i)
 {
 	/* TODO : constant optimization */
 	codegen_lr(n->right);
@@ -1264,7 +1262,7 @@ static void reg_logic(register struct node *n, unsigned s, unsigned op, const ch
 /* Operators where we can push CCONLY downwards */
 static unsigned is_ccdown(struct node *n)
 {
-	register unsigned op = n->op;
+	unsigned op = n->op;
 	if (op == T_ANDAND || op == T_OROR)
 		return 1;
 	if (op == T_BOOL)
@@ -1278,7 +1276,7 @@ static unsigned is_ccdown(struct node *n)
    TODO: add logic ops as we can BIT many of them */
 static unsigned is_cconly(struct node *n)
 {
-	register unsigned op = n->op;
+	unsigned op = n->op;
 	if (op == T_EQEQ || op == T_BANGEQ || op == T_BYTEEQ ||
 		op == T_BYTENE || op == T_ANDAND || op == T_OROR ||
 		op == T_BOOL || op == T_BTST)
@@ -1291,9 +1289,9 @@ static unsigned is_cconly(struct node *n)
 /*
  *	Try and push CCONLY down through the tree
  */
-static void propogate_cconly(register struct node *n)
+static void propogate_cconly(struct node *n)
 {
-	register struct node *l, *r;
+	struct node *l, *r;
 	unsigned sz = get_size(n->type);
 	unsigned val;
 
@@ -1355,12 +1353,12 @@ static void propogate_cconly(register struct node *n)
  *	Allow the code generator to short cut any subtrees it can directly
  *	generate. Also our point to do any private tree mods downwards
  */
-unsigned gen_shortcut(register struct node *n)
+unsigned gen_shortcut(struct node *n)
 {
-	register unsigned s = get_size(n->type);
+	unsigned s = get_size(n->type);
 	unsigned v;
-	register struct node *r = n->right;
-	register struct node *l = n->left;
+	struct node *r = n->right;
+	struct node *l = n->left;
 	unsigned nr = n->flags & NORETURN;
 
 	/* Don't generate unreachable blocks */
@@ -1793,10 +1791,10 @@ unsigned gen_push(struct node *n)
 	}
 }
 
-static unsigned gen_cast(register struct node *n)
+static unsigned gen_cast(struct node *n)
 {
-	register unsigned lt = n->type;
-	register unsigned rt = n->right->type;
+	unsigned lt = n->type;
+	unsigned rt = n->right->type;
 	unsigned ls;
 
 	if (PTR(rt))
@@ -1820,13 +1818,13 @@ static unsigned gen_cast(register struct node *n)
 	return 1;
 }
 
-unsigned gen_node(register struct node *n)
+unsigned gen_node(struct node *n)
 {
-	register unsigned size = get_size(n->type);
+	unsigned size = get_size(n->type);
 	unsigned v;
 	char *name;
 	unsigned nr = n->flags & NORETURN;
-	register struct node *r = n->right;
+	struct node *r = n->right;
 
 	/* We adjust sp so track the pre-adjustment one too when we need it */
 

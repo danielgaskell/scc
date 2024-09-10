@@ -111,7 +111,7 @@ void gen_frame(unsigned size,  unsigned aframe)
 	}
 }
 
-void gen_epilogue(register unsigned size, unsigned argsize)
+void gen_epilogue(unsigned size, unsigned argsize)
 {
 	if (sp != 0)
 		error("sp");
@@ -192,7 +192,7 @@ void gen_jtrue(const char *tail, unsigned n)
 	ccflags = ccnormal;
 }
 
-void gen_cleanup(register unsigned v)
+void gen_cleanup(unsigned v)
 {
 	/* CLEANUP is special and needs to be handled directly */
 	sp -= v;
@@ -221,7 +221,7 @@ void gen_cleanup(register unsigned v)
  */
 
 /* True if the helper is to be called C style */
-static unsigned c_style(register struct node *n)
+static unsigned c_style(struct node *n)
 {
 	/* Assignment is done asm style */
 	if (n->op == T_EQ)
@@ -248,9 +248,9 @@ void gen_helptail(struct node *n)
 {
 }
 
-void gen_helpclean(register struct node *n)
+void gen_helpclean(struct node *n)
 {
-	register unsigned s;
+	unsigned s;
 
 	if (c_style(n)) {
 		s = 0;

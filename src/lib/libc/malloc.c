@@ -2,6 +2,8 @@
 #include <types.h>
 #include <malloc.h>
 
+#define HEAP_ALIGN 8
+
 // Adapted from an implementation by Sylvain Defresne and Kingkong Jnr, CC-BY.
 
 typedef struct _free_block {
@@ -19,7 +21,7 @@ void* malloc(size_t size) {
     _free_block* block;
     _free_block** head;
 
-    size = (size + sizeof(_free_block) + (HEAP_ALIGN - 1)) & ~ (HEAP_ALIGN - 1);
+    size = (size + sizeof(_free_block) + (HEAP_ALIGN - 1)) & ~(HEAP_ALIGN - 1);
     block = _malloc_free.next;
     head = &(_malloc_free.next);
     while (block != 0) {

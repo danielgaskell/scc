@@ -541,7 +541,7 @@ int main(int argc, char** argv)
         error("copt: can't open patterns file\n");
     init(fp);
 
-    if ((ip = fopen("$stream3", "rb")) == NULL)
+    if ((ip = fopen("$stream3.s", "rb")) == NULL)
         error("copt: can't open stream file\n");
 
     if ((op = fopen(argv[1], "wb")) == NULL)

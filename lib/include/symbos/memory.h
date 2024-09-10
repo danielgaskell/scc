@@ -1,5 +1,5 @@
 #ifndef _SYMCORE
-#include <symcore.h>
+#include <symbos/core.h>
 #endif
 
 #ifndef _SYMMEMORY

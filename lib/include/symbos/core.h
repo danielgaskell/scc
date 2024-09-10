@@ -4,8 +4,6 @@
 /* ========================================================================== */
 /* Internal features                                                          */
 /* ========================================================================== */
-#define HEAP_ALIGN 8
-
 extern char* _symmsg;
 extern unsigned char _sympid;
 extern unsigned char _symappid;

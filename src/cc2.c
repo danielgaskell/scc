@@ -81,8 +81,8 @@ static unsigned max_name;
 
 char *namestr(register unsigned n)
 {
-	register struct name *np = nhead;
-	register struct name *prev = NULL;
+	struct name *np = nhead;
+	struct name *prev = NULL;
 	while (np) {
 		if (np->id == n) {
 			if (prev) {
@@ -105,8 +105,8 @@ char *namestr(register unsigned n)
 
 static void init_name_cache(void)
 {
-	register unsigned i;
-	register struct name *np = names;
+	unsigned i;
+	struct name *np = names;
 	for (i = 0; i < NCACHE_SIZE - 1; i++) {
 		np->next = np + 1;
 		np++;
@@ -125,7 +125,7 @@ static struct node *nodes;
 
 struct node *new_node(void)
 {
-	register struct node *n;
+	struct node *n;
 	if (nodes == NULL)
 		error("Too many nodes");
 	n = nodes;
@@ -136,7 +136,7 @@ struct node *new_node(void)
 	return n;
 }
 
-void free_node(register struct node *n)
+void free_node(struct node *n)
 {
 	n->right = nodes;
 	nodes = n;
@@ -144,13 +144,13 @@ void free_node(register struct node *n)
 
 void init_nodes(void)
 {
-	register int i;
-	register struct node *n = node_table;
+	int i;
+	struct node *n = node_table;
 	for (i = 0; i < NUM_NODES; i++)
 		free_node(n++);
 }
 
-void free_tree(register struct node *n)
+void free_tree(struct node *n)
 {
 	if (n->left)
 		free_tree(n->left);
@@ -205,9 +205,9 @@ static struct node *load_tree(void)
 
 static unsigned depth = 0;
 
-static struct node *rewrite_tree(register struct node *n)
+static struct node *rewrite_tree(struct node *n)
 {
-	register unsigned f = 0;
+	unsigned f = 0;
 	depth++;
 /*	printf("; %-*s %04x (%ld)\n", depth, "", n->op, n->value); */
 	if (n->left) {
@@ -377,7 +377,7 @@ static void dump_tree(register struct node *n, unsigned depth)
 
 static unsigned process_expression(void)
 {
-	register struct node *n = load_tree();
+	struct node *n = load_tree();
 	unsigned t;
 #ifdef DEBUG
 	fprintf(stderr, ":load:\n");
@@ -423,7 +423,7 @@ unsigned func_flags;
 static void process_literal(unsigned id)
 {
 	unsigned char c;
-	register unsigned char shifted = 0;
+	unsigned char shifted = 0;
 
 	gen_literal(id);
 
@@ -662,7 +662,7 @@ static void process_header(void)
 
 void process_data(void)
 {
-	register struct node *n = load_tree();
+	struct node *n = load_tree();
 	switch (n->op) {
 	case T_PAD:
 		gen_space(n->value);
@@ -688,7 +688,7 @@ void process_data(void)
  *	direct method
  */
 
-void helper_type(register unsigned t, unsigned s)
+void helper_type(unsigned t, unsigned s)
 {
 	if (PTR(t))
 		t = USHORT;
@@ -725,7 +725,7 @@ void helper_type(register unsigned t, unsigned s)
  *
  *	Would be nice to have an option to build C like helper calls
  */
-void do_helper(register struct node *n, const char *h, unsigned t, unsigned s)
+void do_helper(struct node *n, const char *h, unsigned t, unsigned s)
 {
 	/* A function call has a type that depends upon the call, but the
 	   type we want is a pointer */
@@ -761,7 +761,7 @@ void helper_s(struct node *n, const char *h)
 	do_helper(n, h, n->type, 1);
 }
 
-void make_node(register struct node *n)
+void make_node(struct node *n)
 {
 	/* Try the target code generator first, if not use helpers */
 	if (gen_node(n))
@@ -966,7 +966,7 @@ static void load_symbols(const char *path)
 	max_name = n[0] | (n[1] << 8);
 }
 
-static unsigned process_one_block(register uint8_t *h)
+static unsigned process_one_block(uint8_t *h)
 {
 	if (h[0] != '%')
 		error("sync");
@@ -1012,9 +1012,9 @@ static unsigned branching_operator(struct node *n)
  *	Perform a simple left right walk of the tree and feed the code
  *	to the node generator.
  */
-void codegen_lr(register struct node *n)
+void codegen_lr(struct node *n)
 {
-	register unsigned o = branching_operator(n);
+	unsigned o = branching_operator(n);
 
 	/* Don't generate any tree that has no side effects and no return */
 	if ((n->flags & (SIDEEFFECT | IMPURE | NORETURN)) == NORETURN)
@@ -1123,7 +1123,7 @@ int main(int argc, char *argv[])
     fdi = open("$stream2", O_RDONLY | O_BINARY, 0600);
     if (fdi == -1)
         error("error opening input stream");
-    fdo = fopen("$stream3", "wb");
+    fdo = fopen("$stream3.s", "wb");
     if (fdo == NULL)
         error("error opening output stream");
 

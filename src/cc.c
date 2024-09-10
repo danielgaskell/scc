@@ -638,7 +638,7 @@ void convert_c_to_s(char *path)
 	add_argument(featstr);
 	if (codeseg)
 		add_argument(codeseg);
-	*rmptr++ = xstrdup("$stream3", 0);
+	*rmptr++ = xstrdup("$stream3.s", 0);
 	run_command();
 
 	// FIXME: don't run copt if no optimization level has been specified

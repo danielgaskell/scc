@@ -1,5 +1,5 @@
 #ifndef _SYMCORE
-#include <symcore.h>
+#include <symbos/core.h>
 #endif
 
 #ifndef _SYMPOPUPS
@@ -33,12 +33,14 @@
 #define FILEBOX_NOMEM 3
 #define FILEBOX_NOWIN 4
 
+#ifndef ATTRIB_READONLY
 #define ATTRIB_READONLY 1
 #define ATTRIB_HIDDEN 2
 #define ATTRIB_SYSTEM 4
 #define ATTRIB_VOLUME 8
 #define ATTRIB_DIR 16
 #define ATTRIB_ARCHIVE 32
+#endif
 
 extern char FileBoxExt[4];
 extern char FileBoxPath[256];
