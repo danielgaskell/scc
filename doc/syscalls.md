@@ -1293,7 +1293,7 @@ Sends the string at bank `bank`, address `addr` to the specified  `channel`. The
 
 *SymbOS name*: `SymShell_StringOutput_Command` (`MSC_SHL_STROUT`).
 
-### Shell_StringOut()
+### Shell_Print()
 
 ```c
 signed char Shell_Print(char* addr);
