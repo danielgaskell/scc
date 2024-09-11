@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <unistd.h>
 #include "cpp-cc.h"
 
 #define CPP_DEBUG 0		/* LOTS of junk to stderr. */

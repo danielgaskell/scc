@@ -57,6 +57,7 @@
 #ifdef SYMBUILD
 #include <symbos.h>
 #include <iobuf.h>
+char* shell_append;
 #else
 #include <windows.h>
 #endif
@@ -271,6 +272,44 @@ static char *xstrdup(char *p, int extra)
 	return n;
 }
 
+//#ifdef SYMBUILD
+#define _P_WAIT 0
+int _spawnvp(int mode, char* file, char* arglist[]) {
+    unsigned char i, t, j, pid;
+    char* ptr;
+    _io_buf[0] = 0;
+    t = 0;
+    j = 0;
+    for (i = 0; arglist[i]; ++i) {
+        j = strlen(arglist[i]);
+        if (t + j > MAX_PATH) {
+            fprintf(stderr, "cc: too many arguments: %s...\n", _io_buf);
+            fatal();
+        }
+        strcat(_io_buf, arglist[i]);
+        strcat(_io_buf, " ");
+        t += j;
+    }
+    strcat(_io_buf, shell_append);
+    ptr = _io_buf + strlen(_io_buf) - 8;
+    *ptr++ = '0' + _sympid / 10;
+    *ptr   = '0' + _sympid % 10;
+    pid = App_Run(_symbank, _io_buf, 0) >> 8;
+    if (pid) {
+        while (1) {
+            _symmsg[0] = 0;
+            Msg_Sleep(_sympid, pid, _symmsg);
+            if (_symmsg[0] == 68) // Shell_Exit()
+                return _symmsg[2]; // internal business: Shell_Exit() passes back the exit() value as unused char 2
+            else if (_symmsg[0])
+                Msg_Send(pid, _shellpid, _symmsg); // forward message to SymShell, with the subapp as the return address
+        }
+    } else {
+        return 1;
+    }
+}
+//#endif // SYMBUILD
+
 #define CPATHSIZE	256
 
 static char pathbuf[CPATHSIZE];
@@ -482,25 +521,7 @@ static void run_command(void)
         printf("\n");
 	}
 	fflush(stdout);
-#ifdef SYMBUILD
-    _io_buf[0] = 0;
-    t = 0;
-    j = 0;
-    for (i = 0; arglist[i]; ++i) {
-        j = strlen(arglist[i]);
-        if (t + j > MAX_PATH) {
-            fprintf(stderr, "cc: too many arguments: %s...\n", _io_buf);
-            fatal();
-        }
-        strcat(_io_buf, arglist[i]);
-        strcat(_io_buf, 0);
-        t += j;
-    }
-    status = App_Run(_symbank, _io_buf, 1);
-    // FIXME: connect app to same shell session, and wait for app to finish
-#else
 	status = _spawnvp(_P_WAIT, arglist[0], arglist);
-#endif
 	if (status != 0) {
         fprintf(stderr, "cc: %s failed with signal %d.\n", arglist[0], status);
 		fatal();
@@ -600,7 +621,7 @@ static void build_arglist(char *p)
 void convert_s_to_o(char *path)
 {
 	char *origpath= strdup(path);
-	build_arglist(make_bin_name("as", ""));
+	build_arglist(make_bin_name("as.exe", ""));
 	add_argument("-o");
 	add_argument(pathmod(path, ".s", ".o", 5, 3));
 	add_argument(origpath);
@@ -641,15 +662,14 @@ void convert_c_to_s(char *path)
 	*rmptr++ = xstrdup("$stream3.s", 0);
 	run_command();
 
-	// FIXME: don't run copt if no optimization level has been specified
 	// TODO: with the new copt we may end up with a copt per cpu
-	p = xstrdup(make_bin_name("copt.exe", ""), 0);
-	build_arglist(p);
-	pathmod(path, ".c", ".s", 2, 2);
+    p = xstrdup(make_bin_name("copt.exe", ""), 0);
+    build_arglist(p);
+    pathmod(path, ".c", ".s", 2, 2);
     add_argument(path);
-	add_argument(make_bin_name("rules.z80", ""));
-	run_command();
-	free(p);
+    add_argument(make_bin_name("rules.z80", ""));
+    run_command();
+    free(p);
 }
 
 // FIXME: this is broken by redirection
@@ -658,7 +678,7 @@ void convert_S_to_s(char *path)
 	char *tmp;
 	printf("FIXME: broken\n");
 	return;
-	build_arglist(make_bin_name("cpp", ""));
+	build_arglist(make_bin_name("cpp.exe", ""));
 	add_argument("-E");
 	add_argument(path);
 	tmp = xstrdup(path, 0);
@@ -671,7 +691,7 @@ void preprocess_c(char *path)
 {
 	char *tmp;
 
-	build_arglist(make_bin_name("cpp", ""));
+	build_arglist(make_bin_name("cpp.exe", ""));
 
 	tmp = xstrdup("-D HEAP_SIZE=", strlen(heapsize) + 1);
 	strcat(tmp, heapsize);
@@ -692,7 +712,7 @@ void link_phase(void)
 	char *relocs = NULL;
 	char *p, *l, *c;
 	/* TODO: ld should be general if we get it right, but might not be able to */
-	p = xstrdup(make_bin_name("ld", ""), 0);
+	p = xstrdup(make_bin_name("ld.exe", ""), 0);
 
 	/* Set the target as infile.exe if there is no target */
 	if (target==NULL) {
@@ -792,7 +812,7 @@ void link_phase(void)
 	if (relocs) {
 		/* The unlink will free it not us */
 		*rmptr++ = relocs;
-		build_arglist(make_bin_name("reloc", ""));
+		build_arglist(make_bin_name("reloc.exe", ""));
 		add_argument(target);
 		add_argument(relocs);
 		run_command();
@@ -1001,6 +1021,11 @@ int main(int argc, char *argv[]) {
     strcat(LIBPATH, "\\..\\lib");
 
 	while (*++p) {
+        if (**p == '%' && (*p)[1] == 's' && (*p)[2] == 'p') { // SymShell end parameter
+            shell_append = *p;
+            break;
+        }
+
 		/* filename or option ? */
 		if (**p != '-') {
 			add_file(*p);

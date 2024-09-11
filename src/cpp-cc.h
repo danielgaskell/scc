@@ -10,6 +10,16 @@ extern int    c_lineno;
 extern int    alltok;
 extern int    dialect;
 
+#ifndef SYMBUILD
+#define strlcpy(x,y,z) strcpy((x),(y))
+#define strlcat(x,y,z) strcat((x),(y))
+#ifndef LTOABUF
+#define LTOABUF
+char ltoabuf[32];
+#endif
+#define _ltoa(x) ltoa((x), ltoabuf, 10)
+#endif // SYMBUILD
+
 #define DI_KNR	1
 #define DI_ANSI	2
 

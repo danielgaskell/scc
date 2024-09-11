@@ -9,11 +9,11 @@
 /* Don't go via long - the long version is expensive on an 8bit processor and
    can often be avoided */
 
-static char buf[7];
+char _uitoabuf[7];
 
 const char *_uitoa(unsigned int i)
 {
-	char *p = buf + sizeof(buf);
+	char *p = _uitoabuf + sizeof(_uitoabuf);
 	int c;
 
 	*--p = '\0';
@@ -36,7 +36,7 @@ const char *_itoa(int i) {
 
 char *uitoa(unsigned int __value, char *__strP, int __radix)
 {
-    char *p = buf + sizeof(buf);
+    char *p = _uitoabuf + sizeof(_uitoabuf);
 	int c;
 
 	*--p = '\0';

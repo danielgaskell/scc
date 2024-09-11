@@ -88,7 +88,7 @@ struct symbol *find_symbol_by_class(unsigned name, unsigned class)
 
 void pop_local_symbols(struct symbol *top)
 {
-	register struct symbol *s = top + 1;
+	struct symbol *s = top + 1;
 	while (s <= last_sym) {
 		if (S_STORAGE(s->infonext) < S_STATIC) {
 			/* Write out any storage if needed */
@@ -133,11 +133,11 @@ struct symbol *alloc_symbol(unsigned name, unsigned local)
  *	the slot. Once the types are found it will get updated with the
  *	types and any checking done.
  */
-struct symbol *update_symbol(register struct symbol *sym, unsigned name, unsigned storage,
+struct symbol *update_symbol(struct symbol *sym, unsigned name, unsigned storage,
 			     unsigned type)
 {
 	unsigned local = 0;
-	register unsigned symst;
+	unsigned symst;
 
 	if (storage < S_STATIC)
 		local = 1;
@@ -360,7 +360,7 @@ static struct symbol *find_struct(unsigned name)
 
 struct symbol *update_struct(unsigned name, unsigned t)
 {
-	register struct symbol *sym;
+	struct symbol *sym;
 	if (t)
 		t = S_STRUCT;
 	else

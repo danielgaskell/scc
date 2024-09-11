@@ -104,6 +104,10 @@ start2:
 ; exit code
 .export _exit
 _exit:
+	; save exit status, if any
+	pop hl
+	pop hl
+	ld (_symexit_status),hl
 	; if fopen() has set __exit_stdio, close all open files
 	; (this indirect method prevents stdio from being linked via crt0.s unless actually used)
 	ld a,(__exit_stdio+0)
@@ -128,9 +132,12 @@ _symexit1:
 	ld a,(__shellpid)
 	.byte #0xDD			; ld ixh,a
 	ld h,a
+	ld bc,(_symexit_status)
 	ld iy,__symmsgbuf
 	ld (iy+0),#0x44
 	ld (iy+1),#0x00
+	ld (iy+2),c			; status is passed back in unused bytes 2-3, for anything that wants it
+	ld (iy+2),b
 	rst #0x10
 _symexit2:
     ; send MSC_SYS_PRGEND and idle until killed
@@ -147,6 +154,8 @@ _symexit2:
 _symexit_loop:
 	rst #0x30
 	jr _symexit_loop
+_symexit_status:
+	.word 0
 
 ; Message_Sleep_And_Receive
 .export _Msg_Sleep

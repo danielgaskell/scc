@@ -67,7 +67,7 @@ static void set_once(unsigned bits)
 
 static unsigned base_type(void)
 {
-	register unsigned type = CINT;
+	unsigned type = CINT;
 	once_flags = 0;
 
 	while (is_type_word()) {
@@ -146,8 +146,8 @@ static unsigned base_type(void)
 unsigned get_type(void)
 {
 	unsigned sflag = 0;
-	register struct symbol *sym;
-	register unsigned type;
+	struct symbol *sym;
+	unsigned type;
 
 	skip_modifiers();
 

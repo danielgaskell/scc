@@ -3,30 +3,28 @@
  * under the GNU Library General Public License.
  */
 
+char _ltoabuf[12];
 
-const char *_ultoa(unsigned long val)
-{
-   char *p;
-   static char buf[12];
-
-   p = buf+sizeof(buf);
-   *--p = '\0';
-
-   do
-   {
-      *--p = '0' + val%10;
-      val/=10;
-   }
-   while(val);
-   return p;
+const char *_ultoa(unsigned long val) {
+    char *p;
+    p = _ltoabuf + sizeof(_ltoabuf);
+    *--p = '\0';
+    do {
+        *--p = '0' + val%10;
+        val /= 10;
+    } while(val);
+    return p;
 }
 
-const char *_ltoa(long val)
-{
-   char *p;
-   int flg = 0;
-   if( val < 0 ) { flg++; val= -val; }
-   p = (char *)_ultoa(val);
-   if(flg) *--p = '-';
-   return p;
+const char *_ltoa(long val) {
+    char *p;
+    int flg = 0;
+    if (val < 0) {
+        flg++;
+        val= -val;
+    }
+    p = (char *)_ultoa(val);
+    if (flg)
+        *--p = '-';
+    return p;
 }

@@ -116,7 +116,7 @@ extern int unlink(const char *path);
 extern ssize_t read(int fd, void *buf, int len);
 extern ssize_t write(int fd, const void *buf, int len);
 extern int chdir(const char *path); /* FIXME */
-extern int access(const char *path, int way); /* FIXME */
+extern int access(const char *path, int way);
 extern int chmod(const char *path, mode_t mode); /* FIXME */
 extern int chown(const char *path, uid_t owner, gid_t group); /* FIXME */
 extern int dup(int fd); /* FIXME */

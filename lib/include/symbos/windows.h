@@ -139,7 +139,6 @@
 #define C_DROPDOWN 42
 #define C_LISTFULL 43
 
-// SymbOS message IDs
 #define MSR_DSK_WOPNER  160
 #define MSR_DSK_WOPNOK  161
 #define MSR_DSK_WCLICK  162

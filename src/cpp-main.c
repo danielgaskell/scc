@@ -10,6 +10,8 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <stdint.h>
+#include <unistd.h>
 #include "cpp-cc.h"
 
 #define MAXINCPATH	5

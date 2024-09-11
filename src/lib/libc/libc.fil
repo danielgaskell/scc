@@ -194,6 +194,7 @@ strlen.o
 creat.o
 open.o
 unlink.o
+access.o
 sysshell.o
 shellmsg.o
 shellpth.o

@@ -15,7 +15,7 @@ typedef struct _free_block {
 extern char* _malloc_heap;
 extern char* _malloc_top;
 extern char* _malloc_max;
-static _free_block _malloc_free = {0, 0};
+_free_block _malloc_free = {0, 0};
 
 void* malloc(size_t size) {
     _free_block* block;

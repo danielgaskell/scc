@@ -6,6 +6,7 @@
 #else
 #include <malloc.h>
 #endif
+#include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include "cpp-cc.h"
