@@ -1,8 +1,8 @@
 # SymbOS C Compiler
 
 A C compiler for [SymbOS](http://symbos.org) based on Alan Cox's Fuzix Compiler Kit
-(Z80 version). Currently it runs on Windows and cross-compiles binaries for SymbOS.
-(Eventually it should be possible to cross-compile itself to run natively on SymbOS.)
+(Z80 version). SCC currently runs on Windows and cross-compiles binaries for SymbOS,
+but can also cross-compile itself to run natively (albeit slowly) on SymbOS.
 
 [Documentation and quickstart guide](doc/index.md)
 
@@ -28,6 +28,5 @@ is actually in the compiler, not in your own code, and include code to reproduce
 # License
 
 Compiler is GPLv3. Libraries are LGPL except where indicated. copt is from Z88DK under
-the Clarified Artistic License. cpp is from MCPP under the BSD license. Sample code and
-included documentation is public domain.
-
+the Clarified Artistic License. The Windows version of cpp is from MCPP under the
+included BSD-style license. Sample code and included documentation is public domain.

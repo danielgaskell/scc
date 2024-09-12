@@ -82,6 +82,12 @@ In the C world this type of modular build is usually done with a Makefile. SCC d
 
 A good way to determine what `cc` is doing under the hood (particularly for linking) is to run it with the `-V` option, which outputs each command as it is run.
 
+### Compilation on SymbOS
+
+Using SCC natively on SymbOS is similar to other platforms; just invoke `cc` from SymShell. See `install.txt` in the SymbOS release folder for some important details on how to install SCC on your machine.
+
+Compilation on an original 4 MHz machine (CPC, MSX, etc.) currently runs at "take a coffee break" speeds, although this will hopefully continue to improve in future releases. Compilation times can be improved by breaking programs into small modules and only recompiling the modules that have changed (see the example in the prior section), as well as by only including the minimum number of necessary header files (e.g., `symbos/shell.h` instead of the entire `symbos.h`). This may also be necessary to prevent SCC from running out of memory.
+
 ### SymbOS executable options
 
 SymbOS executables include several special resources used by the desktop. The first is the application name, which is displayed in the task manager and used as the default name when creating a shortcut. The default is just "App", but we can set this using the `-N` command line option in `cc`:
@@ -100,6 +106,7 @@ Images can be converted to SGX format using software such as [MSX Viewer 5](http
 
 ## Features
 
+* Runs natively on Windows and SymbOS.
 * Full build chain with preprocessor, object files, linker, etc.
 * Standard ANSI C syntax, with good support for most typical usage.
 * Standard data types and structures: `char`, `short`, `int`, `long`, `float`, `double`, `signed`, `unsigned`, `struct`, `union`, `enum`, `auto`, `static`, `register`, `extern`, `typedef`.
@@ -107,12 +114,11 @@ Images can be converted to SGX format using software such as [MSX Viewer 5](http
 * Headers, typedefs, and support functions for most SymbOS system calls (`symbos.h`).
 * Clean handling of SymbOS segments, with data, buffers, and literals located correctly in the executable without duplication (other compilers struggle with this). Keywords `_data` and `_transfer` allow specifying the segment of globals.
 * Multithreading (yes, [really](syscalls.md#multithreading)!)
-* The underlying code is 8-bit-friendly, so it should (eventually!) be possible to build SCC to run natively on SymbOS.
 
 ## Limitations
 
-* **Not all libc functions are available, well-tested, and/or correctly implemented yet**. Platform-independent ones should all work, but any code requiring I/O or calls to the operating system should be tested carefully.
 * **`float` is currently somewhat broken**; use with care. (The current implementation is horrible anyway, and should eventually be replaced with a proper Z80 floating-point library.)
+* **Not all libc functions are available, well-tested, and/or correctly implemented yet**. The libc implementation is robust enough for SCC to compile itself, but you may encounter subtle incompatibilities and any code requiring less-common system functions should be tested carefully.
 * No high-level optimizations like subexpression merging. (Just write efficiently.)
 * The libc implementation is not very fast and favors portability over speed.
 * For the usual Z80 reasons, 8-bit arithmetic (`char`) will always be much faster than 16-bit (`int`) and particularly floating-point (`float`, `double`) arithmetic. Declaring variables `unsigned` may also improve efficiency where applicable.

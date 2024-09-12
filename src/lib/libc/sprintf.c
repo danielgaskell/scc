@@ -18,7 +18,7 @@
 #ifndef PREFER_STACK
 /* Moved out of struct to keep SDCC generating what we want */
 static FILE string[1] = {
-	{0, 0, (unsigned char *) -1,
+	{0, 0,
 	 0, (unsigned char *) -1, -1,
 	 _IOFBF | __MODE_WRITE}
 };

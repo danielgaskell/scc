@@ -28,7 +28,7 @@ FILE * __fopen(const char *fname, int fd, FILE * fp, const char *mode)
 	/* If we've got an fp close the old one (freopen) */
 	if (fp) {
 		/* Careful, don't de-allocate it */
-		fopen_mode |= (fp->mode & (__MODE_BUF | __MODE_FREEFIL |__MODE_FREEBUF));
+		fopen_mode |= (fp->mode & (__MODE_FREEFIL |__MODE_FREEBUF));
 		fp->mode &= ~(__MODE_FREEFIL | __MODE_FREEBUF);
 		fclose(fp);
 	}
@@ -90,13 +90,6 @@ FILE * __fopen(const char *fname, int fd, FILE * fp, const char *mode)
 		fp->next = __IO_list;
 		__IO_list = fp;	/* add to list */
 		fp->mode = __MODE_FREEFIL;
-		if (isatty(fd))
-			fp->mode |= _IOLBF;
-#if _IOFBF
-		else
-			fp->mode |= _IOFBF;
-
-#endif
 		if ((fp->bufstart = calloc(1, BUFSIZ)) == NULL) {
 			/* Oops, no mem
 			 * Humm, full buffering with a eight(!) byte buffer.
@@ -110,7 +103,7 @@ FILE * __fopen(const char *fname, int fd, FILE * fp, const char *mode)
 	}
 
 	/* Ok, file's ready clear the buffer and save important bits */
-	fp->bufpos = fp->bufread = fp->bufwrite = fp->bufstart;
+	fp->bufpos = fp->bufread = fp->bufstart;
 	fp->mode |= fopen_mode;
 	fp->fd = fd;
 	return fp;

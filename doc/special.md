@@ -4,7 +4,7 @@
 
 The libc function `malloc()` dynamically allocates a new block of memory for storing data. On a modern system, this is the usual way of requesting additional memory, and a lot of existing C code assumes that it can `malloc()` more memory indefinitely---often without even checking for out-of-memory errors. This is a reasonable assumption on modern platforms, but definitely not true on the Z80 (which has a limited 64KB address space), and even less true on SymbOS (where multiple multitasking applications may be packed into the same 64KB bank). In practice, a SymbOS executable must either 1) use [banked memory](syscalls.h#memory-management) system calls to access memory in other banks, or 2) declare upfront how much memory it needs in its main 64KB bank.
 
-SCC currently implements an imperfect compromise, allocating a static 4KB heap for `malloc()` to expand into. This is sufficient for everyday usage (like allocating `FILE*` records and other small data structures), but not for allocating large data buffers. If larger buffers are needed, we have three options:
+SCC currently implements an imperfect compromise, allocating a static 4KB heap for `malloc()` to expand into. This is sufficient for everyday usage (such as allocating `FILE*` records and other small data structures), but not for allocating large data buffers. If larger buffers are needed, we have three options:
 
 * Rewrite the code to use static buffers.
 * Rewrite the code to use [banked memory](syscalls.h#memory-management) system calls.

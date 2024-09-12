@@ -2,7 +2,7 @@
 
 int fputs(const char *s, FILE * fp)
 {
-	int n = 0;
+	unsigned int n = 0;
 
 	while (*s) {
 		if (putc(*s++, fp) == EOF)

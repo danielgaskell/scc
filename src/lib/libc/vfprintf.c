@@ -61,8 +61,6 @@ static int prtfld(FILE * op, size_t maxlen, size_t ct, unsigned char *buf, int l
 		}
 		if (ct++ < maxlen)
                         fputc(ch, op);
-		if (ch == '\n' && buffer_mode == _IOLBF)
-			fflush(op);
 	}
 	return (cnt);
 }
@@ -77,13 +75,8 @@ int _vfnprintf(FILE * op, size_t maxlen, const char *fmt, va_list ap)
 	char buf[34];
 	int buffer_mode;
 
-	/* This speeds things up a bit for unbuffered */
-	buffer_mode = (op->mode & __MODE_BUF);
-	op->mode &= (~__MODE_BUF);
 	while (*fmt) {
 		if (*fmt == '%') {
-			if (buffer_mode == _IONBF)
-				fflush(op);
 			ljustf = 0;	/* left justify flag */
 			sign = '\0';	/* sign char & status */
 			pad = ' ';	/* justification padding char */
@@ -256,16 +249,9 @@ int _vfnprintf(FILE * op, size_t maxlen, const char *fmt, va_list ap)
 		        if (cnt < maxlen)
 		                fputc(*fmt, op);
 			++cnt;
-			if (*fmt == '\n' && buffer_mode == _IOLBF)
-				fflush(op);
 		}
 		++fmt;
 	}
-	op->mode |= buffer_mode;
-	if (buffer_mode == _IONBF)
-		fflush(op);
-	if (buffer_mode == _IOLBF)
-		op->bufwrite = op->bufstart;
 	return (cnt);
 }
 

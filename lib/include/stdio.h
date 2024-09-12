@@ -16,10 +16,7 @@
 #define SEEK_END 2
 #endif
 
-#define _IOFBF		0x00	/* full buffering */
-#define _IOLBF		0x01	/* line buffering */
-#define _IONBF		0x02	/* no buffering */
-#define __MODE_BUF	0x03	/* Modal buffering dependent on isatty */
+#define _IOFBF		0x00	/* full buffering - we don't support anything else */
 
 #define __MODE_FREEBUF	0x04	/* Buffer allocated with malloc, can free */
 #define __MODE_FREEFIL	0x08	/* FILE allocated with malloc, can free */
@@ -37,15 +34,12 @@
 
 #define __MODE_BIN	0x800	/* Opened in binary */
 
-#define __MODE_IOTRAN	0
-
 typedef off_t fpos_t;
 /* when you add or change fields here, be sure to change the initialization
  * in stdio_init and fopen */
 struct __stdio_file {
 	uchar	*bufpos;	/* the next byte to write to or read from */
 	uchar	*bufread;	/* the end of data returned by last read() */
-	uchar	*bufwrite;	/* highest address writable by macro */
 	uchar	*bufstart;	/* the start of the buffer */
 	uchar	*bufend;	/* the end of the buffer; ie the byte after
 				   the last malloc()ed byte */
@@ -85,7 +79,6 @@ extern int _getchar(void);
 
 /* These two call malloc */
 extern int setvbuf(FILE *__stream, char *__buf, int __mode, size_t __size);
-#define setlinebuf(__fp)	setvbuf((__fp), (char*)0, _IOLBF, 0)
 
 /* These don't */
 extern void setbuffer(FILE *__stream, char *__buf, size_t __size);

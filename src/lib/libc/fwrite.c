@@ -44,10 +44,6 @@ int fwrite(const void *buf, size_t size, size_t nelm, FILE * fp)
 		fp->mode |= __MODE_WRITING;
 		memcpy(fp->bufpos, buf, bytes);
 		fp->bufpos += bytes;
-
-		/* If we're not fully buffered */
-		if (v & (_IOLBF | _IONBF))
-			fflush(fp);
 		return nelm;
 	}
 

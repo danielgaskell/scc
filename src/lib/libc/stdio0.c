@@ -67,7 +67,7 @@ int fflush(FILE * fp)
 	    (~
 	     (__MODE_READING | __MODE_WRITING | __MODE_EOF |
 	      __MODE_UNGOT));
-	fp->bufread = fp->bufwrite = fp->bufpos = fp->bufstart;
+	fp->bufread = fp->bufpos = fp->bufstart;
 	return rv;
 }
 
@@ -83,18 +83,18 @@ unsigned char _buferr[BUFSIZ];
 #endif
 
 FILE _stdin =
-	{_bufin, _bufin, _bufin, _bufin, _bufin + sizeof(_bufin),
-	 0, _IOFBF | __MODE_READ | __MODE_IOTRAN};
+	{_bufin, _bufin, _bufin, _bufin + sizeof(_bufin),
+	 0, _IOFBF | __MODE_READ};
 FILE* stdin = &_stdin;
 
 FILE _stdout =
-	{_bufout, _bufout, _bufout, _bufout, _bufout + sizeof(_bufout),
-	 1, _IOFBF | __MODE_WRITE | __MODE_IOTRAN};
+	{_bufout, _bufout, _bufout, _bufout + sizeof(_bufout),
+	 1, _IOFBF | __MODE_WRITE};
 FILE* stdout = &_stdout;
 
 FILE _stderr =
-	{_buferr, _buferr, _buferr, _buferr, _buferr + sizeof(_buferr),
-	 2, _IONBF | __MODE_WRITE | __MODE_IOTRAN};
+	{_buferr, _buferr, _buferr, _buferr + sizeof(_buferr),
+	 2, _IOFBF | __MODE_WRITE};
 FILE* stderr = &_stderr;
 
 char marker[8] = {1, 2, 3, 4, 1, 2, 3, 4};

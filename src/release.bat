@@ -38,6 +38,7 @@ copy /Y ..\sample\calc16.sgx ..\release\win32\sample
 copy /Y ..\sample\progcalc.c ..\release\win32\sample
 copy /Y ..\sample\makecalc.bat ..\release\win32\sample
 
+copy /Y install.txt ..\release\symbos
 copy /Y ..\bin\symbos\*.exe ..\release\symbos\bin
 copy /Y ..\bin\symbos\*.com ..\release\symbos\bin
 copy /Y ..\bin\symbos\*.hlp ..\release\symbos\bin

@@ -1,0 +1,14 @@
+INSTALLATION NOTES FOR SYMBOS
+________________________________________
+
+To install SCC natively on SymbOS, copy the entire directory tree from the "SymbOS native" release onto a sufficiently large FAT-formatted drive, such as a mass storage device, preserving the same directory structure as in the archive. SCC can then be run from SymShell with similar commands to other platforms, e.g.,
+
+    C:\SCC\BIN\CC windemo.c
+
+Note that SCC *must* be run from a FAT-formatted drive. The filesytem used on CP/M and Amstrad floppies internally pads files to the nearest 128 bytes, which will cause problems for utilities (like LD) that need to know the length of binary files to the exact byte. This also means that transferring the object and library files in the LIB subfolder (.o, .a) via an AMSDOS floppy or floppy image will corrupt them. If there is no other way to transfer these files to their final FAT-formatted drive, a good workaround is to compress them into a .zip file and decompress them at their final destination using the SymbOS UNZIP.COM utility.
+
+It is recommended to install SCC to a relatively "root" subfolder (such as C:\SCC) because CC.COM will use this absolute path repeatedly in long SymShell commands, which may overflow if the base path is very long.
+
+Since compilation on a 4 MHz processor is very slow, it can be helpful to run CC.COM with the -V option to give some indication of progress. This will display the SymShell command used for each compilation step as it is executed.
+
+To simplify builds for complex projects, in the absence of a full "make" system, note that SymShell does support simple batch files. For example, we can create a file called "make.bat" in our project's folder that contains the commands necessary to build the app, one per line. Typing "make" in the project's folder will then run the commands in order from the batch file.
