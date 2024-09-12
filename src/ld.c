@@ -1500,7 +1500,7 @@ static void write_binary(FILE * op, FILE *mp)
         }
         if (appicon) {
             xfseek(op, 109);
-            ficn = fopen(appicon, "rb");
+            ficn = xfopen(appicon, "rb");
             if (ficn == NULL)
                 error("Cannot open icon file");
             fread(iconbuf, 147, 1, ficn);
@@ -1510,7 +1510,7 @@ static void write_binary(FILE * op, FILE *mp)
         if (appicon16) {
             iconloc16 = size[CODE] - 298;
             xfseek(op, iconloc16);
-            ficn = fopen(appicon16, "rb");
+            ficn = xfopen(appicon16, "rb");
             if (ficn == NULL)
                 error("Cannot open icon file");
             fread(iconbuf, 298, 1, ficn);

@@ -189,7 +189,6 @@ struct cpu_table cpu_rules[] = {
 };
 
 /* Need to set these via the cpu type lookup etc */
-int native;
 const char *cpuset;		/* Which binary compiler tool names */
 const char *cpudot;		/* Which internal tool names */
 const char *cpudir;		/* CPU specific directory */
@@ -272,7 +271,7 @@ static char *xstrdup(char *p, int extra)
 	return n;
 }
 
-//#ifdef SYMBUILD
+#ifdef SYMBUILD
 #define _P_WAIT 0
 int _spawnvp(int mode, char* file, char* arglist[]) {
     unsigned char i, t, j, pid;
@@ -294,21 +293,24 @@ int _spawnvp(int mode, char* file, char* arglist[]) {
     ptr = _io_buf + strlen(_io_buf) - 8;
     *ptr++ = '0' + _sympid / 10;
     *ptr   = '0' + _sympid % 10;
-    pid = App_Run(_symbank, _io_buf, 0) >> 8;
+    pid = App_Run(_symbank, _io_buf, 1) >> 8;
     if (pid) {
         while (1) {
             _symmsg[0] = 0;
             Msg_Sleep(_sympid, pid, _symmsg);
-            if (_symmsg[0] == 68) // Shell_Exit()
-                return _symmsg[2]; // internal business: Shell_Exit() passes back the exit() value as unused char 2
-            else if (_symmsg[0])
-                Msg_Send(pid, _shellpid, _symmsg); // forward message to SymShell, with the subapp as the return address
+            if (_symmsg[0] == 68) { // Shell_Exit()
+                return _symmsg[2]; // internal knowledge: _exit() passes back the status as unused char 2
+            } else if (_symmsg[0]) {
+                Msg_Send(_sympid, _shellpid, _symmsg);           // forward message to SymShell...
+                while (!Msg_Sleep(_sympid, _shellpid, _symmsg)); // ...wait for a response...
+                Msg_Send(_sympid, pid, _symmsg);                 // ...and forward this to the subapp
+            }
         }
     } else {
         return 1;
     }
 }
-//#endif // SYMBUILD
+#endif // SYMBUILD
 
 #define CPATHSIZE	256
 
@@ -332,10 +334,7 @@ static char namebuf[27];
    <libdir>/app{.cpu} */
 static char *make_bin_name(const char *app, const char *tail)
 {
-	if (native)
-		snprintf(pathbuf, CPATHSIZE, "/bin/%s", app);
-	else
-		snprintf(pathbuf, CPATHSIZE, "%s/%s%s", BINPATH, app, tail);
+    snprintf(pathbuf, CPATHSIZE, "%s/%s%s", BINPATH, app, tail);
 	return pathbuf;
 }
 
@@ -343,11 +342,8 @@ static char *make_bin_name(const char *app, const char *tail)
    <libdir>/app{.cpu} */
 static char *make_lib_name(const char *app, const char *tail)
 {
-	if (native)
-		snprintf(pathbuf, CPATHSIZE, "/lib/%s", app);
-	else
-		snprintf(pathbuf, CPATHSIZE, "%s%s", app, tail);
-		//snprintf(pathbuf, CPATHSIZE, "%s/%s%s", LIBPATH, app, tail);
+	snprintf(pathbuf, CPATHSIZE, "%s%s", app, tail);
+	//snprintf(pathbuf, CPATHSIZE, "%s/%s%s", LIBPATH, app, tail);
 	return pathbuf;
 }
 
@@ -355,19 +351,13 @@ static char *make_lib_name(const char *app, const char *tail)
    for non-native we use <libdir>/<cpu>/{include, lib, ..} */
 static char *make_lib_dir(const char *base, const char *tail)
 {
-	if (native)
-		snprintf(pathbuf, CPATHSIZE, "%s/%s", base, tail);
-	else
-		snprintf(pathbuf, CPATHSIZE, "%s/%s", LIBPATH, tail);
+	snprintf(pathbuf, CPATHSIZE, "%s/%s", LIBPATH, tail);
 	return pathbuf;
 }
 
 static char *make_lib_file(const char *base, const char *dir, const char *tail)
 {
-	if (native)
-		snprintf(pathbuf, CPATHSIZE, "%s/%s/%s", base, dir, tail);
-	else
-		snprintf(pathbuf, CPATHSIZE, "%s/%s", LIBPATH, tail);
+	snprintf(pathbuf, CPATHSIZE, "%s/%s", LIBPATH, tail);
 	return pathbuf;
 }
 
@@ -391,10 +381,6 @@ static void set_for_processor(struct cpu_table *r)
 static void find_processor(const char *cpu)
 {
 	struct cpu_table *t = cpu_rules;
-#ifdef NATIVE_CPU
-	if (strcmp(cpu, NATIVE_CPU) == 0)
-		native = 1;
-#endif
 	while(t->name) {
 		if (strcmp(t->name, cpu) == 0) {
 			set_for_processor(t);
@@ -483,7 +469,7 @@ static char *resolve_library(char *p)
 	if (strchr(p, '/') || strchr(p, '.'))
 		return p;
 	while(o) {
-		snprintf(buf, 512, "%s/lib%s.a", o->name, p);
+		snprintf(buf, 512, "%slib%s.a", o->name, p);
 		if (access(buf, 0) == 0)
 			return xstrdup(buf, 0);
 		o = o->next;
@@ -1021,10 +1007,12 @@ int main(int argc, char *argv[]) {
     strcat(LIBPATH, "\\..\\lib");
 
 	while (*++p) {
+#ifdef SYMBUILD
         if (**p == '%' && (*p)[1] == 's' && (*p)[2] == 'p') { // SymShell end parameter
             shell_append = *p;
             break;
         }
+#endif
 
 		/* filename or option ? */
 		if (**p != '-') {
@@ -1205,8 +1193,8 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	while(*cpudef)
-		append_obj(&deflist, (char *)*cpudef++, 0);
+	/*while(*cpudef)
+		append_obj(&deflist, (char *)*cpudef++, 0);*/ // unnecessary since we only use Z80
 
 	if (!standalone)
 		add_system_include();
