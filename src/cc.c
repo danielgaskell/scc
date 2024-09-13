@@ -620,6 +620,7 @@ void convert_c_to_s(char *path)
 	char *tmp, *p;
 	char optstr[2];
 	char featstr[16];
+	char* stream3 = "$stream3.s";
 
 	snprintf(featstr, 16, "%lu", features);
 	*rmptr++ = xstrdup("$symtab", 0);
@@ -636,6 +637,7 @@ void convert_c_to_s(char *path)
 	*rmptr++ = xstrdup("$stream2", 0);
 	run_command();
 
+    pathmod(path, ".c", ".s", 2, 2);
 	build_arglist(make_bin_name("cc2.exe", ""));
 	/* FIXME: need to change backend.c parsing for above and also
 	   add another arg when we do the new subcpu bits like -banked */
@@ -643,19 +645,35 @@ void convert_c_to_s(char *path)
 	optstr[1] = '\0';
 	add_argument(optstr);
 	add_argument(featstr);
-	if (codeseg)
+#ifdef SYMBUILD
+    if (optimize == '0' || optimize == '1') {
+#else
+    if (optimize == '0') {
+#endif
+        stream3 = path;
+        add_argument(stream3);
+    }
+    if (codeseg) {
+        if (stream3 != path)
+            add_argument(stream3);
 		add_argument(codeseg);
-	*rmptr++ = xstrdup("$stream3.s", 0);
+    }
+	*rmptr++ = xstrdup(stream3, 0);
 	run_command();
 
-	// TODO: with the new copt we may end up with a copt per cpu
-    p = xstrdup(make_bin_name("copt.exe", ""), 0);
-    build_arglist(p);
-    pathmod(path, ".c", ".s", 2, 2);
-    add_argument(path);
-    add_argument(make_bin_name("rules.z80", ""));
-    run_command();
-    free(p);
+#ifdef SYMBUILD
+    if (optimize != '1' && optimize != '0') {
+#else
+    if (optimize != '0') {
+#endif
+        // TODO: with the new copt we may end up with a copt per cpu
+        p = xstrdup(make_bin_name("copt.exe", ""), 0);
+        build_arglist(p);
+        add_argument(path);
+        add_argument(make_bin_name("rules.z80", ""));
+        run_command();
+        free(p);
+    }
 }
 
 // FIXME: this is broken by redirection

@@ -1095,11 +1095,12 @@ void codegen_lr(struct node *n)
 int main(int argc, char *argv[])
 {
 	uint8_t h[2];
+	char* outfile = "$stream3.s";
 
 	argv0 = argv[0];
 
-	if (argc < 2 || argc > 3)
-		error("usage: cc2 [optlevel cpufeatures [codeseg]]");
+	if (argc < 2 || argc > 4)
+		error("usage: cc2 [optlevel cpufeatures [outfile [codeseg]]]");
 	cpu = 80;
 	if (argc > 1) {
         opt = *argv[1];
@@ -1118,12 +1119,14 @@ int main(int argc, char *argv[])
     else
         cpufeat = 0;
 	if (argc > 3)
-		codeseg = argv[3];
+		outfile = argv[3];
+	if (argc > 4)
+		codeseg = argv[4];
 
     fdi = open("$stream2", O_RDONLY | O_BINARY, 0600);
     if (fdi == -1)
         error("error opening input stream");
-    fdo = fopen("$stream3.s", "wb");
+    fdo = fopen(outfile, "wb");
     if (fdo == NULL)
         error("error opening output stream");
 
