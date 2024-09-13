@@ -1,19 +1,19 @@
 @echo off
 
 echo as.c
-gcc -m32 -static -static-libgcc -static-libstdc++ as.c -o ..\bin\as.exe
+gcc -static -static-libgcc -static-libstdc++ as.c -o ..\bin\as.exe
 echo cc.c
-gcc -m32 -static -static-libgcc -static-libstdc++ cc.c -o ..\bin\cc.exe
+gcc -static -static-libgcc -static-libstdc++ cc.c -o ..\bin\cc.exe
 echo cc0.c
-gcc -m32 -static -static-libgcc -static-libstdc++ cc0.c -o ..\bin\cc0.exe
+gcc -static -static-libgcc -static-libstdc++ cc0.c -o ..\bin\cc0.exe
 echo cc1.c
-gcc -m32 -static -static-libgcc -static-libstdc++ cc1.c -o ..\bin\cc1.exe
+gcc -static -static-libgcc -static-libstdc++ cc1.c -o ..\bin\cc1.exe
 echo cc2.c
-gcc -m32 -static -static-libgcc -static-libstdc++ cc2.c -o ..\bin\cc2.exe
+gcc -static -static-libgcc -static-libstdc++ cc2.c -o ..\bin\cc2.exe
 echo ld.c
-gcc -m32 -static -static-libgcc -static-libstdc++ ld.c -o ..\bin\ld.exe
+gcc -static -static-libgcc -static-libstdc++ ld.c -o ..\bin\ld.exe
 echo reloc.c
-gcc -m32 -static -static-libgcc -static-libstdc++ reloc.c -o ..\bin\reloc.exe
+gcc -static -static-libgcc -static-libstdc++ reloc.c -o ..\bin\reloc.exe
 echo copt.c
-gcc -m32 -static -static-libgcc -static-libstdc++ copt.c -o ..\bin\copt.exe
+gcc -static -static-libgcc -static-libstdc++ copt.c -o ..\bin\copt.exe
 copy /Y cc.hlp ..\bin\cc.hlp

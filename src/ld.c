@@ -155,7 +155,7 @@ static void *xmalloc(size_t s)
  *	Optimized disk I/O for library scanning
  */
 
-static uint8_t iobuf[512];
+static uint8_t iobuf[4096];
 static uint8_t *ioptr;
 static unsigned ioblock;
 static unsigned iopos;
@@ -172,14 +172,14 @@ static unsigned io_get(unsigned block)
 {
     int preseek;
     int seekerr;
-	if (block != ioblock + 1 && lseek(iofd, ((off_t)block) << 9, SEEK_SET) < 0) {
+	if (block != ioblock + 1 && lseek(iofd, ((off_t)block) << 12, SEEK_SET) < 0) {
 		perror("lseek");
 		exit(err | 1);
 	}
-/*	printf("io_get: seek to %lx\n", (off_t)(block << 9)); */
+/*	printf("io_get: seek to %lx\n", (off_t)(block << 12)); */
 	ioblock = block;
 	preseek = lseek(iofd, 0, SEEK_CUR);
-	seekerr = read(iofd, iobuf, 512);
+	seekerr = read(iofd, iobuf, 4096);
 	iolen = lseek(iofd, 0, SEEK_CUR) - preseek; // DEG - return value of read() is not reliable on mingw (??? unclear), calculate change manually
 	if (seekerr == -1) {
 		perror("read");
@@ -193,10 +193,10 @@ static unsigned io_get(unsigned block)
 
 static int io_lseek(off_t pos)
 {
-	unsigned block = pos >> 9;
+	unsigned block = pos >> 12;
 	if (block != ioblock)
 		io_get(block);
-	iopos = pos & 511;
+	iopos = pos & 4095;
 	ioptr = iobuf + iopos;
 	if (iopos > iolen)
 		return -1;
@@ -208,7 +208,7 @@ static int io_lseek(off_t pos)
 #if 0
 static off_t io_getpos(void)
 {
-	return (((off_t)ioblock) << 9) | iopos;
+	return (((off_t)ioblock) << 12) | iopos;
 }
 #endif
 
@@ -252,7 +252,11 @@ static unsigned io_read16(void)
 {
 	uint8_t p[2];
 	io_read(p, 2);
+#ifdef SYMBUILD
+    return *((unsigned int*)p);
+#else
 	return (p[1] << 8) | p[0];
+#endif
 }
 
 #ifdef ARCH32
