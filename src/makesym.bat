@@ -1,7 +1,7 @@
 @echo off
 
 echo cpp.c
-..\bin\cc -Os -h 24576 -N "cpp" -DSYMBUILD -o ..\bin\symbos\cpp.exe cpp.c cpp-hash.c cpp-main.c cpp-token1.c cpp-token2.c
+..\bin\cc -h 32768 -N "cpp" -DSYMBUILD -o ..\bin\symbos\cpp.exe cpp.c
 echo.
 echo cc.c
 ..\bin\cc -N "cc" -DSYMBUILD -DBIN_PATH=256 -DMAX_PATH=256 -o ..\bin\symbos\cc.com cc.c

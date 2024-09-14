@@ -227,7 +227,7 @@ void define_macro(char *name)
 	ptr->name = set_entry(name, ptr, size);
 }
 
-extern int errno;
+//extern int errno;
 
 FILE *open_include(char *fname, char *mode, int checkrel)
 {

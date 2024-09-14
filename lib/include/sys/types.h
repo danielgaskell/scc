@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#if defined (__STDC__)
+#ifdef __STDC__
 #include <stdint.h>
 #else
 /* C types */
@@ -28,14 +28,18 @@ typedef unsigned char uchar;
 typedef unsigned int uint;
 #endif
 
-#if !defined(__SIZE_T_DEFINED) && !defined(_SIZE_T_DEFINED)
+#ifndef __SIZE_T_DEFINED
+#ifndef _SIZE_T_DEFINED
 #define __SIZE_T_DEFINED
 typedef uint16_t size_t;
 #endif
+#endif
 
-#if !defined(__SSIZE_T_DEFINED) && !defined(_SSIZE_T_DEFINED)
+#ifndef __SSIZE_T_DEFINED
+#ifndef _SSIZE_T_DEFINED
 #define __SSIZE_T_DEFINED
 typedef int16_t ssize_t;
+#endif
 #endif
 
 
@@ -65,7 +69,7 @@ typedef uint16_t ino_t;
 typedef uint16_t fsblkcnt_t;
 typedef uint16_t fsfilcnt_t;
 
-#if defined(NO_64BIT)
+#ifdef NO_64BIT
 typedef uint32_t time_t;
 #else
 typedef int64_t time_t;
