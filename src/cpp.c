@@ -30,11 +30,10 @@
 #define LINELEN 256
 #define BLOCKLEN 128
 #define MAXVARS 8
+#define MAXPATHS 16
 
 /* TODO:
    - Path resolution
-   - Comment stripping
-   - Command-line options
 */
 
 typedef struct {
@@ -56,6 +55,9 @@ char outbuf[OUTBUF];
 char textbuf[TEXTLEN];
 FileRecord files[MAXDEPTH];
 
+char* paths[MAXPATHS];
+unsigned char pathcount = 0;
+
 char* linein;
 char* lineout;
 char* inptr;
@@ -75,7 +77,7 @@ long seek;
 unsigned char linenum_pending = 1;
 
 // general globals for speed (careful!)
-unsigned char gc, gn, state, inquotes, escaped;
+unsigned char gc, gn, state, inquotes, escaped, incomment;
 unsigned int gi;
 char *gptr, *gptr2, *gptr3;
 
@@ -178,6 +180,7 @@ unsigned char get_token(void) {
     if (!gc) // EOL
         return 0;
     state = 0;
+    escaped = 0;
     inquotes = 0;
     gptr = tokstr;
     *gptr = 0;
@@ -295,6 +298,20 @@ void add_symbol(char* symbol, char* val) {
     memcpy(ptr, symbol, symbol_len);
     ptr += symbol_len;
     memcpy(ptr, val, val_len);
+}
+
+void add_symbol_long(char* symbol) {
+    char* val = "";
+    gptr = symbol;
+    while (gc = *gptr) {
+        if (gc == '=') {
+            *gptr = 0;
+            val = gptr + 1;
+            break;
+        }
+        ++gptr;
+    }
+    add_symbol(symbol, val);
 }
 
 void remove_symbol(char* symbol) {
@@ -430,35 +447,77 @@ void get_dirval(void) {
     }
 }
 
-unsigned char read_line(void) {
+unsigned char fill_buf(void) {
     int readlen;
+    if (inptr >= inbufend) {
+        readlen = rread(ifd, inbuf, INBUF);
+        if (readlen == 0)
+            return 1;
+        inptr = inbuf;
+        inbufend = inbuf + readlen;
+    }
+    return 0;
+}
+
+unsigned char read_line(void) {
     gptr = linein;
     gptr2 = linein + LINELEN;
     inlptr = linein;
     outlptr = lineout;
+    inquotes = 0;
+    escaped = 0;
     for (;;) {
         if (gptr >= gptr2)
             fatal("line too long");
-        if (inptr >= inbufend) {
-            readlen = rread(ifd, inbuf, INBUF);
-            if (readlen == 0) {
-                *gptr = 0;
-                return gptr != linein; // still return success if we've read something
-            }
-            inptr = inbuf;
-            inbufend = inbuf + readlen;
-        }
+        if (fill_buf())
+            goto truncated;
         gc = *inptr++;
-        if (gc == 0x1A) { // AMSDOS EOF
+        if (gc == '\\' && inquotes != 0 && escaped == 0) {
+            escaped = 2;
+        } else if (gc == '"' && escaped == 0) {
+            inquotes ^= 1;
+        } else if (gc == '/' && inquotes == 0) {
+            fill_buf();
+            if (*inptr == '/') { // single-line comment, skip rest of line
+                *gptr++ = '\n';
+                while (gc != '\n' && gc != 0x1A) {
+                    if (fill_buf())
+                        goto truncated;
+                    gc = *inptr++;
+                }
+                break;
+            } else if (*inptr == '*') {
+                ++inptr;
+                incomment = 1;
+            }
+        } else if (gc == 0x1A) { // AMSDOS EOF
             inbufend = inptr;
             break;
-        }
-        *gptr++ = gc;
-        if (gc == '\n')
+        } else if (gc == '\n') {
+            *gptr++ = '\n';
             break;
+        }
+        if (incomment) {
+            if (gc == '*') {
+                if (fill_buf())
+                    goto truncated;
+                if (*inptr == '/') {
+                    ++inptr;
+                    incomment = 0;
+                }
+            }
+        } else {
+            *gptr++ = gc;
+        }
+        if (escaped)
+            --escaped;
     }
     *gptr = 0;
     return 1;
+
+truncated:
+    *gptr = 0;
+    return gptr != linein; // still return success if we've read something
 }
 
 void write_line(void) {
@@ -586,7 +645,7 @@ unsigned char pp_line(void) {
             printf("-- '%'\n", tokstr);
             fatal("unknown directive");
         }
-        linenum_pending = 1;
+        put_char('\n');
 
     } else {
         // normal line, output tokens
@@ -632,6 +691,7 @@ void pp_file(char* filename) {
     linenum_pending = 0;
 
     // process file
+    incomment = 0;
     inbufend = inbuf;
     i = rread(ifd, inbuf, INBUF);
     if (i) {
@@ -655,8 +715,94 @@ void pp_file(char* filename) {
     }
 }
 
+char* usage = "Usage: cpp -Dxxx -Uxxx -Ixxx infile -o outfile\n";
+char* outfile = 0;
+char* infile = 0;
+
 int main(int argc, char* argv[]) {
-    ofd = open("$stream0.c", O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
+    int ar;
+
+    memset(symbol_first, 0, sizeof(symbol_first));
+
+	for (ar = 1; ar < argc; ar++) {
+		if (argv[ar][0] == '-') {
+			switch (argv[ar][1]) {
+			case 'I':
+                if (pathcount >= MAXPATHS) {
+                    printf("cpp: too many paths specified\n");
+                    exit(1);
+                }
+				if (argv[ar][2]) {
+                    paths[pathcount++] = argv[ar] + 2;
+				} else {
+					ar++;
+					if (ar >= argc) {
+						printf(usage);
+						exit(1);
+					}
+                    paths[pathcount++] = argv[ar];
+				}
+				break;
+			case 'D':
+				if (argv[ar][2]) {
+                    add_symbol_long(argv[ar] + 2);
+				} else {
+					ar++;
+					if (ar >= argc) {
+						printf(usage);
+						exit(1);
+					}
+                    add_symbol_long(argv[ar]);
+				}
+				break;
+			case 'U':
+				if (argv[ar][2]) {
+                    remove_symbol(argv[ar] + 2);
+				} else {
+					ar++;
+					if (ar >= argc) {
+						printf(usage);
+						exit(1);
+					}
+                    remove_symbol(argv[ar]);
+				}
+				break;
+			case 'o':
+			    if (outfile) {
+			        printf(usage);
+                    exit(1);
+			    }
+				if (argv[ar][2]) {
+					outfile = argv[ar] + 2;
+				} else {
+					ar++;
+					if (ar >= argc) {
+						printf(usage);
+						exit(1);
+					}
+					outfile = argv[ar];
+				}
+				break;
+			default:
+				printf("cpp: unknown option '%s'\n", argv[ar]);
+				exit(1);
+			}
+		} else if (!infile) {
+			infile = argv[ar];
+		} else {
+			printf(usage);
+			exit(1);
+		}
+	}
+
+	if (!infile) {
+		printf(usage);
+		exit(1);
+	}
+	if (!outfile)
+        outfile = "$stream0.c";
+
+    ofd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
     if (ofd == -1)
         fatal("cannot open output stream");
 
@@ -667,7 +813,6 @@ int main(int argc, char* argv[]) {
     outptr = outbuf;
     outlptr = outptr;
     outbufend = outbuf + OUTBUF;
-    memset(symbol_first, 0, sizeof(symbol_first));
     tokstrend = tokstr + TOKLEN;
     valstrend = valstr + VALLEN;
     pp_file("test.c");
