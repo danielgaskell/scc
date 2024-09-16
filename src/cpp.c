@@ -25,38 +25,31 @@
 #define INBUF 1024
 #define OUTBUF 1024
 #define MAXDEPTH 6
-#define NAMELEN 13
+#define NAMELEN 32
 #define TEXTLEN 256
+#define PATHSTRLEN 128
 #define LINELEN 256
 #define BLOCKLEN 128
 #define MAXVARS 8
 #define MAXPATHS 16
-
-/* TODO:
-   - Path resolution
-*/
 
 typedef struct {
     int fd;
     long seek;
     unsigned short line;
     char name[NAMELEN + 1];
+    char path[PATHSTRLEN + 1];
 } FileRecord;
 
 char* symbol_first[96];
-char line1[LINELEN];
-char line2[LINELEN];
 char fblocks[MAXVARS][BLOCKLEN];
 
-char tokstr[TOKLEN];
-char valstr[VALLEN];
-char inbuf[INBUF];
-char outbuf[OUTBUF];
-char textbuf[TEXTLEN];
+char *line1, *line2, *tokstr, *valstr, *inbuf, *outbuf, *textbuf, *path;
 FileRecord files[MAXDEPTH];
 
 char* paths[MAXPATHS];
 unsigned char pathcount = 0;
+char* apppath;
 
 char* linein;
 char* lineout;
@@ -68,6 +61,10 @@ char* tokstrend;
 char* valstrend;
 char* inlptr;
 char* outlptr;
+
+char* usage = "Usage: cpp -Dxxx -Uxxx -Ixxx infile -o outfile\n";
+char* outfile = 0;
+char* infile = 0;
 
 signed char ifd, ofd;
 unsigned char fr = 0;
@@ -144,6 +141,16 @@ void flush_out(int len) {
     }
 }
 
+void write_line(void) {
+    int len = outlptr - lineout;
+    if (len >= outptr - outbufend)
+        flush_out(outptr - outbuf);
+    memcpy(outptr, lineout, len);
+    outptr += len;
+    outlptr = lineout;
+    *outlptr = 0;
+}
+
 void put_char(unsigned char ch) {
     *outlptr++ = ch;
     // FIXME bounds check
@@ -156,23 +163,10 @@ void put_str(char* str) {
 }
 
 void output_linenum(void) {
+    linenum_pending = 0;
     snprintf(textbuf, TEXTLEN, "# %i \"%s\"\n", line, files[fr].name);
     put_str(textbuf);
-}
-
-void resolve_path(char* str) {
-    int len;
-    if (*str == '"') {
-        // literal path, easy (FIXME relative to source file!)
-        strncpy(textbuf, str + 1, TEXTLEN);
-        len = strlen(textbuf);
-        if (textbuf[len-1] == '"')
-            textbuf[len-1] = 0;
-    } else if (*str == '<') {
-        // internal path, check include dirs (FIXME!)
-    } else {
-        fatal("invalid path");
-    }
+    write_line();
 }
 
 unsigned char get_token(void) {
@@ -520,14 +514,6 @@ truncated:
     return gptr != linein; // still return success if we've read something
 }
 
-void write_line(void) {
-    int len = outlptr - lineout;
-    if (len >= outptr - outbufend)
-        flush_out(outptr - outbuf);
-    memcpy(outptr, lineout, len);
-    outptr += len;
-}
-
 void skip_block(void) {
     char depth = 1;
     while (depth) {
@@ -603,8 +589,7 @@ unsigned char pp_line(void) {
 
         } else if (!strcmp(tokstr, "include")) {
             get_dirval();
-            resolve_path(valstr);
-            pp_file(textbuf);
+            pp_file(valstr);
 
         } else if (!strcmp(tokstr, "ifdef")) {
             get_directive();
@@ -649,10 +634,8 @@ unsigned char pp_line(void) {
 
     } else {
         // normal line, output tokens
-        if (linenum_pending) {
+        if (linenum_pending)
             output_linenum();
-            linenum_pending = 0;
-        }
         pp_line_raw();
     }
     ++line;
@@ -671,24 +654,76 @@ void pp_file(char* filename) {
     ++fr;
     if (fr > MAXDEPTH)
         fatal("too many nested includes");
-    gptr = strrchr(filename, '\\');
-    if (!gptr)
-        gptr = strrchr(filename, '/');
-    if (!gptr)
-        gptr = filename;
-    strncpy(files[fr].name, gptr, NAMELEN);
+    if (*filename == '"' || *filename == '<') { // enclosed in brackets or quotes
+        filename[strlen(filename) - 1] = 0; // strip terminator
+        strncpy(files[fr].name, filename + 1, NAMELEN);
+    } else { // passed directly
+        strncpy(files[fr].name, filename, NAMELEN);
+    }
 
     // open file
-    ifd = open(filename, O_RDONLY | O_BINARY);
-    if (ifd == -1) {
-        --fr; // so it prints the correct name
-        fatal("cannot open input file");
+    gptr = files[fr].path;
+    ifd = -1;
+    if (*filename == '<') {
+        // bracketed include, append to system include path
+        strcpy(gptr, apppath);
+        //#ifdef SYMBUILD
+        //strcat(gptr, "/lib/include/");
+        //#else
+        strcat(gptr, "/../lib/include/");
+        //#endif // SYMBUILD
+        strcat(gptr, filename + 1);
+        ifd = open(gptr, O_RDONLY | O_BINARY);
+    } else if (*filename == '"') {
+        // quoted include, first try local path
+        if (fr == 1) {
+            // first file - relative to shell/specified path
+            strncpy(gptr, filename + 1, PATHSTRLEN);
+        } else {
+            // subsequent paths - relative to previous file's path
+            strncpy(gptr, files[fr-1].path, PATHSTRLEN);
+            gptr2 = strrchr(gptr, '/');
+            if (!gptr2)
+                gptr2 = strrchr(gptr, '\\');
+            if (!gptr2)
+                gptr2 = gptr - 1;
+            *(gptr2 + 1) = 0;
+            strcat(gptr, filename + 1);
+        }
+        ifd = open(gptr, O_RDONLY | O_BINARY);
+        if (ifd == -1) {
+            // failed - try registered paths
+            for (i = 0; i < pathcount; ++i) {
+                strcpy(gptr, paths[i]);
+                strcat(gptr, filename + 1);
+                ifd = open(gptr, O_RDONLY | O_BINARY);
+                if (ifd != -1)
+                    break;
+            }
+        }
+        if (ifd == -1) {
+            // still failed - try system path
+            strcpy(gptr, apppath);
+            #ifdef SYMBUILD
+            strcat(gptr, "/lib/include/");
+            #else
+            strcat(gptr, "/../lib/include/");
+            #endif // SYMBUILD
+            strcat(gptr, filename + 1);
+            ifd = open(gptr, O_RDONLY | O_BINARY);
+        }
+    } else {
+        // passed as parameter, open directly
+        strncpy(gptr, infile, PATHSTRLEN);
+        ifd = open(gptr, O_RDONLY | O_BINARY);
     }
+    if (ifd == -1)
+        fatal("cannot open input file");
+
+    // finish file open
     files[fr].fd = ifd;
     line = 1;
     seek = 0;
-    output_linenum();
-    linenum_pending = 0;
 
     // process file
     incomment = 0;
@@ -697,6 +732,9 @@ void pp_file(char* filename) {
     if (i) {
         inptr = inbuf;
         inbufend = inbuf + i;
+        inlptr = linein;
+        outlptr = lineout;
+        output_linenum();
         while (pp_line());
     }
 
@@ -715,16 +753,33 @@ void pp_file(char* filename) {
     }
 }
 
-char* usage = "Usage: cpp -Dxxx -Uxxx -Ixxx infile -o outfile\n";
-char* outfile = 0;
-char* infile = 0;
-
 int main(int argc, char* argv[]) {
     int ar;
 
+#ifndef SYMBUILD
     memset(symbol_first, 0, sizeof(symbol_first));
+#endif // SYMBUILD
+    // malloc() buffers to reduce SymbOS file size
+    line1 = malloc(LINELEN);
+    line2 = malloc(LINELEN);
+    tokstr = malloc(TOKLEN);
+    valstr = malloc(VALLEN);
+    inbuf = malloc(INBUF);
+    outbuf = malloc(OUTBUF);
+    textbuf = malloc(TEXTLEN);
+    path = malloc(PATHSTRLEN);
 
-	for (ar = 1; ar < argc; ar++) {
+    // get application path
+    apppath = argv[0];
+    gptr = strrchr(apppath, '/');
+    if (!gptr)
+        gptr = strrchr(apppath, '\\');
+    if (!gptr)
+        gptr = apppath;
+    *gptr = 0;
+
+    // process command-line options
+    for (ar = 1; ar < argc; ar++) {
 		if (argv[ar][0] == '-') {
 			switch (argv[ar][1]) {
 			case 'I':
@@ -733,15 +788,19 @@ int main(int argc, char* argv[]) {
                     exit(1);
                 }
 				if (argv[ar][2]) {
-                    paths[pathcount++] = argv[ar] + 2;
+                    paths[pathcount] = argv[ar] + 2;
 				} else {
 					ar++;
 					if (ar >= argc) {
 						printf(usage);
 						exit(1);
 					}
-                    paths[pathcount++] = argv[ar];
+                    paths[pathcount] = argv[ar];
 				}
+				gptr = paths[pathcount] + strlen(paths[pathcount]) - 1; // ensure it ends in a slash
+				if (*gptr != '/' && *gptr != '\\')
+                    strcat(paths[pathcount], "/");
+				++pathcount;
 				break;
 			case 'D':
 				if (argv[ar][2]) {
@@ -802,7 +861,11 @@ int main(int argc, char* argv[]) {
 	if (!outfile)
         outfile = "$stream0.c";
 
+    #ifdef SYMBUILD
     ofd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
+    #else
+    ofd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0700);
+    #endif // SYMBUILD
     if (ofd == -1)
         fatal("cannot open output stream");
 
@@ -815,7 +878,7 @@ int main(int argc, char* argv[]) {
     outbufend = outbuf + OUTBUF;
     tokstrend = tokstr + TOKLEN;
     valstrend = valstr + VALLEN;
-    pp_file("test.c");
+    pp_file(infile);
 
     flush_out(outptr - outbuf);
     close(ofd);
