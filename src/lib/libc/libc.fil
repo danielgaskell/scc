@@ -129,7 +129,6 @@ write.o
 read.o
 lseek.o
 isatty.o
-close.o
 isdigit.o
 isalpha.o
 strlen.o
@@ -138,8 +137,8 @@ open.o
 unlink.o
 access.o
 sysshell.o
-shellmsg.o
 shellpth.o
+shellmsg.o
 errno.o
 dirread.o
 sysfile.o

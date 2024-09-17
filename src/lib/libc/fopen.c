@@ -8,7 +8,8 @@
 
 #include "stdio-l.h"
 
-extern void* _exit_stdio;
+extern void* _exit_hooks[];
+unsigned char fopen_needs_hook = 1;
 
 /*
  * This Fopen is all three of fopen, fdopen and freopen. The macros in
@@ -18,12 +19,21 @@ extern void* _exit_stdio;
 FILE * __fopen(const char *fname, int fd, FILE * fp, const char *mode)
 {
 	uint open_mode = 0;
+	unsigned char i;
 
 	int fopen_mode = 0;
 	FILE * nfp = 0;
 
-	/* save address of __stdio_close_all internally (avoids it being linked unless actually needed) */
-	_exit_stdio = __stdio_close_all;
+	/* save address of __stdio_close_all to exit hooks (avoids it being linked unless actually needed) */
+	if (fopen_needs_hook) {
+        for (i = 0; i < 8; ++i) {
+            if (!_exit_hooks[i]) {
+                _exit_hooks[i] = __stdio_close_all;
+                fopen_needs_hook = 0;
+                break;
+            }
+        }
+	}
 
 	/* If we've got an fp close the old one (freopen) */
 	if (fp) {

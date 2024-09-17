@@ -105,18 +105,21 @@ start2:
 ; exit code
 .export _exit
 _exit:
-	; if fopen() has set __exit_stdio, close all open files
-	; (this indirect method prevents stdio from being linked via crt0.s unless actually used)
-	ld a,(__exit_stdio+0)
-	ld b,a
-	ld a,(__exit_stdio+1)
-	or b
+	; run any exit hooks that have been defined
+_symexithooks:
+	ld hl,(_exit_hook)
+	ld c,(hl)
+	inc hl
+	ld b,(hl)
+	inc hl
+	ld (_exit_hook),hl
+	ld a,b
+	or c
 	jr z,_symexit1
-	ld hl,(__exit_stdio+0)
-	ld de,_symexit1
-	push de
+	ld hl,_symexithooks+0
 	push hl
-	ret					; simulate 'call hl'
+	push bc
+	ret					; simulate 'call bc'
 _symexit1:
 	; if a shell is open, close it
 	ld a,(__shellpid)
@@ -251,9 +254,11 @@ __malloc_top:
 .export __malloc_max
 __malloc_max:
 	.word 0
-.export __exit_stdio
-__exit_stdio:
-	.word 0
+.export __exit_hooks
+__exit_hooks:
+	.ds 16
+_exit_hook:
+	.word __exit_hooks
 
 ; start of SymbOS data area
 	.symdata
