@@ -1022,7 +1022,11 @@ int main(int argc, char *argv[]) {
 #endif
     *(strrchr(BINPATH, '.') - 3) = 0;
     strcpy(LIBPATH, BINPATH);
+#ifdef SYMBUILD
+    strcat(LIBPATH, "\\lib");
+#else
     strcat(LIBPATH, "\\..\\lib");
+#endif
 
 	while (*++p) {
 #ifdef SYMBUILD

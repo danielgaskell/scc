@@ -69,18 +69,31 @@ To compile a single source file into a single SymbOS executable, just run it thr
 cc file.c
 ```
 
-Under the hood, SCC consists of a multi-stage toolchain typical for C compilers: a preprocessor (`cpp`), multiple compiler stages (`cc0`, `cc1`, and `cc2`), an assembler (`as`), linker (`ld`), optimizer (`copt`), and relocation tool (`reloc`), which performs the final stage of building a SymbOS executable by patching in the relocation table produced by the linker. For complex projects, these can be run independently to built multiple files and objects into a single executable. For example, to compile two source files (`file1.c` and `file2.c`) into object files (`file1.o`and `file2.o`) and link them with the system libraries into a single executable:
+For single files, this is all we need to know. For more complex projects, it is helpful to understand how the C build chain works. Under the hood, SCC consists of a multi-stage toolchain typical for C compilers: a preprocessor (`cpp`), multiple compiler stages (`cc0`, `cc1`, and `cc2`), an assembler (`as`), linker (`ld`), optimizer (`copt`), and a relocation table builder (`reloc`). Generally speaking, after preprocessing, source files (`.c`) are compiled to assembly files (`.s`), which are then assembled into object files (`.o`). The linker (`ld`) then links these object files together with each other (and with the relevant functions from the standard library) to produce a single executable.
+
+For organization and to improve compilation speed (particularly when compiling natively on SymbOS), projects can be broken up into multiple source files (`.c` or `.s` for assembly-language source files). If we pass multiple source files to `cc`, it will compile or assemble them into object files, then link the resulting object files into an executable:
+
+```bash
+cc file1.c file2.c asmfile.s
+```
+
+However, we can also skip the linking step by using the `-c` command-line option. This lets us only recompile the specific modules we have changed, saving a lot of time when building large projects natively on SymbOS. For example, to compile just the single source file `file1.c` into the object file `file1.o`:
 
 ```bash
 cc -c file1.c
-cc -c file2.c
-ld -o file.exe -R file.rel ..\lib\crt0.o file1.o file2.o ..\lib\libc.a ..\lib\libsym.a ..\lib\libz80.a
-reloc file.exe file.rel
 ```
 
-In the C world this type of modular build is usually done with a Makefile. SCC does not currently have its own `make` utility, but we can use the one from MinGW (not documented here). In practice SymbOS projects are usually small enough that we can just maintain a single main source file (potentially with `#include` directives to merge in subsidiary files) and compile it directly with `cc`.
+Then, to link all the relevant object files into a single executable:
 
-A good way to determine what `cc` is doing under the hood (particularly for linking) is to run it with the `-V` option, which outputs each command as it is run.
+```bash
+cc -o file.exe file1.o file2.o asmfile.o
+```
+
+As seen in the above example, the `-o` option can be used to manually specify what the resulting executable should be named (e.g., `file.exe`).
+
+In the C world this type of modular build is usually done with a Makefile. SCC does not currently have its own `make` utility, but we can use the one from MinGW (not documented here). In practice SymbOS projects are usually small enough that, for normal desktop cross-compilation, we can just maintain a single main source file (potentially with `#include` directives to merge in subsidiary files) and compile it directly with `cc`.
+
+The `cc` app is usually the most convenient way to organize modular builds, but we can also run the stages separately if we know what we are doing. (A good way to determine what `cc` is doing under the hood is to run it with the `-V` option, which outputs each subcommand as it is run.)
 
 ### Compilation on SymbOS
 

@@ -11,7 +11,6 @@ mkdir ..\release\win32\lib\include\sys
 mkdir ..\release\win32\lib\include\symbos
 mkdir ..\release\win32\sample
 mkdir ..\release\symbos
-mkdir ..\release\symbos\bin
 mkdir ..\release\symbos\doc
 mkdir ..\release\symbos\lib
 mkdir ..\release\symbos\lib\include
@@ -39,10 +38,10 @@ copy /Y ..\sample\progcalc.c ..\release\win32\sample
 copy /Y ..\sample\makecalc.bat ..\release\win32\sample
 
 copy /Y install.txt ..\release\symbos
-copy /Y ..\bin\symbos\*.exe ..\release\symbos\bin
-copy /Y ..\bin\symbos\*.com ..\release\symbos\bin
-copy /Y ..\bin\symbos\*.hlp ..\release\symbos\bin
-copy /Y ..\bin\symbos\*.z80 ..\release\symbos\bin
+copy /Y ..\bin\symbos\*.exe ..\release\symbos
+copy /Y ..\bin\symbos\*.com ..\release\symbos
+copy /Y ..\bin\symbos\*.hlp ..\release\symbos
+copy /Y ..\bin\symbos\*.z80 ..\release\symbos
 copy /Y ..\doc\*.md ..\release\symbos\doc
 copy /Y ..\lib\*.a ..\release\symbos\lib
 copy /Y ..\lib\*.o ..\release\symbos\lib

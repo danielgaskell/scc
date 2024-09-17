@@ -33,6 +33,17 @@
 #define MAXVARS 8
 #define MAXPATHS 16
 
+// LUT for checking if a character is alphanumeric - optimization
+char alphanum[128] =
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+	 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1,
+	 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0};
+
 typedef struct {
     int fd;
     long seek;
@@ -42,6 +53,7 @@ typedef struct {
 } FileRecord;
 
 char* symbol_first[96];
+char* symbol_last[96];
 char fblocks[MAXVARS][BLOCKLEN];
 
 char *line1, *line2, *tokstr, *valstr, *inbuf, *outbuf, *textbuf, *path;
@@ -55,7 +67,6 @@ char* linein;
 char* lineout;
 char* inptr;
 char* outptr;
-char* inbufend;
 char* outbufend;
 char* tokstrend;
 char* valstrend;
@@ -121,18 +132,6 @@ char* match_symbol(char* token) {
     return 0;
 }
 
-unsigned char fill_inbuf(void) {
-    if (inptr >= inbufend) {
-        seek += (inbufend - inbuf);
-        gi = rread(ifd, inbuf, INBUF);
-        if (!gi)
-            return 0;
-        inptr = inbuf;
-        inbufend = inbuf + gi;
-    }
-    return 1;
-}
-
 void flush_out(int len) {
     if (len && *outbuf) {
         if (write(ofd, outbuf, len) == -1)
@@ -179,11 +178,23 @@ unsigned char get_token(void) {
     gptr = tokstr;
     *gptr = 0;
     for (;;) {
-        if (gc == '\\' && inquotes != 0 && escaped == 0)
-            escaped = 2;
-        if (gc == '"' && escaped == 0)
-            inquotes ^= 1;
-        if (!inquotes && ((gc >= '0' && gc <= '9') || (gc >= 'A' && gc <= 'Z') || (gc >= 'a' && gc <= 'z') || (gc == '_'))) {
+        if (gc == '"') {
+            if (escaped == 0)
+                inquotes ^= 1;
+        }
+        if (inquotes) {
+            // output string
+            put_char(gc);
+            if (gc == '\\') {
+                if (inquotes != 0 && escaped == 0)
+                    escaped = 2;
+            } else if (gc == '\n') { // EOL
+                return 0;
+            } else if (!gc) { // EOF
+                return 0;
+            }
+        } else if (alphanum[gc]) {
+            // start alphanumeric token
             state = 1;
             *gptr++ = gc;
         } else {
@@ -192,15 +203,15 @@ unsigned char get_token(void) {
                 --inlptr;
                 *gptr = 0;
                 return 1;
+            } else if (!gc) {
+                // EOL
+                *gptr = 0;
+                return 0;
             } else if (gc == '(' || gc == ')' || gc == ',') {
                 // return ( ) , as their own tokens, for define parsing
                 *gptr++ = gc;
                 *gptr = 0;
                 return 1;
-            } else if (!gc) {
-                // EOL
-                *gptr = 0;
-                return 0;
             } else {
                 // otherwise just output intermediary text
                 put_char(gc);
@@ -284,6 +295,9 @@ void add_symbol(char* symbol, char* val) {
     branch = *symbol - ' ';
     if (symbol_first[branch] == 0)
         symbol_first[branch] = ptr;
+    if (symbol_last[branch])
+        *(char**)symbol_last[branch] = ptr;
+    symbol_last[branch] = ptr;
 
     // write symbol content
     *(char**)ptr = 0;
@@ -316,6 +330,7 @@ void remove_symbol(char* symbol) {
         oldptr = ptr;
         while (ptr) {
             if (!strcmp(symbol, ptr + sizeof(gptr) + 1)) {
+                // FIXME this will break the symbol_last logic! Do bidirectional chain?
                 *(char**)oldptr = *(char**)ptr; // unlink
                 if (ptr == oldptr)
                     symbol_first[branch] = 0;
@@ -374,7 +389,6 @@ void define_out(char* def) {
                 else
                     put_str(tokstr);
             }
-            put_char(' ');
         }
         *outlptr = 0;
         if (paren_depth)
@@ -405,8 +419,6 @@ void get_directive(void) {
     gptr = tokstr;
     for (;;) {
         gc = *inlptr++;
-        if (gc == ' ' && *inlptr == '(' && paren_depth == 0) // skip space in "dir (" format for directives
-            gc = *inlptr++;
         if (gc == '(')
             ++paren_depth;
         if (gc == ')') {
@@ -443,12 +455,12 @@ void get_dirval(void) {
 
 unsigned char fill_buf(void) {
     int readlen;
-    if (inptr >= inbufend) {
+    if (*inptr == 0x7F) {
         readlen = rread(ifd, inbuf, INBUF);
         if (readlen == 0)
             return 1;
         inptr = inbuf;
-        inbufend = inbuf + readlen;
+        inbuf[readlen] = 0x7F;
     }
     return 0;
 }
@@ -485,7 +497,7 @@ unsigned char read_line(void) {
                 incomment = 1;
             }
         } else if (gc == 0x1A) { // AMSDOS EOF
-            inbufend = inptr;
+            *inptr = 0x7F;
             break;
         } else if (gc == '\n') {
             *gptr++ = '\n';
@@ -559,7 +571,6 @@ void pp_line_raw(void) {
             define_out(gptr);
         else
             put_str(tokstr);
-        put_char(' ');
     }
 }
 
@@ -667,11 +678,11 @@ void pp_file(char* filename) {
     if (*filename == '<') {
         // bracketed include, append to system include path
         strcpy(gptr, apppath);
-        //#ifdef SYMBUILD
-        //strcat(gptr, "/lib/include/");
-        //#else
+        #ifdef SYMBUILD
+        strcat(gptr, "/lib/include/");
+        #else
         strcat(gptr, "/../lib/include/");
-        //#endif // SYMBUILD
+        #endif // SYMBUILD
         strcat(gptr, filename + 1);
         ifd = open(gptr, O_RDONLY | O_BINARY);
     } else if (*filename == '"') {
@@ -695,6 +706,7 @@ void pp_file(char* filename) {
             // failed - try registered paths
             for (i = 0; i < pathcount; ++i) {
                 strcpy(gptr, paths[i]);
+                strcat(gptr, "\\");
                 strcat(gptr, filename + 1);
                 ifd = open(gptr, O_RDONLY | O_BINARY);
                 if (ifd != -1)
@@ -727,11 +739,11 @@ void pp_file(char* filename) {
 
     // process file
     incomment = 0;
-    inbufend = inbuf;
+    inbuf[INBUF] = 0x7F; // end-of-buffer marker (optimization)
     i = rread(ifd, inbuf, INBUF);
     if (i) {
         inptr = inbuf;
-        inbufend = inbuf + i;
+        inbuf[i] = 0x7F;
         inlptr = linein;
         outlptr = lineout;
         output_linenum();
@@ -747,7 +759,7 @@ void pp_file(char* filename) {
         seek = files[fr].seek;
         lseek(ifd, seek, SEEK_SET);
         i = rread(ifd, inbuf, INBUF);
-        inbufend = inbuf + i;
+        inbuf[i] = 0x7F;
         inptr = inbuf;
         linenum_pending = 1;
     }
@@ -758,6 +770,7 @@ int main(int argc, char* argv[]) {
 
 #ifndef SYMBUILD
     memset(symbol_first, 0, sizeof(symbol_first));
+    memset(symbol_last, 0, sizeof(symbol_last));
 #endif // SYMBUILD
     // malloc() buffers to reduce SymbOS file size
     line1 = malloc(LINELEN);
@@ -797,9 +810,6 @@ int main(int argc, char* argv[]) {
 					}
                     paths[pathcount] = argv[ar];
 				}
-				gptr = paths[pathcount] + strlen(paths[pathcount]) - 1; // ensure it ends in a slash
-				if (*gptr != '/' && *gptr != '\\')
-                    strcat(paths[pathcount], "/");
 				++pathcount;
 				break;
 			case 'D':
@@ -861,6 +871,10 @@ int main(int argc, char* argv[]) {
 	if (!outfile)
         outfile = "$stream0.c";
 
+//unsigned short test;
+//while (test++) {
+    memset(symbol_first, 0, sizeof(symbol_first));
+    memset(symbol_last, 0, sizeof(symbol_last));
     #ifdef SYMBUILD
     ofd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY);
     #else
@@ -882,5 +896,6 @@ int main(int argc, char* argv[]) {
 
     flush_out(outptr - outbuf);
     close(ofd);
+//}
     return 0;
 }
