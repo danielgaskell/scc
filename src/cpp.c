@@ -327,13 +327,15 @@ void remove_symbol(char* symbol) {
     char *ptr, *oldptr;
     branch = *symbol - ' ';
     if (ptr = symbol_first[branch]) {
-        oldptr = ptr;
+        oldptr = 0;
         while (ptr) {
             if (!strcmp(symbol, ptr + sizeof(gptr) + 1)) {
-                // FIXME this will break the symbol_last logic! Do bidirectional chain?
-                *(char**)oldptr = *(char**)ptr; // unlink
-                if (ptr == oldptr)
+                if (oldptr)
+                    *(char**)oldptr = *(char**)ptr; // unlink
+                if (ptr == symbol_first[branch])
                     symbol_first[branch] = 0;
+                if (ptr == symbol_last[branch])
+                    symbol_last[branch] = oldptr;
                 return;
             }
             oldptr = ptr;
@@ -766,7 +768,7 @@ void pp_file(char* filename) {
 }
 
 int main(int argc, char* argv[]) {
-    int ar;
+    unsigned char ar;
 
 #ifndef SYMBUILD
     memset(symbol_first, 0, sizeof(symbol_first));

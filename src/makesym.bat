@@ -26,5 +26,3 @@ echo reloc.c
 echo.
 echo copt.c
 ..\bin\cc -h 24576 -N "copt" -o ..\bin\symbos\copt.exe copt.c
-
-copy /Y cc.hlp ..\bin\symbos\cc.hlp

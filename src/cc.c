@@ -135,16 +135,6 @@ struct cpu_table {
 	const char **cpufeat;	/* Feature option names in bit flag order */
 };
 
-const char *def6502[] = { "__6502__", NULL };
-const char *def65c02[] = { "__6502__", "__65c02__", NULL };
-const char *def65c816[] = { "__65c816__", NULL };
-const char *def6303[] = { "__6803__", "__6303__", NULL };
-const char *def6800[] = { "__6800__", "__6800__", NULL };
-const char *def6803[] = { "__6803__", NULL };
-const char *def68hc11[] = { "__68hc11__", "__6803__", NULL };
-const char *def6809[] = { "__6809__", NULL };
-const char *def8080[] = { "__8080__", NULL };
-const char *def8085[] = { "__8085__", NULL };
 const char *defz80[] = { "__z80__", NULL };
 const char *z80feat[] = {
 	"banked",
@@ -153,40 +143,11 @@ const char *z80feat[] = {
 	NULL
 };
 
-const char *defz180[] = { "__z80__", "__z180__", NULL };
-const char *defbyte[] = { "__byte__", NULL };
-const char *defthread[] = { "__thread__", NULL };
-const char *defz8[] = { "__z8__", NULL };
-const char *defsuper8[] = { "__super8__", NULL };
-const char *def1802[] = { "__1802__", NULL };
-const char *def1805[] = { "__1805__", NULL };
-const char *def8070[] = { "__8070__", NULL };
-const char *def8086[] = { "__8086__", NULL };
-const char *def80186[] = { "__8086__", "__80186__", NULL };
-const char *defee200[] = { "__ee200__", "__cpu4__", NULL };
-const char *defnova[] = { "__nova__", NULL };
-const char *defnova3[] = { "__nova3__", "__nova__", NULL };
-const char *novafeat[] = {
-	"multiply",
-	NULL
-};
-
-const char *ld6502[] = { "-b", "-C", "512", "-Z", "0x00", NULL };
-const char *ld6800[] = { "-b", "-C", "256", "-Z", "0x40", NULL };
-const char *ld6809[] = { "-b", "-C", "256", NULL };
-const char *ld8070[] = { "-b", "-C", "1", NULL };
 const char *ld8080[] = { "-b", "-C", "256", NULL };
-const char *ld8086[] = { "-b", "-C", "256", NULL };
-const char *ldee200[] = { "-b", "-C", "256", NULL };
-const char *ldnova[] = { "-b", "-Z", "050", "-C", "512", NULL };
-const char *ldbyte[] =  { NULL };
-const char *ldthread[] = { NULL };
 const char *cpucode;
 
-struct cpu_table cpu_rules[] = {
-	{ "z80", "z80", ".z80", "libz80.a", "z80", defz80, ld8080, "80" , 1, z80feat},
-	{ NULL }
-};
+struct cpu_table cpu_rules = { "z80", "z80", ".z80", "libz80.a", "z80",
+                               defz80, ld8080, "80" , 1, z80feat };
 
 /* Need to set these via the cpu type lookup etc */
 const char *cpuset;		/* Which binary compiler tool names */
@@ -376,20 +337,6 @@ static void set_for_processor(struct cpu_table *r)
 	cpucode = r->cpucode;
 	has_relocs = r->has_reloc;
 	feats = r->cpufeat;
-}
-
-static void find_processor(const char *cpu)
-{
-	struct cpu_table *t = cpu_rules;
-	while(t->name) {
-		if (strcmp(t->name, cpu) == 0) {
-			set_for_processor(t);
-			return;
-		}
-		t++;
-	}
-	fprintf(stderr, "cc: unknown CPU type '%s'.\n", cpu);
-	exit(1);
 }
 
 static void append_obj(struct objhead *h, char *p, uint8_t type)
@@ -884,13 +831,33 @@ void unused_files(void)
 
 void usage(void)
 {
-	FILE *f = fopen(make_lib_name("cc.hlp", ""), "rb");
-	if (f == NULL)
-		perror("cc.hlp");
-	else {
-		while(fgets(pathbuf, CPATHSIZE, f))
-			fputs(pathbuf, stdout);
-	}
+	printf("cc [option and file list]\n\n");
+	printf("options:\n\n");
+	printf("-c      compile to object modules only\n");
+	printf("-D x    define a macro for the C preprocessor\n");
+	printf("-E      preprocess only, to $stream0.c\n");
+	printf("-i      enable split I/D if supported by this target\n");
+	printf("-I x    add a directory to the include path\n");
+	printf("-G x    set the SymbOS 4-color application icon (.SGX file)\n");
+	printf("-g x    set the SymbOS 16-color application icon (.SGX file)\n");
+	printf("-h x    set the malloc() heap size to x bytes (default 4096)\n");
+	printf("-l x    add a library name to link\n");
+	printf("-L x    add a path to the library search path\n");
+	printf("-M x    create a map file\n");
+	printf("-N \"x\"  set the internal SymbOS application name\n");
+	printf("-o x    set the output file of the executable\n");
+	printf("-Ox     set optimization level 0-2, or for size '-Os'\n");
+	printf("-s      build standalone, without OS libraries and include paths\n");
+	printf("-S      compile to assembly source only\n");
+	printf("-T x    set the starting address of the text/code segment\n");
+	printf("-V      verbosely print pass information\n");
+	printf("-X      keep temporary files for debugging\n\n");
+	printf("long options:\n");
+	printf("--dlib:	build a loadable object module instead\n\n");
+	printf("z80 feature options:\n");
+	printf("-mz80-banked: Z80 with banked code\n");
+	printf("-mz80-noix: do not touch IX\n");
+	printf("-mz80-noiy: do not touch IY\n");
 	fatal();
 }
 
@@ -1154,7 +1121,7 @@ int main(int argc, char *argv[]) {
 		case 'O':
 			if ((*p)[2]) {
 				o2 = (*p)[2];
-				if (o2 >= '0' && o2 <= '3')
+				if (o2 >= '0' && o2 <= '2')
 					optimize = o2;
 				else if (o2 == 's')
 					optimize = 's';
@@ -1168,7 +1135,10 @@ int main(int argc, char *argv[]) {
 		case 's':	/* FIXME: for now - switch to getopt */
 			standalone = 1;
 			break;
-		case 'V':
+		case 'm':
+			cpu = *p + 2;
+			break;
+        case 'V':
 			print_passes = 1;
 			break;
 		case 'X':
@@ -1177,23 +1147,6 @@ int main(int argc, char *argv[]) {
 			break;
 		case 'M':
 			mapfile = 1;
-			break;
-		case 't':
-			if (strcmp(*p + 2, "none") == 0) {
-				targetos = OS_NONE;
-			} else if (strcmp(*p + 2, "fuzix") == 0) {
-				targetos = OS_FUZIX;
-				fuzixsub = 0;
-			} else if (strcmp(*p + 2, "fuzixrel1") == 0) {
-				targetos = OS_FUZIX;
-				fuzixsub = 1;
-			} else if (strcmp(*p + 2, "fuzixrel2") == 0) {
-				targetos = OS_FUZIX;
-				fuzixsub = 2;
-			} else {
-				fprintf(stderr, "cc: only fuzix target types are known.\n");
-				fatal();
-			}
 			break;
 		case 'T':
 			codeseg = *p + 2;
@@ -1206,7 +1159,7 @@ int main(int argc, char *argv[]) {
 	o = strchr(cpu, '-');
 	if (o)
 		*o++ = 0;
-	find_processor(cpu);
+	set_for_processor(&cpu_rules);
 	if (o) {
 		o = strtok(o, "-");
 		while(o) {

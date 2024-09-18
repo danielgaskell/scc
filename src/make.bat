@@ -16,4 +16,3 @@ echo reloc.c
 gcc -static -static-libgcc -static-libstdc++ reloc.c -o ..\bin\reloc.exe
 echo copt.c
 gcc -static -static-libgcc -static-libstdc++ copt.c -o ..\bin\copt.exe
-copy /Y cc.hlp ..\bin\cc.hlp
