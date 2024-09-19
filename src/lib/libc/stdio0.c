@@ -109,9 +109,9 @@ STATIC void __stdio_close_all(void)
 	fflush(stderr);
 	while (fp) {
 		fflush(fp);
-		close(fp->fd);
 		/* Note we're not de-allocating the memory */
 		/* There doesn't seem to be much point :-) */
+		/* The actual filehandle close is handled by __posix_close_all(). */
 		fp->fd = -1;
 		fp = fp->next;
 	}

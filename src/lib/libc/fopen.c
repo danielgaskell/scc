@@ -9,6 +9,7 @@
 #include "stdio-l.h"
 
 extern void* _exit_hooks[];
+extern void __posix_close_all(void);
 unsigned char fopen_needs_hook = 1;
 
 /*
@@ -20,15 +21,20 @@ FILE * __fopen(const char *fname, int fd, FILE * fp, const char *mode)
 {
 	uint open_mode = 0;
 	unsigned char i;
+	void* hookptr;
 
 	int fopen_mode = 0;
 	FILE * nfp = 0;
 
 	/* save address of __stdio_close_all to exit hooks (avoids it being linked unless actually needed) */
 	if (fopen_needs_hook) {
+        hookptr = __stdio_close_all;
         for (i = 0; i < 8; ++i) {
-            if (!_exit_hooks[i]) {
-                _exit_hooks[i] = __stdio_close_all;
+            if (_exit_hooks[i] == __posix_close_all) {
+                _exit_hooks[i] = hookptr; // __stdio_close_all must come before __posix_close_all
+                hookptr = __posix_close_all;
+            } else if (!_exit_hooks[i]) {
+                _exit_hooks[i] = hookptr;
                 fopen_needs_hook = 0;
                 break;
             }
