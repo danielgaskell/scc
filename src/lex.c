@@ -20,7 +20,9 @@ static unsigned char inbuf[128];
 static unsigned char *inptr;
 static int inlen;
 
-// Expanded read() that more consistently returns read length (seems to be a mingw problem...?)
+#ifdef SYMBUILD
+#define rread(a,b,c) read(a,b,c)
+#else// Expanded read() that more consistently returns read length (seems to be a mingw problem...?)
 int rread(int fd, void* buf, unsigned int maxchars) {
     int preseek, readerr;
     preseek = lseek(fd, 0, SEEK_CUR);
@@ -30,6 +32,7 @@ int rread(int fd, void* buf, unsigned int maxchars) {
     else
         return lseek(fd, 0, SEEK_CUR) - preseek;
 }
+#endif
 
 /* Read the next block. Hopefully this is the only routine we need to
    swap for CP/M etc */

@@ -1,4 +1,5 @@
-#include <symbos.h>
+#include <symbos/windows.h>
+#include <symbos/keys.h>
 #include <string.h>
 
 char winID = -1; // main window ID (returned by Win_Open())
