@@ -5,9 +5,9 @@
 typedef void *va_list;
 
 #define va_dcl va_list va_alist;
-#define va_start(ap) (ap) = (va_list)&va_alist
-#define va_arg(ap,t) ((t *)(((char *)(ap)) += sizeof(t)))[-1]
-#define va_end(ap) (ap) = NULL
+#define va_start(a)  (a) = (va_list)&va_alist
+#define va_arg(a,t)  ((t *)(((char *)(a)) += sizeof(t)))[-1]
+#define va_end(a)    (a) = NULL
 
 #endif
 #endif

@@ -28,8 +28,7 @@ struct timespec {
 	long tv_nsec;
 };
 
-#define __isleap(year)	\
-	((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
+#define __isleap(y)	((y) % 4 == 0 && ((y) % 100 != 0 || (y) % 400 == 0))
 
 extern char *tzname[2];
 extern int daylight;

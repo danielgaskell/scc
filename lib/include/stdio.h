@@ -60,8 +60,8 @@ extern FILE* stdin;
 extern FILE* stdout;
 extern FILE* stderr;
 
-#define putc(c, stream)	fputc((c), stream)
-#define getc(stream)	fgetc(stream)
+#define putc(c, s)	fputc((c), s)
+#define getc(s)	fgetc(s)
 
 #define putchar(c)	fputc((c), stdout)
 #define getchar()	fgetc(stdin)
@@ -72,17 +72,17 @@ extern char *gets_s(char *__s, size_t __size);
 extern int _putchar(int __c);
 extern int _getchar(void);
 
-#define ferror(fp)	(((fp)->mode&__MODE_ERR) != 0)
-#define feof(fp)	(((fp)->mode&__MODE_EOF) != 0)
-#define clearerr(fp)	((fp)->mode &= ~(__MODE_EOF|__MODE_ERR))
-#define fileno(fp)	((fp)->fd)
+#define ferror(f)   (((f)->mode&__MODE_ERR) != 0)
+#define feof(f)     (((f)->mode&__MODE_EOF) != 0)
+#define clearerr(f) ((f)->mode &= ~(__MODE_EOF|__MODE_ERR))
+#define fileno(f)   ((f)->fd)
 
 /* These two call malloc */
 extern int setvbuf(FILE *__stream, char *__buf, int __mode, size_t __size);
 
 /* These don't */
 extern void setbuffer(FILE *__stream, char *__buf, size_t __size);
-#define setbuf(__fp, __buf)	setbuffer((__fp), (__buf), BUFSIZ)
+#define setbuf(f, b)	setbuffer((f), (b), BUFSIZ)
 
 extern int fgetc(FILE *__stream);
 extern int fputc(int, FILE *__stream);
@@ -91,13 +91,13 @@ extern int ungetc(int, FILE *__stream);
 extern int fclose(FILE *__stream);
 extern int fflush(FILE *__stream);
 /* FIXME: this symbol needs to be __ */
-#define stdio_pending(fp) ((fp)->bufread > (fp)->bufpos)
+#define stdio_pending(f) ((f)->bufread > (f)->bufpos)
 extern char *fgets(char *__s, size_t __size, FILE *__stream);
 extern FILE *__fopen(const char *__path, int __fd, FILE * __stream, const char *__mode);
 
-#define fopen(__file, __mode)	      __fopen((__file), -1, (FILE*)0, (__mode))
-#define freopen(__file, __mode, __fp) __fopen((__file), -1, (__fp), (__mode))
-#define fdopen(__file, __mode)	__fopen((char*)0, (__file), (FILE*)0, (__mode))
+#define fopen(f, m)	      __fopen((f), -1, (FILE*)0, (m))
+#define freopen(f, m, p)  __fopen((f), -1, (p), (m))
+#define fdopen(f, m)      __fopen((char*)0, (f), (FILE*)0, (m))
 
 extern FILE *tmpfile(void);
 

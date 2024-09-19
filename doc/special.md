@@ -16,7 +16,7 @@ cc -h 16384 source.c
 
 ## Native preprocessor
 
-For desktop cross-compilation, SCC uses MCPP as its preprocessor, which should support all standard C preprocessor syntax. For improved speed when running natively on SymbOS, SCC uses a stripped-down preprocessor. The native processor supports the most common directives used in 99% of cases (`#include`, `#define`, `#undef`, `#ifdef`, `#ifndef`, `#else`, `#endif`), but not `#if (condition)` (which is much more complicated to implement, and only rarely used). Use combinations of `#ifdef` or `#ifndef` instead of `#if (condition)`.
+For desktop cross-compilation, SCC uses MCPP as its preprocessor, which should support all standard C preprocessor syntax. For improved speed when running natively on SymbOS, SCC uses a stripped-down preprocessor. The native processor supports the most common directives used in 99% of cases (`#include`, `#define`, `#undef`, `#ifdef`, `#ifndef`, `#else`, `#endif`), but not `#if (condition)` (which is much more complicated to implement, and only rarely used). Use combinations of `#ifdef` or `#ifndef` instead of `#if (condition)`. Function-style definitions (e.g., `#define add(x,y) ((x)+(y))`) are supported, but only with single-character argument names.
 
 A more advanced (but slower) native preprocessor is available in the `bin/symbos/alternate` folder of the SCC source repository. This preprocessor is adapted from the Fuzix Compiler Kit, and can be substituted directly for the default native preprocessor if desired.
 

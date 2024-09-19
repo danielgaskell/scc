@@ -12,17 +12,17 @@
 #ifdef	NDEBUG
 
 #ifdef __GNUC__
-#define assert(expr)		((void)(0))
+#define assert(e)		((void)(0))
 #else
-#define assert(expr)		(0)
+#define assert(e)		(0)
 #endif
 
 #else /* NDEBUG */
 
 extern void __assert(const char *__expr, const char *__file, const int __line);
 
-#define assert(expr)	\
-  ((void) ((expr) || (__assert (__STRING(expr),  __FILE__, __LINE__), 0)))
+#define assert(e)	\
+  ((void) ((e) || (__assert (__STRING(e),  __FILE__, __LINE__), 0)))
 
 #endif /* NDEBUG */
 

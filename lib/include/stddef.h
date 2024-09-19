@@ -5,6 +5,6 @@
 
 #define	NULL ((void *)0)
 
-#define	offsetof(type, ident)	((size_t) &((type *)0)->ident)
+#define	offsetof(t, i)	((size_t) &((t *)0)->i)
 
 #endif

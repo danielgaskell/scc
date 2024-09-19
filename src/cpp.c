@@ -57,7 +57,7 @@ char* symbol_last[96];
 char fblocks[MAXVARS][BLOCKLEN];
 
 char *line1, *line2, *tokstr, *valstr, *inbuf, *outbuf, *textbuf, *path;
-FileRecord files[MAXDEPTH];
+FileRecord files[MAXDEPTH+1];
 
 char* paths[MAXPATHS];
 unsigned char pathcount = 0;
@@ -665,14 +665,21 @@ void pp_file(char* filename) {
 
     // set up new file record
     ++fr;
-    if (fr > MAXDEPTH)
-        fatal("too many nested includes");
     if (*filename == '"' || *filename == '<') { // enclosed in brackets or quotes
         filename[strlen(filename) - 1] = 0; // strip terminator
         strncpy(files[fr].name, filename + 1, NAMELEN);
     } else { // passed directly
         strncpy(files[fr].name, filename, NAMELEN);
     }
+
+    // check if we've already included this - by definition this should not conflict with another symbol because of the .h
+    if (match_symbol(files[fr].name)) {
+        --fr;
+        return;
+    }
+    if (fr >= MAXDEPTH)
+        fatal("too many nested includes");
+    add_symbol(files[fr].name, "");
 
     // open file
     gptr = files[fr].path;
