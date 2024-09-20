@@ -384,7 +384,7 @@ static void outbyte(unsigned char c)
 	*outptr++ = c;
 	if (outptr == outbuf + BLOCK) {
 		outptr = outbuf;
-		if (write(fdo, outbuf, BLOCK) != BLOCK)
+        if (write(fdo, outbuf, BLOCK) != BLOCK)
 			error("I/O");
 	}
 }
