@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
     uint16_t len;
     uint16_t writei;
     int efd, rfd;
-    static const uint8_t cff = 0xFF;
     uint8_t d;
 
     if (argc != 3) {
@@ -126,7 +125,7 @@ int main(int argc, char *argv[])
                 bufinptr += 3;
                 continue;
             }
-            bufout[writei++] = ((*(bufinptr + 1) << 8) + *(bufinptr + 2)) - 1 + hdr.origin;
+            bufout[writei++] = ((*(bufinptr + 1) << 8) + *(bufinptr + 2)) + hdr.origin;
             bufinptr += 3;
             ++count;
         }

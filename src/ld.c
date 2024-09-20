@@ -64,15 +64,9 @@
 #define ENABLE_RESCAN	0
 #endif
 
-#ifdef ARCH32
-#define io_readaddr()	io_read32()
-#define MAXSIZE		4
-typedef int32_t		addrdiff_t;
-#else
 #define io_readaddr()	io_read16()
 #define MAXSIZE		2
 typedef int16_t		addrdiff_t;
-#endif
 
 static char *arg0;			/* Command name */
 static struct object *processing;	/* Object being processed */
@@ -100,10 +94,10 @@ static int strip = 0;			/* Set to strip symbols */
 static int obj_flags = -1;		/* Object module flags for compat */
 static const char *mapname;		/* Name of map file to write */
 static const char *outname;		/* Name of output file */
-static const char *appname = NULL; /* SymbOS application name */
-static const char *appicon = NULL; /* SymbOS application icon */
-static const char *appicon16 = NULL; /* SymbOS 16-color application icon */
-static const char *heapsize = NULL; /* SymbOS heap size */
+static char *appname = NULL; /* SymbOS application name */
+static char *appicon = NULL; /* SymbOS application icon */
+static char *appicon16 = NULL; /* SymbOS 16-color application icon */
+static char *heapsize = NULL; /* SymbOS heap size */
 static addr_t dot;			/* Working address as we link */
 
 static unsigned progress;		/* Did we make forward progress ?
@@ -259,15 +253,6 @@ static unsigned io_read16(void)
 #endif
 }
 
-#ifdef ARCH32
-static uint32_t io_read32(void)
-{
-	uint8_t p[4];
-	io_read(p, 4);
-	return (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
-}
-#endif
-
 /* Our embedded relocs make this a hot path so optimize it. We may
    want a helper that hands back blocks until the reloc marker ? */
 
@@ -291,6 +276,45 @@ static int io_open(const char *path)
 	}
 /*	printf("opened %s\n", path); */
 	return iofd;
+}
+
+static uint8_t outbuf[1024];
+static uint8_t *outptr;
+static uint8_t *outend;
+off_t outpos;
+int ofd;
+
+static void out_flush(void) {
+    unsigned short len = outptr - outbuf;
+    write(ofd, outbuf, len);
+    outptr = outbuf;
+    outpos += len;
+}
+
+static void out_byte(unsigned char ch) {
+    *outptr++ = ch;
+    if (outptr >= outend)
+        out_flush();
+}
+
+static void out_write(void* addr, unsigned short len) {
+    if (len > outend - outptr)
+        out_flush();
+    memcpy(outptr, addr, len);
+    outptr += len;
+}
+
+static off_t out_tell(void) {
+    return outpos + (outptr - outbuf);
+}
+
+static void out_seek(off_t pos) {
+    out_flush();
+	if (lseek(ofd, pos, SEEK_SET) < 0) {
+		perror("lseek");
+		exit(err | 1);
+	}
+	outpos = pos;
 }
 
 static FILE *xfopen(const char *path, const char *mode)
@@ -538,20 +562,16 @@ static void renumber_symbols(void)
 }
 
 /* Write the symbols to the output file */
-static void write_symbols(FILE *fp)
+static void write_symbols(void)
 {
 	struct symbol *s;
 	int i;
 	for (i = 0; i < NHASH; i++) {
 		for (s = symhash[i]; s != NULL; s=s->next) {
-			fputc(s->type, fp);
-			fwrite(s->name, NAMELEN, 1, fp);
-			fputc(s->value, fp);
-			fputc(s->value >> 8, fp);
-#ifdef ARCH32
-			fputc(s->value >> 16, fp);
-			fputc(s->value >> 24, fp);
-#endif
+			out_byte(s->type);
+			out_write(s->name, NAMELEN);
+			out_byte(s->value);
+			out_byte(s->value >> 8);
 		}
 	}
 }
@@ -573,11 +593,7 @@ static void print_symbol(struct symbol *s, FILE *fp)
 		if (s->type & S_PUBLIC)
 			c = toupper(c);
 	}
-#ifdef ARCH32
-	fprintf(fp, "%08X %c %.*s\n", s->value, c, NAMELEN, s->name);
-#else
 	fprintf(fp, "%04X %c %.*s\n", s->value, c, NAMELEN, s->name);
-#endif
 }
 
 /*
@@ -898,48 +914,28 @@ static void set_segment_bases(void)
  *	relocatable.
  */
 
-static void target_pquoteb(uint8_t v, FILE *op)
+static void target_pquoteb(uint8_t v)
 {
 	if (v == REL_ESC && !rawstream) {
-		fputc(v, op);
-		fputc(REL_REL, op);
+		out_byte(v);
+		out_byte(REL_REL);
 	} else
-		fputc(v, op);
+		out_byte(v);
 }
 
 /*
  *	Write a word to the target in the correct endianness
  */
-static void target_put(struct object *o, addr_t value, uint16_t size, FILE *op)
+static void target_put(addr_t value, uint16_t size)
 {
-#ifdef ARCH32
-	if (o->oh->o_flags & OF_BIGENDIAN) {
-		unsigned rs = (size - 1) * 8;
-		while(size--) {
-			target_pquoteb(value >> rs, op);
-			value <<= 8;
-		}
-	} else {
-		while(size--) {
-			target_pquoteb(value, op);
-			value >>= 8;
-		}
-	}
-#else
 	/* Tighter short paths for 16bit so it can run nicely on small
 	   boxes */
 	if (size == 1)
-		target_pquoteb(value, op);
+		target_pquoteb(value);
 	else {
-		if (o->oh->o_flags&OF_BIGENDIAN) {
-			target_pquoteb(value >> 8, op);
-			target_pquoteb(value, op);
-		} else {
-			target_pquoteb(value, op);
-			target_pquoteb(value >> 8, op);
-		}
+        target_pquoteb(value);
+        target_pquoteb(value >> 8);
 	}
-#endif
 }
 
 static uint_fast8_t target_pgetb(void)
@@ -958,35 +954,14 @@ static uint_fast8_t target_pgetb(void)
  */
 static addr_t target_get(struct object *o, uint16_t size)
 {
-#ifdef ARCH32
-	addr_t v = 0;
-	if (o->oh->o_flags & OF_BIGENDIAN) {
-		while(size--) {
-			v <<= 8;
-			v |= target_pgetb();
-		}
-	} else {
-		unsigned s = 0;
-		while(size--) {
-			v |= target_pgetb() << s;
-			s += 8;
-		}
-	}
-	return v;
-#else
 	/* Tighter hardcoded for speed on 8bit boxes */
 	if (size == 1)
 		return target_pgetb();
-	else {
-		if (o->oh->o_flags & OF_BIGENDIAN)
-			return (target_pgetb() << 8) + target_pgetb();
-		else
-			return target_pgetb() + (target_pgetb() << 8);
-	}
-#endif
+	else
+        return target_pgetb() + (target_pgetb() << 8);
 }
 
-static void record_reloc(struct object *o, unsigned high, unsigned size, unsigned seg, addr_t addr)
+static void record_reloc(unsigned high, unsigned size, unsigned seg, addr_t addr)
 {
 	if (!relocf)
 		return;
@@ -995,10 +970,6 @@ static void record_reloc(struct object *o, unsigned high, unsigned size, unsigne
 	if (seg == ABSOLUTE)
 		return;
 
-#ifndef ARCH32
-	if (size == 2 && !(o->oh->o_flags & OF_BIGENDIAN))
-		addr++;
-#endif
 	if (seg == ZP) {
 		fputc(0, relocf);
 		fputc(0, relocf);
@@ -1008,18 +979,9 @@ static void record_reloc(struct object *o, unsigned high, unsigned size, unsigne
 	if (size == 1 && !high)
 		return;
 	/* Record the address of the high byte */
-#ifdef ARCH32
-	/* 32bit relocs work differently, record the actual addr */
-	fputc(2, relocf);
-	fputc((addr >> 24), relocf);
-	fputc((addr >> 16), relocf);
-	fputc((addr >> 8), relocf);
-	fputc(addr, relocf);
-#else
 	fputc(1, relocf);
 	fputc((addr >> 8), relocf);
 	fputc(addr, relocf);
-#endif
 }
 
 static unsigned is_code(unsigned seg)
@@ -1039,7 +1001,7 @@ static unsigned is_code(unsigned seg)
  * LD_RELOC: a relocation stream is output with no remaining symbol relocations
  *	     and all internal relocations resolved.
  */
-static void relocate_stream(struct object *o, int segment, FILE * op)
+static void relocate_stream(struct object *o, int segment)
 {
 	uint8_t size;
 	uint_fast8_t code;
@@ -1064,7 +1026,7 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
 
 		/* Unescaped material is just copied over */
 		if (code != REL_ESC) {
-			fputc(code, op);
+			out_byte(code);
 			dot++;
 			continue;
 		}
@@ -1077,10 +1039,10 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
 		   remove the REL_REL marker */
 		if (code == REL_REL) {
 			if (!rawstream) {
-				fputc(REL_ESC, op);
-				fputc(REL_REL, op);
+				out_byte(REL_ESC);
+				out_byte(REL_REL);
 			} else
-				fputc(REL_ESC, op);
+				out_byte(REL_ESC);
 			dot++;
 			continue;
 		}
@@ -1097,9 +1059,9 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
 			/* Image has code bank raw then data raw */
 			/* TODO: assumes 16bit */
 			if (!is_code(segment) && split_id)
-				xfseek(op, dot + 0x10000);
+				out_seek(dot + 0x10000);
 			else
-				xfseek(op, dot);
+				out_seek(dot);
 			continue;
 		}
 		/* Set the relocation scaling properties (this is sticky) */
@@ -1108,10 +1070,10 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
 			/* Copy through but do not change properties or
 			   we will end up double scaling stuff via ld -r */
 			if (!rawstream) {
-				fputc(REL_ESC, op);
-				fputc(tmp, op);
+				out_byte(REL_ESC);
+				out_byte(tmp);
 				io_readb(&tmp);
-				fputc(tmp, op);
+				out_byte(tmp);
 				continue;
 			}
 			/* 0x1F is sufficient as for a 32bit full mask
@@ -1162,14 +1124,14 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
 			}
 			/* If we are not building an absolute then keep the tag */
 			if (!rawstream) {
-				fputc(REL_ESC, op);
+                out_byte(REL_ESC);
 				if (pcrel)
-					fputc(REL_PCREL, op);
+					out_byte(REL_PCREL);
 				if (!overflow)
-					fputc(REL_OVERFLOW, op);
+					out_byte(REL_OVERFLOW);
 				if (high)
-					fputc(REL_HIGH, op);
-				fputc(code, op);
+					out_byte(REL_HIGH);
+				out_byte(code);
 			}
 			if (pcrel) {
 				r = target_get(o, size);
@@ -1195,7 +1157,7 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
 					r >>= 8;
 					size = 1;
 				}
-				target_put(o, r, size, op);
+				target_put(r, size);
 				dot += size;
 				/* No need to record this for reloc as it's relative */
 				continue;
@@ -1228,9 +1190,9 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
 					r >>= 8;
 					size = 1;
 				}
-				target_put(o, r, size, op);
+				target_put(r, size);
 				if (ldmode == LD_FUZIX)
-					record_reloc(o, high, size, seg, dot);
+					record_reloc(high, size, seg, dot);
 				dot += size;
 				continue;
 			}
@@ -1259,21 +1221,21 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
 					}
 					if (!rawstream) {
 						/* Rewrite the record with the new symbol number */
-						fputc(REL_ESC, op);
+						out_byte(REL_ESC);
 						if (!overflow)
-							fputc(REL_OVERFLOW, op);
+							out_byte(REL_OVERFLOW);
 						if (high)
-							fputc(REL_HIGH, op);
-						fputc(code, op);
-						fputc(s->number, op);
-						fputc(s->number >> 8, op);
+							out_byte(REL_HIGH);
+						out_byte(code);
+						out_byte(s->number);
+						out_byte(s->number >> 8);
 					}
 					/* Copy the bytes to relocate */
 					io_readb(&tmp);
-					fputc(tmp, op);
+					out_byte(tmp);
 					if (size == 2 || optype == REL_PCREL) {
 						io_readb(&tmp);
-						fputc(tmp, op);
+						out_byte(tmp);
 					}
 				} else {
 					/* Get the relocation data */
@@ -1325,12 +1287,12 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
 					/* If we are not fully resolving then turn this into a
 					   simple relocation */
 					if (!rawstream && optype != REL_PCREL) {
-						fputc(REL_ESC, op);
+						out_byte(REL_ESC);
 						if (!overflow)
-							fputc(REL_OVERFLOW, op);
+							out_byte(REL_OVERFLOW);
 						if (high)
-							fputc(REL_HIGH, op);
-						fputc(REL_SIMPLE | (s->type & S_SEGMENT) | (size - 1) << 4, op);
+							out_byte(REL_HIGH);
+						out_byte(REL_SIMPLE | (s->type & S_SEGMENT) | (size - 1) << 4);
 					}
 					/* REL_HIGH is only defined for 16bit addresses */
 					if (rawstream && high) {
@@ -1339,8 +1301,8 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
 					}
 				}
 				if (optype == REL_SYMBOL && ldmode == LD_FUZIX)
-					record_reloc(o, high, size, (s->type & S_SEGMENT), dot);
-				target_put(o, r, size, op);
+					record_reloc(high, size, (s->type & S_SEGMENT), dot);
+				target_put(r, size);
 				dot += size;
 				break;
 		}
@@ -1353,7 +1315,7 @@ static void relocate_stream(struct object *o, int segment, FILE * op)
  *	relocations performed. We write out the code and data segments but
  *	BSS and ZP must always be zero filled so do not need writing.
  */
-static void write_stream(FILE * op, int seg)
+static void write_stream(int seg)
 {
 	struct object *o = objects;
 
@@ -1375,7 +1337,7 @@ static void write_stream(FILE * op, int seg)
 		/* For Fuzix we place segments in absolute space but don't
 		   bother writing out the empty page before */
 		if (ldmode == LD_FUZIX) {
-			xfseek(op, dot - base[1]);
+			out_seek(dot - base[1]);
 		/* In absolute mode we place segments wherever they should
 		   be in the binary space */
 		} else if (ldmode == LD_ABSOLUTE) {
@@ -1383,19 +1345,19 @@ static void write_stream(FILE * op, int seg)
 				printf("Writing seg %d from %x\n", seg, dot);
 			/* TODO: assumes 16bit */
 			if (!is_code(seg) && split_id)
-				xfseek(op, dot + 0x10000);
+				out_seek(dot + 0x10000);
 			else
-				xfseek(op, dot);
+				out_seek(dot);
 		}
         //printf("segment %i to %i\n", seg, ftell(op));
-		relocate_stream(o, seg, op);
+		relocate_stream(o, seg);
 		put_object(o);
 		io_close();
 		o = o->next;
 	}
 	if (!rawstream) {
-		fputc(REL_ESC, op);
-		fputc(REL_EOF, op);
+		out_byte(REL_ESC);
+		out_byte(REL_EOF);
 	}
 }
 
@@ -1407,7 +1369,7 @@ static void write_stream(FILE * op, int seg)
  *	binary and generates a separate relocation block in the start of
  *	BSS.
  */
-static void write_binary(FILE * op, FILE *mp)
+static void write_binary(FILE *mp)
 {
 	static struct objhdr hdr;
 	static struct objhdr blankhdr;
@@ -1441,12 +1403,12 @@ static void write_binary(FILE * op, FILE *mp)
     symhdr.minor_version = 0;
     symhdr.major_version = 2;
 
-	rewind(op);
+	out_seek(0);
 
 	if (verbose)
 		printf("Writing binary\n");
 	if (!rawstream)
-        fwrite(&hdr, sizeof(hdr), 1, op);
+        out_write(&hdr, sizeof(hdr));
 	/* For LD_RFLAG number the symbols for output, for other forms
 	   check for unknown symbols and error them out */
 	if (!rawstream)
@@ -1456,16 +1418,16 @@ static void write_binary(FILE * op, FILE *mp)
 		exit(1);
 	}
     if (ldmode != LD_FUZIX)
-		write_stream(op, ABSOLUTE);
-	write_stream(op, CODE);
-	hdr.o_segbase[1] = ftell(op);
-	write_stream(op, DATA);
+		write_stream(ABSOLUTE);
+	write_stream(CODE);
+	hdr.o_segbase[1] = out_tell();
+	write_stream(DATA);
 	if (ldmode == LD_FUZIX)
-		write_stream(op, LITERAL);
+		write_stream(LITERAL);
 	if (ldmode == LD_FUZIX) {
         // It's not necessary to output a blank BSS section, because the file will automatically be extended to accommodate the data and transfer segments.
-        write_stream(op, SYMDATA);
-        write_stream(op, SYMTRANS);
+        write_stream(SYMDATA);
+        write_stream(SYMTRANS);
 	}
 	/* Absolute images may contain things other than code/data/bss */
 	if (ldmode == LD_ABSOLUTE) {
@@ -1474,7 +1436,7 @@ static void write_binary(FILE * op, FILE *mp)
 				if (i == ZP)
 					continue;
 			}
-			write_stream(op, i);
+			write_stream(i);
 		}
 	}
 	else {
@@ -1486,62 +1448,63 @@ static void write_binary(FILE * op, FILE *mp)
 			}
 		}
 		if (!rawstream && !strip) {
-			hdr.o_symbase = ftell(op);
-			write_symbols(op);
+			hdr.o_symbase = out_tell();
+			write_symbols();
 		}
 	}
-	hdr.o_dbgbase = ftell(op);
+	hdr.o_dbgbase = out_tell();
 	hdr.o_magic = MAGIC_OBJ;
 	/* TODO: needs a special pass
 	if (dbgsyms )
 		copy_debug_all(op, mp);*/
     if (rawstream && ldmode == LD_FUZIX) { // overwrite the start of crt0.o's header (used for addresses) with our own
-        xfseek(op, 0);
-        fwrite(&symhdr, 8, 1, op); // codelen, datalen, translen, origin
+        out_seek(0);
+        out_write(&symhdr, 8); // codelen, datalen, translen, origin
         if (appname) {
-            xfseek(op, 15);
-            fwrite(appname, strlen(appname), 1, op); // app name
+            out_seek(15);
+            out_write(appname, strlen(appname) + 1); // app name
         }
         if (appicon) {
-            xfseek(op, 109);
+            out_seek(109);
             ficn = xfopen(appicon, "rb");
             if (ficn == NULL)
                 error("Cannot open icon file");
             fread(iconbuf, 147, 1, ficn);
-            fwrite(iconbuf, 147, 1, op);
+            out_write(iconbuf, 147);
             fclose(ficn);
         }
         if (appicon16) {
             iconloc16 = size[CODE] - 298;
-            xfseek(op, iconloc16);
+            out_seek(iconloc16);
             ficn = xfopen(appicon16, "rb");
             if (ficn == NULL)
                 error("Cannot open icon file");
             fread(iconbuf, 298, 1, ficn);
-            fwrite(iconbuf, 298, 1, op);
+            out_write(iconbuf, 298);
             fclose(ficn);
-            xfseek(op, 40);
-            fwrite("\x01", 1, 1, op);       // flag: 1 = 16-color icon included
-            fwrite(&iconloc16, 2, 1, op);   // icon location
+            out_seek(40);
+            out_byte(1);                // flag: 1 = 16-color icon included
+            out_write(&iconloc16, 2);   // icon location
         }
         if (heapsize) {
             extra = atoi(heapsize);
             if (extra > 0)
                 extra += 256; // unclear why this is needed - path suffix seems to overwrite last 256 bytes of extra if present
-            xfseek(op, 56);
-            fwrite(&extra, 2, 1, op);
-            xfseek(op, 258);
-            fwrite(&extra, 2, 1, op);
+            out_seek(56);
+            out_write(&extra, 2);
+            out_seek(258);
+            out_write(&extra, 2);
         }
     }
 	if (err == 0) {
 		if (!rawstream) {
-			xfseek(op, 0);
-            fwrite(&hdr, sizeof(hdr), 1, op);
+			out_seek(0);
+            out_write(&hdr, sizeof(hdr));
 		}
 		//} else	/* FIXME: honour umask! */
 		//	fchmod (fileno(op), 0755);
 	}
+	out_flush();
 }
 
 /*
@@ -1625,7 +1588,7 @@ int main(int argc, char *argv[])
 {
 	int opt;
 	int i;
-	FILE *bp, *mp = NULL;
+	FILE *mp = NULL;
 
 	arg0 = argv[0];
 
@@ -1763,7 +1726,18 @@ int main(int argc, char *argv[])
 	if (verbose)
 		printf("Writing output.\n");
 
-	bp = xfopen(outname, "wb");
+    outptr = outbuf;
+    outend = outbuf + sizeof(outbuf);
+    outpos = 0;
+    #ifdef SYMBUILD
+	ofd = open(outname, O_WRONLY | O_BINARY | O_CREAT | O_TRUNC);
+    #else
+	ofd = open(outname, O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, 0600);
+    #endif // SYMBUILD
+	if (ofd < 0) {
+        perror("open");
+        exit(err);
+	}
 	if (mapname) {
 		mp = xfopen(mapname, "wb");
 		if (verbose)
@@ -1771,7 +1745,7 @@ int main(int argc, char *argv[])
 		write_map_file(mp);
 		fclose(mp);
 	}
-	write_binary(bp,mp);
-	xfclose(bp);
+	write_binary(mp);
+	close(ofd);
 	exit(err);
 }
