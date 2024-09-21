@@ -21,7 +21,7 @@ del /S /Q ..\release\*.*
 copy /Y ..\bin\*.exe ..\release\win32\bin
 copy /Y ..\bin\*.hlp ..\release\win32\bin
 copy /Y ..\bin\*.z80 ..\release\win32\bin
-copy /Y ..\doc\*.md ..\release\win32\doc
+copy /Y ..\doc\*.* ..\release\win32\doc
 copy /Y ..\lib\*.a ..\release\win32\lib
 copy /Y ..\lib\*.o ..\release\win32\lib
 copy /Y ..\lib\include\*.h ..\release\win32\lib\include
