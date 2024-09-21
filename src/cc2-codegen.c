@@ -2032,7 +2032,7 @@ unsigned gen_node(struct node *n)
 	case T_CONSTANT:
 		switch(size) {
 		case 4:
-		    fprintf(fdo, ";here: %x %x %x %x\n", *(unsigned char*)&v, *((unsigned char*)&v + 1), *((unsigned char*)&v + 2), *((unsigned char*)&v + 3));
+		    //fprintf(fdo, ";here: %x %x %x %x\n", *(unsigned char*)&v, *((unsigned char*)&v + 1), *((unsigned char*)&v + 2), *((unsigned char*)&v + 3));
 			fprintf(fdo, "\tld hl,0x%x\n", (unsigned short)((n->value >> 16)));
 			fprintf(fdo, "\tld (__hireg),hl\n");
 		case 2:

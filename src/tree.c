@@ -172,7 +172,7 @@ unsigned is_constname(struct node *n)
 unsigned is_constant_zero(struct node *n)
 {
 	if (is_constant(n))
-		return !n->value;
+		return n->value == 0;
 	return 0;
 }
 

@@ -197,8 +197,8 @@ void next_token(void)
 	    || token == T_ULONGVAL || token == T_FLOATVAL) {
 		token_value = tokbyte();
 		token_value |= tokbyte() << 8;
-		token_value |= tokbyte() << 16;
-		token_value |= tokbyte() << 24;
+		token_value |= (unsigned long)tokbyte() << 16;
+		token_value |= (unsigned long)tokbyte() << 24;
 	}
 }
 
