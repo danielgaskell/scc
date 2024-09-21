@@ -51,8 +51,8 @@ copy /Y ..\lib\include\symbos\*.h ..\release\symbos\lib\include\symbos
 copy /Y ..\sample\windemo.c ..\release\symbos\sample
 copy /Y ..\sample\threads.c ..\release\symbos\sample
 copy /Y ..\sample\basic.c ..\release\symbos\sample
-copy /Y ..\sample\makebas.bat ..\release\symbos\sample
+copy /Y ..\sample\makebas_native.bat ..\release\symbos\sample\makebas.bat
 copy /Y ..\sample\calc.sgx ..\release\symbos\sample
 copy /Y ..\sample\calc16.sgx ..\release\symbos\sample
 copy /Y ..\sample\progcalc.c ..\release\symbos\sample
-copy /Y ..\sample\makecalc.bat ..\release\symbos\sample
+copy /Y ..\sample\makecalc_native.bat ..\release\symbos\sample\makecalc.bat

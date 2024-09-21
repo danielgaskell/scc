@@ -1,0 +1,1 @@
+cc -V -h 16384 -N "Tiny BASIC" -o basic.com basic.c
