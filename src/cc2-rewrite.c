@@ -234,7 +234,7 @@ struct node *gen_rewrite_node(register struct node *n)
 			if (val == 0 || (val >= -128 && val < 125 && l->value != 1)) {
 				n->op = T_REQ;
 				n->val2 = 0;
-				n->value = val;
+				n->value = l->value;
 				n->left = NULL;
 				free_node(l);
 				return n;

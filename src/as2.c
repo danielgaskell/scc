@@ -135,7 +135,7 @@ SYM	*lookup(char *id, SYM *htable[], int cf)
 	}
 	if (cf != 0) {
 		if ((sp=(SYM *)malloc(sizeof(SYM))) == NULL) {
-			fprintf(stderr, "No memory\n");
+			fprintf(stderr, "Out of memory\n");
 			exit(BAD);
 		}
 		sp->s_fp = htable[hash];

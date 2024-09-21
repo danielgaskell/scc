@@ -135,8 +135,6 @@ unsigned generate_lref(unsigned v, unsigned size, unsigned to_de)
 		fprintf(fdo, "\tld hl,0x%x\n\tadd hl,sp\n", WORD(v));
 		if (IS_RABBIT)
 			fprintf(fdo, "\tld hl,(hl + %u\n)\n", 0);
-		else if (IS_EZ80 && to_de)
-			fprintf(fdo, "\tld de,(hl)\n");
 		else if (to_de)
 			fprintf(fdo, "\tld e,(hl)\n\tinc hl\n\tld d,(hl)\n");
 		else
@@ -789,14 +787,6 @@ unsigned gen_direct(struct node *n)
 		return 1;
 	case T_EQ:
 		/* The address is in HL at this point */
-		if (IS_EZ80 && s == 2) {
-			if (load_de_with(r) == 0)
-				return 0;
-			fprintf(fdo, "\tld (hl),de\n");
-			if (!nr)
-				fprintf(fdo, "\tex de,hl\n");
-			return 1;
-		}
 		if (s == 1) {
 			/* We need to end up with the value in l if this is not NORETURN, also
 			   we can optimize constant a step more */
@@ -1975,10 +1965,7 @@ unsigned gen_node(struct node *n)
 		return 1;
 	case T_EQ:
 		if (size == 2) {
-			if (IS_EZ80)
-				fprintf(fdo, "\tex de,hl\npop hl\nld (hl),de\n");
-			else
-				fprintf(fdo, "\tex de,hl\n\tpop hl\n\tld (hl),e\n\tinc hl\n\tld (hl),d\n");
+            fprintf(fdo, "\tex de,hl\n\tpop hl\n\tld (hl),e\n\tinc hl\n\tld (hl),d\n");
 			if (!nr)
 				fprintf(fdo, "\tex de,hl\n");
 			return 1;
@@ -2021,10 +2008,6 @@ unsigned gen_node(struct node *n)
 		}
 		return 0;
 	case T_DEREF:
-		if (size == 4 && IS_EZ80) {
-			fprintf(fdo, "\tld de,(hl)\n\tinc hl\n\tinc hl\n\tld hl,(hl)\n\tld (_hireg),hl\n\tex de.hl\n");
-			return 1;
-		}
 		if (size == 2) {
 			if (HAS_LDHLHL)
 				fprintf(fdo, "\tld hl,(hl)\n");
@@ -2049,10 +2032,11 @@ unsigned gen_node(struct node *n)
 	case T_CONSTANT:
 		switch(size) {
 		case 4:
-			fprintf(fdo, "\tld hl,0x%x\n", ((v >> 16) & 0xFFFF));
+		    fprintf(fdo, ";here: %x %x %x %x\n", *(unsigned char*)&v, *((unsigned char*)&v + 1), *((unsigned char*)&v + 2), *((unsigned char*)&v + 3));
+			fprintf(fdo, "\tld hl,0x%x\n", (unsigned short)((n->value >> 16)));
 			fprintf(fdo, "\tld (__hireg),hl\n");
 		case 2:
-			fprintf(fdo, "\tld hl,0x%x\n", (v & 0xFFFF));
+			fprintf(fdo, "\tld hl,0x%x\n", (unsigned short)(n->value));
 			return 1;
 		case 1:
 			fprintf(fdo, "\tld l,0x%x\n", (v & 0xFF));
