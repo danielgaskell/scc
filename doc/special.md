@@ -125,4 +125,3 @@ However, SCC aims to improve on SymbosMake in several important ways:
 * Static initializers can contain direct pointers to other data structures, rather than having to initialize this at runtime (very useful when defining windows and controls)
 * Much faster compilation times
 * Much more comprehensive documentation
-* It should eventually be possible to run SCC natively on SymbOS (!)
