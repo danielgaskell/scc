@@ -11,7 +11,6 @@ mkdir ..\release\win32\lib\include\sys
 mkdir ..\release\win32\lib\include\symbos
 mkdir ..\release\win32\sample
 mkdir ..\release\symbos
-mkdir ..\release\symbos\doc
 mkdir ..\release\symbos\lib
 mkdir ..\release\symbos\lib\include
 mkdir ..\release\symbos\lib\include\sys
@@ -42,7 +41,6 @@ copy /Y ..\bin\symbos\*.exe ..\release\symbos
 copy /Y ..\bin\symbos\*.com ..\release\symbos
 copy /Y ..\bin\symbos\*.hlp ..\release\symbos
 copy /Y ..\bin\symbos\*.z80 ..\release\symbos
-copy /Y ..\doc\*.md ..\release\symbos\doc
 copy /Y ..\lib\*.a ..\release\symbos\lib
 copy /Y ..\lib\*.o ..\release\symbos\lib
 copy /Y ..\lib\include\*.h ..\release\symbos\lib\include
