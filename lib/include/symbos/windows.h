@@ -438,8 +438,8 @@ typedef struct {
 
 typedef struct {
     unsigned char bytew;
-    unsigned char h;
     unsigned char w;
+    unsigned char h;
     char* addrData;
     char* addrEncoding;
     unsigned short len;

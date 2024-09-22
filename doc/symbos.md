@@ -508,8 +508,8 @@ Displays an image with an extended graphics header.
 ```
 typedef struct {
     unsigned char bytew;  // width of the complete graphic in bytes (must be even)
-    unsigned char h;      // height of this block in pixels
     unsigned char w;      // width of this block in pixels
+    unsigned char h;      // height of this block in pixels
     char* addrData;       // address of graphic data + offset
     char* addrEncoding;   // address of encoding byte just before the start of the whole graphic
     unsigned short len;   // size of the complete graphic in bytes
