@@ -1342,6 +1342,34 @@ Shell_PathAdd(_symbank, "A:\ARCHIVE", "C:\SYMBOS", abspath);
 
 *SymbOS name*: `SymShell_PathAdd_Command` (`MSC_SHL_PTHADD`).
 
+### Shell_CharWatch()
+
+```c
+signed char Shell_CharWatch(unsigned char bank, char* addr);
+```
+
+Creates a "character watch byte" that we can read directly to determine if there is keyboard input pending in SymShell, without the overhead of repeatedly calling `Shell_CharTest()`. The watch byte will be established at bank `bank`, address `addr`. As soon as a key is pressed, its value will be written to the byte; if the keyboard buffer is empty, 0 will be written. We can then call `Shell_CharIn()` to read the key from the buffer.
+
+This function requires SymShell 2.3 or greater and will fail with `_shellerr` = `ERR_RINGFULL` on earlier versions.
+
+*Return value*: On success, returns 0. On failure, returns -2 and sets `_shellerr`.
+
+*SymbOS name*: `SymShell_CharWatch_Command` (`MSC_SHL_CHRWTC`).
+
+### Shell_StopWatch()
+
+```c
+signed char Shell_StopWatch(unsigned char bank, char* addr);
+```
+
+Deactivates the "character watch byte" at bank `bank`, address `addr`, which was previously established using `Shell_CharWatch()`.
+
+This function requires SymShell 2.3 or greater and will fail with `_shellerr` = `ERR_RINGFULL` on earlier versions.
+
+*Return value*: On success, returns 0. On failure, returns -2 and sets `_shellerr`.
+
+*SymbOS name*: `SymShell_CharWatch_Command` (`MSC_SHL_CHRWTC`).
+
 ## Process management
 
 SymbOS makes a distinction between an *application ID*, which is associated with a single application, and a *process ID*, which is associated with a single process. An application may potentially open multiple processes, although most do not. *Pay close attention to which is required by a given function!*

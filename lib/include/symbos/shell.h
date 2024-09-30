@@ -26,5 +26,7 @@ extern signed char Shell_Print(char* addr);
 extern void Shell_Exit(unsigned char type);
 extern void Shell_PathAdd(unsigned char bank, char* path, char* addition, char* dest);
 extern int Shell_CharTest(unsigned char channel, unsigned char lookahead);
+extern signed char Shell_CharWatch(unsigned char bank, char* addr);
+extern signed char Shell_StopWatch(unsigned char bank, char* addr);
 
 #endif

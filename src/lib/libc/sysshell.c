@@ -3,7 +3,7 @@
 #include "shellmsg.h"
 
 /* ========================================================================== */
-/* SymShell system calls                                                      */
+/* SymShell system calls 1                                                    */
 /* ========================================================================== */
 
 int Shell_CharIn(unsigned char channel) {
@@ -104,28 +104,3 @@ void Shell_Exit(unsigned char type) {
     }
     _shellerr = ERR_NOSHELL;
 }
-
-int Shell_CharTest(unsigned char channel, unsigned char lookahead) {
-    if (_shellpid) {
-        if (_shellver >= 23) { // requires SymShell 2.3 or greater
-            _msemaon();
-            _symmsg[0] = 70;
-            _symmsg[1] = channel;
-            _symmsg[2] = lookahead;
-            _Shell_MsgWait();
-            if (_symmsg[3] > 1) {  // error
-                _msemaoff();
-                return -2;
-            }
-            if (_symmsg[1] == 2) { // normal char
-                _msemaoff();
-                return _symmsg[2];
-            }
-            _msemaoff();
-        }
-        return 0;                 // else no char
-    }
-    _shellerr = ERR_NOSHELL;
-    return -2;
-}
-
