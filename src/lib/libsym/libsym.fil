@@ -16,6 +16,7 @@ threads.o
 kernel.o
 kernbank.o
 kernclip.o
+kerncomp.o
 kerndev.o
 kernmem.o
 kernmult.o

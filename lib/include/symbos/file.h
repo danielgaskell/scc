@@ -61,6 +61,7 @@ extern unsigned char File_Open(unsigned char bank, char* path);
 extern unsigned char File_Close(unsigned char id);
 extern unsigned short File_Read(unsigned char id, unsigned char bank, char* addr, unsigned short len);
 extern unsigned char File_ReadLine(unsigned char id, unsigned char bank, char* addr);
+extern unsigned short File_ReadComp(unsigned char id, unsigned char bank, char* addr, unsigned short len);
 extern unsigned short File_Write(unsigned char id, unsigned char bank, char* addr, unsigned short len);
 extern long File_Seek(unsigned char id, long offset, unsigned char ref);
 

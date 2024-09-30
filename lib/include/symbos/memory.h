@@ -21,5 +21,6 @@ extern unsigned char Bank_ReadByte(unsigned char bank, char* addr);
 extern void Bank_WriteByte(unsigned char bank, char* addr, unsigned char val);
 extern void Bank_Copy(unsigned char bankDst, char* addrDst, unsigned char bankSrc, char* addrSrc, unsigned short len);
 extern unsigned char Bank_Get(void);
+extern void Bank_Decompress(unsigned char bank, char* addrDst, char* addrSrc);
 
 #endif

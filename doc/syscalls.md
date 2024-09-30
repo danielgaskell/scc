@@ -278,6 +278,26 @@ Returns the bank number in which the app's main process is running. (Normally it
 
 *SymbOS name*: `Banking_GetBank` (`BNKGET`).
 
+### Bank_Decompress()
+
+```c
+void Bank_Decompress(unsigned char bank, char* addrDst, char* addrSrc);
+```
+
+Decompresses the compressed data block located at bank `bank`, address `addrSrc` into memory at bank `bank`, address `addrDst`. The addresses must be arranged such that the last address of the decompressed data will be the same as the last address of the original compressed data. That is, we need to know the length of the uncompressed data ahead of time, and load the compressed data into the end of this buffer, with `addrSrc` = `addrDest` + *(uncompressed length)* - *(compressed length)*. The data will then be decompressed "in place" to fill the buffer completely from start to finish.
+
+The structure of a compressed data block is as follows:
+
+* 2 bytes (`unsigned short`): length of the block, minus these two bytes
+* 4 bytes: the last four bytes of the data (uncompressed)
+* 2 bytes (`unsigned short`): the number of uncompressed bytes before the compressed data begins (e.g., for metadata; usually 0)
+* (some amount of uncompressed data, or nothing)
+* (some amount of data compressed using the [ZX0 algorithm](https://github.com/einar-saukas/ZX0), minus the last four bytes given above)
+
+**This function is only available in SymbOS 4.0 and higher.**
+
+*SymbOS name*: `Banking_Decompress` (`BNKCPR`).
+
 ## System status
 
 In addition to `symbos.h`, these functions can be found in `symbos/core.h`.
@@ -949,6 +969,21 @@ Reads a line of text (up to 254 bytes) from the open file handle `id` into a buf
 *Return value*: On success, returns 0. On failure, sets and returns `_fileerr`.
 
 *SymbOS name*: `File_LineInput` (`FILLIN`).
+
+### File_ReadComp()
+
+```c
+unsigned short File_ReadComp(unsigned char id, unsigned char bank, 
+                             char* addr, unsigned short len);
+```
+
+Reads a compressed data block from the open file handle `id` into a buffer at bank `bank`, address `addr` and decompresses it in-place using [`Bank_Decompress()`](#bank_decompress). `len` must contain the total resulting length of the *decompressed* data, in bytes. The seek position will be moved past the end of the block, so the next call to `File_ReadComp()` will read the next part of the file.
+
+**This function is only available in SymbOS 4.0 and higher.** For details on the structure of a compressed data block, see the documentation for [`Bank_Decompress()`](#bank_decompress).
+
+*Return value*: On success, returns the number of bytes read. On failure, sets `_fileerr` and returns 0.
+
+*SymbOS name*: `File_Compressed` (`FILCPR`).
 
 ### File_Write()
 

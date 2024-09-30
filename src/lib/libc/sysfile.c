@@ -64,10 +64,11 @@ unsigned char File_Close(unsigned char id) {
     return result;
 }
 
-unsigned short File_Read(unsigned char id, unsigned char bank, char* addr, unsigned short len) {
+unsigned short _File_Read(unsigned char id, unsigned char bank, char* addr, unsigned short len, unsigned char compressed) {
     unsigned short result;
     _msemaon();
-    _symmsg[1] = 20;
+    _symmsg[1] = compressed ? 26 : 20;
+    _symmsg[2] = compressed;
     _symmsg[3] = id;
     *((unsigned short*)(_symmsg + 4)) = len;
     _symmsg[6] = bank;
@@ -79,6 +80,14 @@ unsigned short File_Read(unsigned char id, unsigned char bank, char* addr, unsig
     }
     _msemaoff();
     return 0;
+}
+
+unsigned short File_Read(unsigned char id, unsigned char bank, char* addr, unsigned short len) {
+    return _File_Read(id, bank, addr, len, 0);
+}
+
+unsigned short File_ReadComp(unsigned char id, unsigned char bank, char* addr, unsigned short len) {
+    return _File_Read(id, bank, addr, len, 1);
 }
 
 unsigned char File_ReadLine(unsigned char id, unsigned char bank, char* addr) {
