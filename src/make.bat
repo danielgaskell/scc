@@ -16,3 +16,5 @@ echo reloc.c
 gcc -m32 -static -static-libgcc -static-libstdc++ reloc.c -o ..\bin\reloc.exe
 echo copt.c
 gcc -m32 -static -static-libgcc -static-libstdc++ copt.c -o ..\bin\copt.exe
+echo gfx2sgx.c
+gcc -m32 -static -static-libgcc -static-libstdc++ gfx2sgx.c -o ..\bin\gfx2sgx.exe
