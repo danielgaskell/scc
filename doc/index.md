@@ -133,6 +133,7 @@ Images can be converted to SGX format using software such as [MSX Viewer 5](http
 
 * **`float` is currently somewhat broken**; use with care. (The current implementation is horrible anyway, and should eventually be replaced with a proper Z80 floating-point library.)
 * **Not all libc functions are available, well-tested, and/or correctly implemented yet**. The libc implementation is robust enough for SCC to compile itself, but you may encounter subtle incompatibilities and any code requiring less-common system functions should be tested carefully.
+* Symbol matching only considers the first 15 characters (to conserve memory on native builds).
 * No high-level optimizations like subexpression merging. (Just write efficiently.)
 * The libc implementation is not very fast and favors portability over speed.
 * For the usual Z80 reasons, 8-bit arithmetic (`char`) will always be much faster than 16-bit (`int`) and particularly floating-point (`float`, `double`) arithmetic. Declaring variables `unsigned` may also improve efficiency where applicable.
