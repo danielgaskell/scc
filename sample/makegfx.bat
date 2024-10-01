@@ -1,0 +1,1 @@
+..\bin\cc gfxdemo.c -lgfx
