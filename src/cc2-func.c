@@ -114,7 +114,7 @@ void gen_frame(unsigned size,  unsigned aframe)
 void gen_epilogue(unsigned size, unsigned argsize)
 {
 	if (sp != 0)
-		error("sp");
+        error("internal: stack misaligned");
 
 	/* Return in HL, does need care on stack. TOOD: flag void functions
 	   where we can burn the return */
