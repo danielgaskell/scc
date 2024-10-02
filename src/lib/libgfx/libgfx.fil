@@ -1,3 +1,4 @@
+init.o
 box.o
 boxf.o
 circle.o
@@ -11,7 +12,6 @@ save.o
 spixel.o
 pixel.o
 put.o
-init.o
 value.o
 hline.o
 vline.o
