@@ -96,11 +96,11 @@ void usage(void) {
 int main(int argc, char* argv[]) {
     int xsize, ysize, nchannels;
     int i, x, y, xstart, ystart, tile, tiles;
+    int tilewidth = 0;
+    int tileheight = 0;
     unsigned short tilelen, written;
     unsigned char outbyte, offset, color;
     unsigned char outcolors = 16;
-    unsigned char tilewidth = 0;
-    unsigned char tileheight = 0;
     unsigned char numbers = 0;
     unsigned char maskmode = 0, maskmax = 0, maskit;
     unsigned char* data;
@@ -140,6 +140,7 @@ int main(int argc, char* argv[]) {
                     tileheight = atoi(argv[i]);
                 else
                     usage();
+                ++numbers;
             } else if (!infile) {
                 infile = argv[i];
             } else {
