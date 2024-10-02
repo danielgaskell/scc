@@ -98,6 +98,8 @@ However, redrawing a full canvas can visibly take a fraction of a second on a 4 
 Win_Redraw_Area(winID, 1, 0, 10, 10, 16, 16); // redraw only the 16x16 pixel region starting at x=10, y=10 in control ID 1
 ```
 
+**Important**: The coordinates for `Win_Redraw_Area` are relative to the *window content*, not the canvas! This means that, if the canvas is not at position `x` = 0, `y` = 0 in the window, the coordinates passed to `Win_Redraw_Area` must have the canvas position added in.
+
 It is important to understand that refreshes occur asynchronously. We are telling the desktop manager to refresh the control at its earliest convenience, but our code will keep running in the meantime, and there is no way to determine when the refresh has actually occurred (except that, once the screen is refreshed, there will be a delay of at least 20 milliseconds before it can be refreshed again). This is helpful for realtime games, where waiting for a refresh would slow everything down, but can also create subtle traps. In particular, if we are continuously updating the canvas, what is actually shown on the screen will not be the contents of the canvas *at the time the refresh was requested*, but the contents of the canvas some fraction of a second later *when the refresh is actually performed.* Care should therefore be taken not to "get ahead of" the screen refresh by, e.g., plotting a sprite, requesting a refresh, and then immediately moving it somewhere else.
 
 ## Drawing functions
