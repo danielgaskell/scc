@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
         tilewidth = xsize;
         tileheight = ysize;
     }
-    if (xsize > 252 || ysize > 255)
+    if (tilewidth > 252 || tileheight > 255)
         fatal("image dimensions too large!");
     if (xsize % 4)
         fatal("image width is not a multiple of 4!");
