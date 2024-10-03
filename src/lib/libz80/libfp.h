@@ -23,7 +23,7 @@ typedef long		int32_t;
 #define HIDDEN		(1UL << 23)	/* Implied 1 bit in IEE float */
 #define SIGN(x)		(((x) >> 31) & 0x01)
 #define EXP(x)		(((x) >> 23) & 0xFF)
-#define MANT(x)		(((x) & 0x7FFFFF) | HIDDEN)
+#define MANT(x)		(((x) & 0x7FFFFFUL) | HIDDEN)
 
 #define SIGNBIT		0x80000000UL
 #define INFINITY	0x78000000UL
