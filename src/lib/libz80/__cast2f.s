@@ -13,22 +13,68 @@
 ; uint32_t _castc_f(signed char a1)
 ; uint32_t _castuc_f(unsigned char a1)
 
-ftemp:
-	.word 0, 0
-	
 .export __cast_f
 __cast_f:
+	pop bc
+	pop hl
+	push hl
+	push bc
+	ld bc,__floatd
+	call i16tof32
+	ld hl,(__floatd+2)
+	ld (__hireg),hl
+	ld hl,(__floatd+0)
+	ret
+
+.export __castu_f
+__castu_f:
+	pop bc
+	pop hl
+	push hl
+	push bc
+	ld bc,__floatd
+	call u16tof32
+	ld hl,(__floatd+2)
+	ld (__hireg),hl
+	ld hl,(__floatd+0)
+	ret
+	
+.export __castc_f
+__castc_f:
+	pop bc
+	pop hl
+	push hl
+	push bc
+	ld a,l
+	ld bc,__floatd
+	call i8tof32
+	ld hl,(__floatd+2)
+	ld (__hireg),hl
+	ld hl,(__floatd+0)
+	ret
+
+.export __castuc_f
+__castuc_f:
+	pop bc
+	pop hl
+	push hl
+	push bc
+	ld a,l
+	ld bc,__floatd
+	call u8tof32
+	ld hl,(__floatd+2)
+	ld (__hireg),hl
+	ld hl,(__floatd+0)
+	ret
+
+.export i16tof32
+i16tof32:
 ;Inputs:
-;   SP+2 holds a 16-bit signed integer, (-32768 to 32767)
-;   BC points to where to write the float (now a buffer)
+;   HL holds a 16-bit signed integer, (-32768 to 32767)
+;   BC points to where to write the float
 ;Outputs:
-;   Converts A to an f32 float at HL, (__hireg)
+;   Converts A to an f32 float at BC
 ;
-  pop de ; HL = SP+2
-  pop hl
-  push hl
-  push de
-  ld bc,ftemp ; BC = ftemp
   call __pushpopf
 
   xor a
@@ -53,7 +99,7 @@ __cast_f:
 
 jp1:
   rla         ; save the sign
-  ld d,#0x95  ;Initial exponent
+  ld d,#0x8F  ;Initial exponent
 
 jr1:
   dec d
@@ -74,26 +120,16 @@ i16tof32_finish:
   inc bc
   ld a,d
   ld (bc),a
-  
-  ; copy ftemp to HL, (__hireg)
-  ld hl,(ftemp+2)
-  ld (__hireg),hl
-  ld hl,(ftemp+0)
   ret
- 
-.export __castu_f
-__castu_f:
+  
+.export u16tof32
+u16tof32:
 ;Inputs:
-;   SP+2 holds a 16-bit unsigned integer, (0 to 65535)
-;   BC points to where to write the float (now a buffer)
+;   HL holds a 16-bit unsigned integer, (0 to 65535)
+;   BC points to where to write the float
 ;Outputs:
-;   Converts HL (unsigned) to an f32 float at HL, (__hireg)
+;   Converts HL (unsigned) to an f32 float at BC
 ;
-  pop de ; HL = SP+2
-  pop hl
-  push hl
-  push de
-  ld bc,ftemp ; BC = ftemp
   call __pushpopf
 
   xor a
@@ -105,12 +141,12 @@ __castu_f:
   ld d,a
   jr z,u16tof32_finish
 
-  ld d,#0x95  ;Initial exponent
+  ld d,#0x8F  ;Initial exponent
 
-jr4:
+jr2:
   dec d
   add hl,hl
-  jr nc,jr4
+  jr nc,jr2
 
   srl d ; shift the exponent down, shifting in the sign
   rr h  ; shift the lsb of the exponent into the significand
@@ -125,25 +161,16 @@ u16tof32_finish:
   inc bc
   ld a,d
   ld (bc),a
-  ; copy ftemp to HL, (__hireg)
-  ld hl,(ftemp+2)
-  ld (__hireg),hl
-  ld hl,(ftemp+0)
   ret
-
-.export __castc_f
-__castc_f:
+  
+.export i8tof32
+i8tof32:
 ;Inputs:
-;   SP+2 holds a 8-bit signed integer, (-128 to 127)
-;   BC points to where to write the float (now a buffer)
+;   A holds a 8-bit signed integer, (-128 to 127)
+;   BC points to where to write the float
 ;Outputs:
-;   Converts A to an f32 float at HL, (__hireg)
+;   Converts A to an f32 float at BC
 ;
-  pop de ; HL = SP+2
-  pop hl
-  push hl
-  push de
-  ld bc,ftemp ; BC = ftemp
   push hl
   push af
 
@@ -161,27 +188,23 @@ jp2:
   ld (hl),0
   inc hl
 
-  jr nz,jr2
+  jr nz,jr3
   ld (hl),a
   inc hl
   ld (hl),a
   pop af
   pop hl
-  ; copy ftemp to HL, (__hireg)
-  ld hl,(ftemp+2)
-  ld (__hireg),hl
-  ld hl,(ftemp+0)
   ret
 
-jr2:
+jr3:
   push bc
   rl c        ; save the sign
   ld b,#0x87  ;Initial exponent
 
-jr3:
+jr4:
   dec b
   add a,a
-  jr nc,jr3
+  jr nc,jr4
 
   rr c  ; shift in a 1 and shift out the sign
   rr b  ; shift the exponent down, shifting in the sign
@@ -193,25 +216,16 @@ jr3:
   pop bc
   pop af
   pop hl
-  ; copy ftemp to HL, (__hireg)
-  ld hl,(ftemp+2)
-  ld (__hireg),hl
-  ld hl,(ftemp+0)
   ret
 
-.export __castuc_f
-__castuc_f:
+.export u8tof32
+u8tof32:
 ;Inputs:
-;   SP+2 holds a 8-bit unsigned integer, (0 to 255)
-;   BC points to where to write the float (now a buffer)
+;   A holds a 8-bit unsigned integer, (0 to 255)
+;   BC points to where to write the float
 ;Outputs:
-;   Converts A to an f32 float at HL, (__hireg)
+;   Converts A to an f32 float at BC
 ;
-  pop de ; HL = SP+2
-  pop hl
-  push hl
-  push de
-  ld bc,ftemp ; BC = ftemp
   push hl
   push af
 
@@ -230,10 +244,6 @@ __castuc_f:
   ld (hl),a
   pop af
   pop hl
-  ; copy ftemp to HL, (__hireg)
-  ld hl,(ftemp+2)
-  ld (__hireg),hl
-  ld hl,(ftemp+0)
   ret
 
 jr5:
@@ -256,9 +266,4 @@ jr6:
   pop bc
   pop af
   pop hl
-  ; copy ftemp to HL, (__hireg)
-  ld hl,(ftemp+2)
-  ld (__hireg),hl
-  ld hl,(ftemp+0)
   ret
-  

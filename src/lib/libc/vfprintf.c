@@ -14,9 +14,7 @@
 
 #include "printf.h"
 
-#ifdef BUILD_LIBM
 extern void _fnum(double val, char fmt, int prec, char *ptmp);
-#endif
 
 /*
  * Output the given field in the manner specified by the arguments. Return
@@ -223,7 +221,6 @@ int _vfnprintf(FILE * op, size_t maxlen, const char *fmt, va_list ap)
 					   buffer_mode);
 				break;
 
-#ifdef BUILD_LIBM
 			case 'e':	/* float */
 			case 'f':
 			case 'g':
@@ -238,8 +235,7 @@ int _vfnprintf(FILE * op, size_t maxlen, const char *fmt, va_list ap)
 				 */
 				preci = -1;
 				goto printit;
-				/* FALLTHROUGH if no floating printf available */
-#endif
+
 			default:	/* unknown character */
 				goto charout;
 			}

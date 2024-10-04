@@ -8,15 +8,59 @@
 ; long _castf_l(uint32_t a1)
 
 ; IMPLEMENTED:
-; unsigned _castf_u(uint32_t a1)
-; unsigned char _castf_uc(uint32_t a1)
 ; int _castf_(uint32_t a1)
+; unsigned _castf_u(uint32_t a1)
 ; signed char _castf_c(uint32_t a1)
+; unsigned char _castf_uc(uint32_t a1)
 ; float _castf_f(uint32_t a1)
 
 .export __castf_
 __castf_:
-;Inputs: SP+2 is an f32 float
+	ld hl,2
+	add hl,sp
+	call f32toi16
+	ret
+
+.export __castf_u
+__castf_u:
+	ld hl,2
+	add hl,sp
+	call f32tou16
+	ret
+	
+.export __castf_c
+__castf_c:
+	ld hl,2
+	add hl,sp
+	call f32toi8
+	ld h,0
+	ld l,a
+	ret
+	
+.export __castf_uc
+__castf_uc:
+	ld hl,2
+	add hl,sp
+	call f32tou8
+	ld h,0
+	ld l,a
+	ret
+	
+.export __castf_f
+__castf_f:
+	pop bc
+	pop de
+	pop hl
+	ld (__hireg),hl
+	ex de,hl
+	push bc
+	push bc
+	push bc
+	ret
+	
+.export f32toi16
+f32toi16:
+;Inputs: HL points to an f32 float
 ;Outputs: HL is the signed 16-bit integer part of the input (rounded down)
 ;Special cases:
 ;   NaN              ==> 0
@@ -25,9 +69,7 @@ __castf_:
   push de
   push bc
   push af
-  
-  ld hl,8
-  add hl,sp
+
   ld c,(hl)
   inc hl
   ld e,(hl)
@@ -130,9 +172,9 @@ jr2:
   dec hl
   ret
   
-.export __castf_u
-__castf_u:
-;Inputs: SP+2 is an f32 float
+.export f32tou16
+f32tou16:
+;Inputs: HL points to an f32 float
 ;Outputs: HL is the unsigned 16-bit integer part of the input (rounded down)
 ;Special cases:
 ;   NaN                ==> 0
@@ -142,8 +184,6 @@ __castf_u:
   push de
   push bc
   push af
-  ld hl,8
-  add hl,sp
   ld c,(hl)
   inc hl
   ld e,(hl)
@@ -163,7 +203,7 @@ __castf_u:
   inc a
   jr z,f32tou16_infnan
 
-  add a,113
+  add a,256-143
   jr c,f32tou16_return_carry
   add a,15
   jr nc,f32tou16_return_carry
@@ -174,16 +214,16 @@ __castf_u:
   xor a
   ld e,a
 
-djnz3:
+djnz2:
   add hl,hl
   rl e
   rla
-  djnz djnz3
+  djnz djnz2
 
   ld l,e
   ld h,a
 
-  .byte #0x01 ; start of `ld bc,**` to skip the next two bytes
+  .db #0x01 ; start of `ld bc,**` to skip the next two bytes
 f32tou16_return_carry:
   sbc hl,hl
 
@@ -199,21 +239,19 @@ f32tou16_infnan:
   or c
   sub 1
   jr f32tou16_return_carry
-
-.export __castf_c
-__castf_c:
-;Inputs: SP+2 is an f32 float
-;Outputs: L is the signed 8-bit integer part of the input (rounded down)
+  
+.export f32toi8
+f32toi8:
+;Inputs: HL points to an f32 float
+;Outputs: A is the signed 8-bit integer part of the input (rounded down)
 ;Special cases:
 ;   NaN              ==> 0
 ;   greater than 127 ==> 127
 ;   less than -128   ==> -128
 
+  push hl
   push de
   push bc
-  push af
-  ld hl,10
-  add hl,sp
   ld a,(hl)
   inc hl
   or (hl)
@@ -235,11 +273,9 @@ __castf_c:
   call f32toi8_get_int
 
 f32toi8_return:
-  ld h,0
-  ld l,a
-  pop af
   pop bc
   pop de
+  pop hl
   ret
 
 f32toi8_zero_ish:
@@ -279,9 +315,9 @@ f32toi8_get_int:
   ld l,c    ; upper 8 bits of the significand, H is 0
   ld b,a
   inc b
-djnz2:
+djnz3:
   add hl,hl
-  djnz djnz2
+  djnz djnz3
   ld a,h
   rl e
   ret nc
@@ -292,21 +328,19 @@ djnz2:
   sub h
   ld h,a
   ret
-  
-.export __castf_uc
-__castf_uc:
-;Inputs: SP+2 is an f32 float
-;Outputs: L is the unsigned 8-bit integer part of the input (rounded down)
+
+.export f32tou8
+f32tou8:
+;Inputs: HL points to an f32 float
+;Outputs: A is the unsigned 8-bit integer part of the input (rounded down)
 ;Special cases:
 ;   NaN              ==> 0
 ;   greater than 255 ==> 255
 ;   less than 0      ==> 0
 
+  push hl
   push de
   push bc
-  push af
-  ld hl,8
-  add hl,sp
   ld e,(hl)
   inc hl
   ld d,(hl)
@@ -326,7 +360,7 @@ __castf_uc:
   inc a
   jr z,f32tou8_infnan
 
-  add a,121
+  add a,256-135
   jr c,f32tou8_return_carry
   add a,7
   jr nc,f32tou8_return_carry
@@ -339,15 +373,13 @@ djnz4:
   rla
   djnz djnz4
 
-  .byte #0xFE
+  .db #0xFE
 f32tou8_return_carry:
   sbc a,a
 f32tou8_return:
-  ld h,0
-  ld l,a
-  pop af
   pop bc
   pop de
+  pop hl
   ret
 
 f32tou8_infnan:

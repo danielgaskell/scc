@@ -8,6 +8,7 @@
 		.export __ret
 		.export __xchgret
 		.export	__callhl
+		.export __floatd
 
 ; __tmp must be the word before hireg
 __tmp:
@@ -30,3 +31,6 @@ __retaddr:
 		.code
 
 __callhl:	jp	(hl)
+
+__floatd:
+		.word 0, 0

@@ -130,14 +130,15 @@ __bool.o
 __shlde.o
 __shrdeu.o
 __cast2f.o
-__pushpopf.o
 __ccgtl.o
 __divf.o
 __sex.o
+__fcmp.o
 __divde.o
 __mulde.o
 __mulf.o
 __minusf.o
+__negatef.o
 __cplc.o
 __ccltl.o
 __ccequl.o
@@ -181,6 +182,7 @@ __andeql.o
 __shrul.o
 __true.o
 __cmpl.o
+__pushpopf.o
 ldbyte_1.o
 ldbyte_10.o
 ldbyte_11.o
