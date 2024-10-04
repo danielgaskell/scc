@@ -1,3 +1,4 @@
+fnum.s
 longjmp.s
 memcpy.s
 memset.s

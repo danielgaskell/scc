@@ -14,7 +14,7 @@
 
 #include "printf.h"
 
-extern void _fnum(double val, char fmt, int prec, char *ptmp);
+extern char* _fnum(double val, char fmt, int prec);
 
 /*
  * Output the given field in the manner specified by the arguments. Return
@@ -226,8 +226,7 @@ int _vfnprintf(FILE * op, size_t maxlen, const char *fmt, va_list ap)
 			case 'g':
 			case 'E':
 			case 'G':
-				_fnum(va_arg(ap, double),
-				      *fmt, preci, ptmp);
+				ptmp = _fnum(va_arg(ap, double), *fmt, preci);
 				/* double arg;
 				   char fmt;  (e/f/g/E/G)
 				   int preci; (width, -1 if no)

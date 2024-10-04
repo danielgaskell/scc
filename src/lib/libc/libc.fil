@@ -44,6 +44,7 @@ perror.o
 error.o
 popen.o
 printf.o
+fnum.o
 putchar.o
 putenv.o
 putw.o
