@@ -48,9 +48,9 @@ unsigned get_size(register unsigned t)
 		return 2;
 	if (t == CCHAR || t == UCHAR)
 		return 1;
-	if (t == CLONG || t == ULONG || t == FLOAT)
+	if (t == CLONG || t == ULONG || t == FLOAT || t == DOUBLE)
 		return 4;
-	if (t == CLONGLONG || t == ULONGLONG || t == DOUBLE)
+	if (t == CLONGLONG || t == ULONGLONG)
 		return 8;
 	if (t == VOID)
 		return 0;

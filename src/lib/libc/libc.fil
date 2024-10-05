@@ -44,7 +44,6 @@ perror.o
 error.o
 popen.o
 printf.o
-fnum.o
 putchar.o
 putenv.o
 putw.o
@@ -108,6 +107,7 @@ localtim_r.o
 asctime_r.o
 fclose.o
 vfprintf.o
+fnum.o
 ungetc.o
 tolower.o
 strchr.o

@@ -915,7 +915,11 @@ void make_node(struct node *n)
 		gen_text_data(n);
 		break;
 	case T_CAST:
-		helper_s(n, "cast");
+	    if (n->type == FLOAT && n->right->type == DOUBLE) // float and double are synonymous, avoid unnecessary cast
+            break;
+        if (n->type == DOUBLE && n->right->type == FLOAT)
+            break;
+        helper_s(n, "cast");
 		break;
 	case T_CONSTANT:
 		helper(n, "const");
