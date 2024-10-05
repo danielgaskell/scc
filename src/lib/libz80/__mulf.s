@@ -316,6 +316,7 @@ jr5:
 ;    BHLDEA
     ret
 	
+.export C_Times_BDE
 C_Times_BDE:
 ;C*BDE => CAHL
 ;C>=128    155+6*(20+{0,21+{0,1}}) + {0,20+{0,8}}

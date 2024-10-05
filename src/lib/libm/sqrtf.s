@@ -6,7 +6,7 @@ _sqrtf:
 	ld hl,2
 	add hl,sp
 	ld bc,__floatd
-	call f32add
+	call f32sqrt
 	ld hl,(__floatd+2)
 	ld (__hireg),hl
 	ld hl,(__floatd+0)
