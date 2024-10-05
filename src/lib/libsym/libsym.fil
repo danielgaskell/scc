@@ -1,6 +1,6 @@
 argv.o
 filebox.o
-memsizex.o
+memsize.o
 msgbox.o
 network.o
 popups.o

@@ -88,23 +88,3 @@ _Mem_Release:
 	pop ix
 	ret
 	
-; Memory_Resize
-.export _Mem_Resize
-_Mem_Resize:
-	push ix
-	ld ix,0
-	add ix,sp
-	ld a,(ix+4)
-	ld l,(ix+6)
-	ld h,(ix+7)
-	ld c,(ix+8)
-	ld b,(ix+9)
-	ld e,(ix+10)
-	ld d,(ix+11)
-	rst #0x20
-	.word #0x811E
-	ld hl,0
-	adc hl,hl		; error is in CF
-	pop ix
-	ret
-	

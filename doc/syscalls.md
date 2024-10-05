@@ -159,28 +159,14 @@ Releases a block of banked memory previously reserved with `Mem_Reserve()`. `ban
 ### Mem_Resize()
 
 ```c
-unsigned char Mem_Resize(unsigned char bank, char* addr, unsigned short oldlen, unsigned short newlen);
-```
-
-Attempts to resize a block of banked memory previously reserved with `Mem_Reserve()`. `bank` is the bank of the reserved memory, which must be from 1 to 15; `addr` is the address; `oldlen` is the previous length of the reserved block, in bytes; and `newlen` is the requested new length, in bytes.
-
-Shortening a block will always work. Lengthening a block will only work if the required addresses (immediately after the end of the old block) are available, which is unlikely if the user has started any new applications since the block was reserved. A more robust alternative is the SCC-specific helper function `Mem_ResizeX()` (see below).
-
-*Return value*: 0 = success, 1 = out of memory.
-
-*SymbOS name*: `Memory_Resize` (`MEMSIZ`).
-
-### Mem_ResizeX()
-
-```c
 unsigned char Mem_ResizeX(unsigned char bank, unsigned char type, char* addr,
                           unsigned short oldlen, unsigned short newlen,
                           unsigned char* bankVar, char** addrVar);
 ```
 
-A more robust SCC extension to `Mem_Resize()`, above. Attempts to resize a block of banked memory previously reserved with `Mem_Reserve()` by first trying calling `Mem_Resize()`; if this does not succeed, it tries again by reserving a new block of the desired size, copying the old block to the new block, and releasing the old block. `bank` is the bank of the reserved memory, which must be from 1 to 15. `type` may be one of: 0 = located anywhere; 1 = only move within a 16KB address block (like the **data** segment); 2 = only move within the last 16KB address block (like the **transfer** segment). `addr` is the previous address; `oldlen` is the previous length of the reserved block, in bytes; and `newlen` is the requested new length, in bytes.
+Attempts to resize a block of banked memory previously reserved with `Mem_Reserve()`. (This is accomplished manually by reserving a new block of the desired size, copying the old block to the new block, and releasing the old block.) `bank` is the bank of the reserved memory, which must be from 1 to 15; `addr` is the address; `oldlen` is the previous length of the reserved block, in bytes; and `newlen` is the requested new length, in bytes.
 
-Two variables must be passed by reference to store the address of the resulting block: `bankVar` (type `unsigned char`), which stores the bank, and `addrVar` (type `char*`), which stores the address. Note that a moved block may be in any bank, not just the same bank as the previous block.
+Two variables must be passed by reference to store the address of the resulting block: `bankVar` (type `unsigned char`), which stores the bank, and `addrVar` (type `char*`), which stores the address. Note that the new location of the block may be in any bank, not just the same bank as the previous block.
 
 *Return value*: 0 = success, 1 = out of memory.
 

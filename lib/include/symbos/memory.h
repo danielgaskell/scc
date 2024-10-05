@@ -10,10 +10,9 @@ extern unsigned char Mem_Banks(void);
 extern unsigned short Mem_Longest(unsigned char bank, unsigned char type);
 extern unsigned char Mem_Reserve(unsigned char bank, unsigned char type, unsigned short len, unsigned char* bankVar, char** addrVar);
 extern void Mem_Release(unsigned char bank, char* addr, unsigned short len);
-extern unsigned char Mem_Resize(unsigned char bank, char* addr, unsigned short oldlen, unsigned short newlen);
-extern unsigned char Mem_ResizeX(unsigned char bank, unsigned char type, char* addr,
-                                 unsigned short oldlen, unsigned short newlen,
-                                 unsigned char* bankVar, char** addrVar);
+extern unsigned char Mem_Resize(unsigned char bank, unsigned char type, char* addr,
+                                unsigned short oldlen, unsigned short newlen,
+                                unsigned char* bankVar, char** addrVar);
 
 extern unsigned short Bank_ReadWord(unsigned char bank, char* addr);
 extern void Bank_WriteWord(unsigned char bank, char* addr, unsigned short val);
