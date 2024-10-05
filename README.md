@@ -11,7 +11,6 @@ SCC features:
 * Full ANSI C compiler
 * A proper libc port for plug-and-play compilation of existing code
 * Extensive wrappers and utility functions for SymbOS system calls
-* A graphics library for writing games
 * Extensive [documentation](doc/index.md) to help you get started with SymbOS programming
 * Multithreading (yes, [really](doc/syscalls.md#multithreading)!)
 * A complete sample application (programmer's calculator) for reference
