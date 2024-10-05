@@ -42,11 +42,10 @@ Because of how SCC handles variable argument lists, SCC's implementation of `pri
 
 ## Interfacing with assembly code
 
-SCC does not currently support inline assembly. However, Z80 assembly files can be assembled to object files with `as` and linked with the main executable. For example:
+SCC does not currently support inline assembly. However, Z80 assembly files can be passed as arguments to `cc` to be linked into the main executable. For example:
 
 ```bash
-as asmfile.s
-cc cfile.c asmfile.o
+cc cfile.c asmfile.s
 ```
 
 The usual system of `.export` and `extern` applies for sharing symbols between assembly and C objects. Assembly files must export any shared symbols with the `.export` directive:
@@ -103,11 +102,27 @@ In assembly generated during compilation, you may see additional segment directi
 
 Note that `as` uses assembly syntax similar to---but simpler and not 100% identical with---the Maxam-style syntax supported by the WinApe assembler (the most common assembler for SymbOS programming). If something isn't working as expected, try examining some of the assembler files in the SCC source repository to see what syntax they use. To see what assembly code `cc` is producing, run it with the `-X` option to preserve intermediate files.
 
+## Using `as` as a standalone assembler
+
+`as` can be used in conjunction with `ld` as a standalone assembler (including natively on SymbOS). First, use `as` to assembly an assembly (`.s`) file to an object (`.o`) file:
+
+```bash
+as asmfile.s
+```
+
+Then, use `ld` to link the `.o` file into a binary. To output a raw binary file without `ld` trying to patch the start of the file (see below), we should run `ld` with the `-b` option:
+
+```bash
+ld asmfile.o -b -o asmfile.out
+```
+
+The `-o` option allows us to specify the output file name, in this case `asmfile.out`. Multiple `.o` files can be linked into a single binary by listing them in the command line (e.g., `ld asmfile1.o asmfile2.o`...), so we can split up large projects into multiple `.s` files, assemble them separately into object files, and link all the object files together. Symbols can be shared between source files using the `.export` directive, as described above.
+
+The behavior without the `-b` option is slightly different. `ld` assumes that we want to arrange any defined segments (`.code`, `.symdata`, `.symtrans`) into a SymbOS executable and that the code at the start of the `.code` segment defines a valid SymbOS executable header. After linking, the appropriate bytes in the header will be updated with the actual segment lengths. If our assembly files do in fact define a valid SymbOS executable header, this allows us to conveniently define segments using the `.symdata`, etc. directives rather than manually tracking their locations with symbols.
+
 ## Building SCC
 
 The current primary build target for SCC is Windows. Install MinGW, ensure that its `bin` folder is in the system path, and then run the `make.bat` batch files found throughout the SCC source tree to compile the relevant parts of the codebase. (This really ought to transition to proper Makefiles, but whatever.)
-
-`libz80.a` is currently taken more or less directly from the Fuzix Compiler Kit and must be compiled on a Linux system with the normal FCC build chain; this will be changed in the future once the floating-point library is rewritten.
 
 ## SCC vs. SDCC
 

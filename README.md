@@ -11,19 +11,16 @@ SCC features:
 * Full ANSI C compiler
 * A proper libc port for plug-and-play compilation of existing code
 * Extensive wrappers and utility functions for SymbOS system calls
+* A graphics library for writing games
 * Extensive [documentation](doc/index.md) to help you get started with SymbOS programming
 * Multithreading (yes, [really](doc/syscalls.md#multithreading)!)
 * A complete sample application (programmer's calculator) for reference
 
 SCC is considered stable and can be used to write both console and graphical
 applications without issue, but is still under active development, so you may
-encounter bugs or incompletely-implemented advanced features. In particular:
-
-* `float` support is currently flaky (and scheduled for a complete rewrite)
-* Many libc functions are under-tested.
-
-Please report bugs on the Issues tab---although of course make sure that the bug
-is actually in the compiler, not in your own code, and include code to reproduce it.
+encounter bugs or incompletely-implemented advanced features. Please report bugs
+on the Issues tab---although of course make sure that the bug is actually in the
+compiler, not in your own code, and include code to reproduce it.
 
 # License
 

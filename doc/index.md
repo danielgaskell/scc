@@ -131,13 +131,12 @@ Images can be converted to SGX format using software such as [MSX Viewer 5](http
 
 ## Limitations
 
-* **`float` is currently somewhat broken**; use with care. (The current implementation is horrible anyway, and should eventually be replaced with a proper Z80 floating-point library.)
 * **Not all libc functions are available, well-tested, and/or correctly implemented yet**. The libc implementation is robust enough for SCC to compile itself, but you may encounter subtle incompatibilities and any code requiring less-common system functions should be tested carefully.
 * Symbol matching only considers the first 15 characters (to conserve memory on native builds).
 * No high-level optimizations like subexpression merging. (Just write efficiently.)
 * The libc implementation is not very fast and favors portability over speed.
 * For the usual Z80 reasons, 8-bit arithmetic (`char`) will always be much faster than 16-bit (`int`) and particularly floating-point (`float`, `double`) arithmetic. Declaring variables `unsigned` may also improve efficiency where applicable.
-* `double` is currently treated as synonymous with `float` (IEEE 754 floating-point).
+* `double` is currently treated as synonymous with `float` (32-bit IEEE 754 floating-point).
 * The usual SymbOS limits apply, such as 64KB and 16KB limits on particular segments (see the [SymbOS programming guide](symbos.md)).
 * No named static struct initializers like `{.x = 1, .y = 2}`---use `{1, 2}` instead and just be careful about member order.
 * No K&R-style function declarations.
