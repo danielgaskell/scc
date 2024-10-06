@@ -3,16 +3,13 @@
 
 ; Adapted from z80float by Zeda Thomas (Apache license).
 
-; STILL NEEDED (FIXME):
-; unsigned long _castf_ul(uint32_t a1)
-; long _castf_l(uint32_t a1)
-
 ; IMPLEMENTED:
 ; int _castf_(uint32_t a1)
 ; unsigned _castf_u(uint32_t a1)
 ; signed char _castf_c(uint32_t a1)
 ; unsigned char _castf_uc(uint32_t a1)
-; float _castf_f(uint32_t a1)
+; long _castf_l(uint32_t a1)
+; unsigned long _castf_ul(uint32_t a1)
 
 .export __castf_
 __castf_:
@@ -46,16 +43,18 @@ __castf_uc:
 	ld l,a
 	ret
 	
-.export __castf_f
-__castf_f:
-	pop bc
-	pop de
-	pop hl
-	ld (__hireg),hl
-	ex de,hl
-	push bc
-	push bc
-	push bc
+.export __castf_l
+.export __castf_ul
+__castf_l:
+__castf_ul:
+	ld ix,0
+	add ix,sp
+	ld l,(ix+2)
+	ld h,(ix+3)
+	ld e,(ix+4)
+	ld d,(ix+5)
+	call f32toi32
+	ld (__hireg),de
 	ret
 	
 .export f32toi16
@@ -389,4 +388,101 @@ f32tou8_infnan:
   or e
   sub 1
   jr f32tou8_return_carry
-  
+
+; Code below this point adapted from z88dk IEEE Floating Point Package
+; (Clarified Artistic License)
+f32toi32:
+    ld b,d
+    ld a,d                      ;Holds sign + 7bits of exponent
+    rl e
+    rla                         ;a = Exponent
+    and a
+    jp z,m32_fszero             ;exponent was 0, return 0
+    cp #0x9E
+    jp nc,m32_fsmax             ;number too large
+    ; e register is rotated by bit, restore the hidden bit and rotate back
+    scf
+    rr  e
+    ld d,e
+    ld e,h
+    ld h,l
+    ld l,0
+f32toi32loop:
+    srl d                       ;fill with 0
+    rr e
+    rr h
+	rr l
+    inc a
+    cp #0x9E
+    jr nz,f32toi32loop
+    rl b                        ;check sign bit
+    call c,l_neg_dehl
+    ret
+
+; here to negate a number in dehl
+m32_fsneg:
+    ld a,d
+    xor #0x80
+    ld d,a
+    ret
+
+; here to return a legal zero of sign d in dehl
+m32_fszero:
+    ld a,d
+    and #0x80
+    ld d,a
+    ld e,0
+    ld h,e
+    ld l,e
+    ret
+
+; here to change underflow to a error floating zero
+m32_fsmin:
+    call m32_fszero
+
+m32_fseexit:
+    scf                     ; C set for error
+    ret
+
+; here to change overflow to floating infinity of sign d in dehl
+m32_fsmax:
+    ld a,d
+    or #0x7f                 ; max exponent
+    ld d,a
+    ld e,#0x80               ;floating infinity
+    ld hl,0
+    jr m32_fseexit
+
+; here to change error to floating NaN of sign d in dehl
+m32_fsnan:
+    ld a,d
+    or #0x7f                 ; max exponent
+    ld d,a
+    ld e,#0xff               ;floating NaN
+    ld h,e
+    ld l,e
+    jr m32_fseexit
+
+l_neg_dehl:
+   ; negate dehl
+   ; enter : dehl = long
+   ; exit  : dehl = -long
+   ; uses  : af, de, hl, carry unaffected
+   ld a,l
+   cpl
+   ld l,a
+   ld a,h
+   cpl
+   ld h,a
+   ld a,e
+   cpl
+   ld e,a
+   ld a,d
+   cpl
+   ld d,a
+   inc l
+   ret nz
+   inc h
+   ret nz
+   inc de
+   ret

@@ -130,6 +130,7 @@ __bool.o
 __shlde.o
 __shrdeu.o
 __cast2f.o
+__castl2f.o
 __ccgtl.o
 __divf.o
 __sex.o

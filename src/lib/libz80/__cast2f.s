@@ -3,10 +3,6 @@
 
 ; Adapted from z80float by Zeda Thomas (Apache license).
 
-; STILL NEEDED (FIXME):
-; uint32_t _castul_f(unsigned long a1)
-; uint32_t _castl_f(long a1)
-
 ; IMPLEMENTED:
 ; uint32_t _cast_f(int a1)
 ; uint32_t _castu_f(unsigned a1)
@@ -66,7 +62,7 @@ __castuc_f:
 	ld (__hireg),hl
 	ld hl,(__floatd+0)
 	ret
-
+	
 .export i16tof32
 i16tof32:
 ;Inputs:
