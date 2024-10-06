@@ -197,7 +197,7 @@ jr15:
 jr16:
   inc l
   ret
-  
+
 sqrtHLIX:
 ;Input: HLIX
 ;Output: DE is the sqrt, AHL is the remainder
@@ -215,63 +215,63 @@ sqrtHLIX:
   .byte #0xDD
   ld a,h
   sla e
-  set 0,e
   rl d
+  inc e
   add a,a
   adc hl,hl
   add a,a
   adc hl,hl
   sbc hl,de
-  jr nc,ur1
+  jr nc,jr17
   add hl,de
   dec e
   .db #0xFE     ;start of `cp *`
-ur1:
+jr17:
   inc e
 
   sla e
-  set 0,e
   rl d
+  inc e
   add a,a
   adc hl,hl
   add a,a
   adc hl,hl
   sbc hl,de
-  jr nc,ur2
+  jr nc,jr18
   add hl,de
   dec e
   .db #0xFE     ;start of `cp *`
-ur2:
+jr18:
   inc e
 
   sla e
-  set 0,e
   rl d
+  inc e
   add a,a
   adc hl,hl
   add a,a
   adc hl,hl
   sbc hl,de
-  jr nc,ur3
+  jr nc,jr19
   add hl,de
   dec e
   .db #0xFE     ;start of `cp *`
-ur3:
+jr19:
   inc e
 
   sla e
-  set 0,e
   rl d
+  inc e
   add a,a
   adc hl,hl
   add a,a
   adc hl,hl
   sbc hl,de
-  jr nc,ur4
+  jr nc,jr20
   add hl,de
   dec e
   .db #0xFE     ;start of `cp *`
-ur4:
+jr20:
   inc e
 
 ;Now we have four more iterations
@@ -279,40 +279,38 @@ ur4:
   .byte #0xDD
   ld a,l
   sla e
-  set 0,e
   rl d
+  inc e
   add a,a
   adc hl,hl
   add a,a
   adc hl,hl
   sbc hl,de
-  jr nc,ur5
+  jr nc,jr21
   add hl,de
   dec e
   .db #0xFE     ;start of `cp *`
-ur5:
+jr21:
   inc e
 
   sla e
-  set 0,e
   rl d
+  inc e
   add a,a
   adc hl,hl
   add a,a
   adc hl,hl
   sbc hl,de
-  jr nc,ur6
+  jr nc,jr22
   add hl,de
   dec e
   .db #0xFE     ;start of `cp *`
-ur6:
+jr22:
   inc e
 
 sqrt32_iter15:
 ;On the next iteration, HL might temporarily overflow by 1 bit
   sla e
-  set 0,e
-  rl d      ;sla e
   rl d
   inc e
   add a,a
@@ -322,18 +320,18 @@ sqrt32_iter15:
   jr c,sqrt32_iter15_br0
 ;
   sbc hl,de
-  jr nc,ur7
+  jr nc,jr23
   add hl,de
   dec e
   jr sqrt32_iter16
 sqrt32_iter15_br0:
   or a
   sbc hl,de
-ur7:
+jr23:
   inc e
 
-;On the next iteration, HL is allowed to overflow, DE could overflow with our current routine,
-;but it needs to be shifted right at the end, anyways
+;On the next iteration, HL is allowed to overflow, DE could overflow with our
+;current routine, but it needs to be shifted right at the end, anyways
 sqrt32_iter16:
   add a,a
   ld b,a        ;either 0x00 or 0x80
@@ -362,8 +360,7 @@ sqrtHL:
 ;max: 391cc
 ;avg: 371.5cc
 
-
-  ld de,#0x5040  ; 10
+  ld de,#0x5040 ; 10
   ld a,h        ; 4
   sub e         ; 4
   jr nc,sq7     ;\
@@ -420,7 +417,7 @@ sq3:            ;/
   sbc hl,de     ; 15
   jr c,sq2      ;\
   or #0x20      ; | branch 1: 23cc
-  .db 254        ; |   <-- start of `cp *` which is 7cc to skip the next byte.
+  .db 254       ; |   <-- start of `cp *` which is 7cc to skip the next byte.
 sq2:            ; | branch 2: 21cc
   add hl,de     ;/
 
@@ -434,7 +431,7 @@ sq2:            ; | branch 2: 21cc
   sbc hl,de     ; 15
   jr c,sq1      ;\
   or 8          ; | branch 1: 23cc
-  .db 254        ; |   <-- start of `cp *` which is 7cc to skip the next byte.
+  .db 254       ; |   <-- start of `cp *` which is 7cc to skip the next byte.
 sq1:            ; | branch 2: 21cc
   add hl,de     ;/
 
@@ -446,12 +443,12 @@ sq1:            ; | branch 2: 21cc
 
   ld e,a        ; 4
   sbc hl,de     ; 15
-  jr nc,ur8     ;    \
+  jr nc,jr24    ;    \
   add hl,de     ; 15  |
   srl d         ; 8   |
   rra           ; 4   | branch 1: 38cc
   ret           ; 10  | branch 2: 40cc
-ur8:            ;     |
+jr24:           ;     |
   inc a         ; 4   |
   srl d         ; 8   |
   rra           ; 4   |

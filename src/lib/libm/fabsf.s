@@ -1,8 +1,8 @@
 .z80
 .code
 
-.export _fabs
-_fabs:
+.export _fabsf
+_fabsf:
 	ld hl,5
 	add hl,sp
 	ld a,(hl)
