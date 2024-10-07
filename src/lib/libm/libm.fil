@@ -45,11 +45,10 @@ lgammaf_r.o
 floorf.o
 fabsf.o
 scalbnf.o
-sinf.o
+sincosf.o
+__cosdf.o
 sinhf.o
 __sindf.o
-cosf.o
-__cosdf.o
 expf.o
 pow2.o
 log2f.o
