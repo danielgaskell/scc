@@ -200,14 +200,6 @@ void Gfx_Clear(char* canvas, unsigned char color);
 
 Clears the entirety of canvas `canvas` to color `color`. In 4-color modes, higher colors will be automatically rendered down to 4 colors. (This is faster than filling the entire canvas using `Gfx_BoxF()`.)
 
-### Gfx_Paint()
-
-```c
-void Gfx_Paint(signed short x, unsigned char y, unsigned char color);
-```
-
-Flood-fills the area surrounding the starting pixel coordinates `x`, `y` with the color `color`, stopping wherever the fill encounters a different color than the starting pixel. (This is similar to the "paint bucket" tool in MSPaint.) Be aware that this function is currently very slow at filling larger areas. No bounds-checking is performed, so be sure that the coordinates are actually valid. In 4-color modes, higher colors will be automatically rendered down to 4 colors.
-
 ## Sprite functions
 
 We can load images in SGX format from disk and plot them directly on the canvas, or copy portions of the canvas as images for saving to disk or subsequent plotting. Images handled in this way **must have a width that is a multiple of 4 pixels** and cannot exceed 252x255 pixels in width/height. (This means that we cannot load, e.g., complete desktop backgrounds as sprites.)

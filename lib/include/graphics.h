@@ -24,4 +24,3 @@ extern void Gfx_Get(char* image, unsigned short x, unsigned char y, unsigned cha
 extern void Gfx_Box(unsigned short x0, unsigned char y0, unsigned short x1, unsigned short y1, unsigned char color);
 extern void Gfx_BoxF(unsigned short x0, unsigned char y0, unsigned short x1, unsigned short y1, unsigned char color);
 extern void Gfx_Circle(signed short x0, signed short y0, signed short radius, unsigned char color);
-extern void Gfx_Paint(signed short x, unsigned char y, unsigned char color);

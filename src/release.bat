@@ -35,6 +35,8 @@ copy /Y ..\sample\calc.sgx ..\release\win32\sample
 copy /Y ..\sample\calc16.sgx ..\release\win32\sample
 copy /Y ..\sample\progcalc.c ..\release\win32\sample
 copy /Y ..\sample\makecalc.bat ..\release\win32\sample
+copy /Y ..\sample\ball.png ..\release\win32\sample
+copy /Y ..\sample\ball.sgx ..\release\win32\sample
 copy /Y ..\sample\gfxdemo.c ..\release\win32\sample
 copy /Y ..\sample\makegfx.bat ..\release\win32\sample
 
@@ -56,5 +58,7 @@ copy /Y ..\sample\calc.sgx ..\release\symbos\sample
 copy /Y ..\sample\calc16.sgx ..\release\symbos\sample
 copy /Y ..\sample\progcalc.c ..\release\symbos\sample
 copy /Y ..\sample\makecalc_native.bat ..\release\symbos\sample\makecalc.bat
+copy /Y ..\sample\ball.png ..\release\symbos\sample
+copy /Y ..\sample\ball.sgx ..\release\symbos\sample
 copy /Y ..\sample\gfxdemo.c ..\release\symbos\sample
 copy /Y ..\sample\makegfx_native.bat ..\release\symbos\sample

@@ -7,7 +7,6 @@ set.o
 load.o
 line.o
 lineb.o
-paint.o
 save.o
 spixel.o
 pixel.o
