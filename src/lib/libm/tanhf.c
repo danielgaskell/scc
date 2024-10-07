@@ -18,12 +18,12 @@
 #include "libm.h"
 
 float tiny = 1.0e-30;
-float one=1.0, two=2.0, huge = 1.0e30;
+float one = 1.0, two = 2.0, huge = 1.0e30;
 
 float tanhf(float x)
 {
-	float t,z;
-	int32_t jx,ix;
+	float t, z;
+	int32_t jx, ix;
 
 	GET_FLOAT_WORD(jx, x);
 	ix = jx & 0x7fffffffL;
@@ -40,11 +40,11 @@ float tanhf(float x)
             if (huge + x > one) return x; /* tanh(tiny) = tiny with inexact */
 	    }
 	    if (ix >= 0x3f800000L) {	 /* |x|>=1  */
-            t = expm1f(two*fabsf(x));
+            t = expf(two*fabsf(x)) - 1;
             z = one - two/(t+two);
 	    } else {
-	        t = expm1f(-two*fabsf(x));
-	        z= -t/(t+two);
+	        t = expf(-two*fabsf(x)) - 1;
+	        z = -t/(t+two);
 	    }
     /* |x| >= 9, return +-1 */
 	} else {
