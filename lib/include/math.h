@@ -49,7 +49,8 @@ extern int signgam;
 #define pow(a,b)	powf(a,b)
 #define remainder(a,b)	remainderf(a,b)
 #define remquo(a,b,c)	remquof(a,b,c)
-#define rint(a)		rintf(a)
+#define rint(a)		ceil(a)
+#define rintf(a)	ceil(a)
 #define round(a)	roundf(a)
 #define scalbln(a,b)	scalblnf(a,b)
 #define scalbn(a,b)	scalblf(a,b)
@@ -63,8 +64,6 @@ extern int signgam;
 #define y0(a)		y0f(a)
 #define y1(a)		y1f(a)
 #define yn(a,b)		ynf(a,b)
-
-#define fpclassify(x) __fpclassify(x))
 
 #define isinf(x) ( \
   (__float_bits(x) & 0x7fffffff) == 0x7f800000)
@@ -127,7 +126,6 @@ extern float nextafterf(float, float);
 extern float powf(float, float);
 extern float remainderf(float, float);
 extern float remquof(float, float, int *);
-extern float rintf(float);
 extern float roundf(float);
 extern float scalblf(float, long);
 extern float scalbnf(float, int);
@@ -142,8 +140,6 @@ extern float y0f(float);
 extern float y1f(float);
 extern float ynf(int, float);
 extern unsigned int __float_bits(float);
-extern int __fpclassifyf(float);
-extern int __signbitf(float);
 
 /* FIXME: sort out the right NaN's */
 #define __sNaN       0x1.fffff0p128

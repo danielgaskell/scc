@@ -40,10 +40,10 @@ float tanhf(float x)
             if (huge + x > one) return x; /* tanh(tiny) = tiny with inexact */
 	    }
 	    if (ix >= 0x3f800000L) {	 /* |x|>=1  */
-            t = expf(two*fabsf(x)) - 1;
+            t = expf(two*fabsf(x)) - 1.0;
             z = one - two/(t+two);
 	    } else {
-	        t = expf(-two*fabsf(x)) - 1;
+	        t = expf(-two*fabsf(x)) - 1.0;
 	        z = -t/(t+two);
 	    }
     /* |x| >= 9, return +-1 */
