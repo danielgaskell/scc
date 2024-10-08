@@ -39,7 +39,9 @@ val4skip:
 ; 16-color pixel read
 .export __gfx_val16
 __gfx_val16:
-	ld ix,#0x0
+	push bc
+	push ix
+	ld ix,#0x04
 	add ix,sp
 	call __gfx_xy16
 	ld a,(ix+2)
@@ -52,12 +54,16 @@ __gfx_val16:
 	srl a
 	ld h,0
 	ld l,a
+	pop ix
+	pop bc
 	ret
 val16offset:
 	ld a,(de)
 	and #0x0F
 	ld h,0
 	ld l,a
+	pop ix
+	pop bc
 	ret
 
 .export __gfx_val
@@ -66,8 +72,6 @@ __gfx_val:
 
 .export _Gfx_Value
 _Gfx_Value:
-	pop bc
 	ld hl,(__gfx_val)
-	push bc
 	push hl
 	ret ; redirect call to __gfx_val

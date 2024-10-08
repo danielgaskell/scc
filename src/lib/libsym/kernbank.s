@@ -3,8 +3,9 @@
 ; Banking_ReadWord
 .export _Bank_ReadWord
 _Bank_ReadWord:
+	push bc
 	push ix
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld a,(ix+4)
 	ld l,(ix+6)
@@ -14,13 +15,15 @@ _Bank_ReadWord:
 	ld h,b
 	ld l,c
 	pop ix
+	pop bc
 	ret
 	
 ; Banking_WriteWord
 .export _Bank_WriteWord
 _Bank_WriteWord:
+	push bc
 	push ix
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld a,(ix+4)
 	ld l,(ix+6)
@@ -30,13 +33,15 @@ _Bank_WriteWord:
 	rst #0x20
 	.word #0x8127
 	pop ix
+	pop bc
 	ret
 	
 ; Banking_ReadByte
 .export _Bank_ReadByte
 _Bank_ReadByte:
+	push bc
 	push ix
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld a,(ix+4)
 	ld l,(ix+6)
@@ -46,13 +51,15 @@ _Bank_ReadByte:
 	ld h,0
 	ld l,b
 	pop ix
+	pop bc
 	ret
 
 ; Banking_WriteByte
 .export _Bank_WriteByte
 _Bank_WriteByte:
+	push bc
 	push ix
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld a,(ix+4)
 	ld l,(ix+6)
@@ -61,13 +68,15 @@ _Bank_WriteByte:
 	rst #0x20
 	.word #0x812D
 	pop ix
+	pop bc
 	ret
 	
 ; Banking_Copy
 .export _Bank_Copy
 _Bank_Copy:
+	push bc
 	push ix
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld a,(ix+4)		; A = (bankDst << 4) | bankSrc
 	ld b,(ix+8)
@@ -85,6 +94,7 @@ _Bank_Copy:
 	rst #0x20
 	.word #0x8130
 	pop ix
+	pop bc
 	ret
 	
 ; Banking_GetBank

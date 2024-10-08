@@ -4,7 +4,9 @@
 ; main 4-color pixel draw routine
 .export __gfx_pix4
 __gfx_pix4:
-	ld ix,#0x0
+	push bc
+	push ix
+	ld ix,#0x04
 	add ix,sp
 	; color = color AND 3 (downsamples reasonably well)
 	ld a,(ix+6)
@@ -23,12 +25,16 @@ __gfx_pix4:
 	ld b,(hl)
 	or b					; a = byte OR color
 	ld (de),a				; write byte back
+	pop ix
+	pop bc
 	ret
 
 ; main 16-color pixel draw routine
 .export __gfx_pix16
 __gfx_pix16:
-	ld ix,#0x0
+	push bc
+	push ix
+	ld ix,#0x04
 	add ix,sp
 	call __gfx_xy16
 	ld a,(ix+2)
@@ -43,6 +49,8 @@ __gfx_pix16:
 	sla b
 	or b
 	ld (de),a
+	pop ix
+	pop bc
 	ret
 pix16offset:
 	ld a,(de)
@@ -50,6 +58,8 @@ pix16offset:
 	ld b,(ix+6)
 	or b
 	ld (de),a
+	pop ix
+	pop bc
 	ret					
 
 .export __gfx_pix
@@ -58,8 +68,6 @@ __gfx_pix:
 
 .export _Gfx_Pixel
 _Gfx_Pixel:
-	pop bc
 	ld hl,(__gfx_pix)
-	push bc
 	push hl
 	ret ; redirect call to __gfx_pix

@@ -18,7 +18,9 @@ __lin3tab:
 	
 .export __gfx_hline4
 __gfx_hline4:
-	ld ix,#0x0
+	push bc
+	push ix
+	ld ix,#0x04
 	add ix,sp
 	; case where w < 4
 	ld l,(ix+6)
@@ -80,7 +82,7 @@ hline4right:
 	; draw right edge
 	ld a,(ix+6)
 	and 3
-	ret z
+	jp z,hline4done
 	add a,a
 	add a,a
 	add a,a
@@ -96,7 +98,7 @@ hline4right:
 	ld c,(hl)
 	or c					; a = byte OR color
 	ld (de),a				; write byte back
-	ret
+	jr hline4done
 hline4short: ; 1-3 pixel case - not very efficient currently
 	ld l,(ix+8)
 	ld h,(ix+9)
@@ -120,11 +122,16 @@ hline4short: ; 1-3 pixel case - not very efficient currently
 	ld (ix+3),h
 	dec (ix+6)
 	jr nz,hline4short
+hline4done:
+	pop ix
+	pop bc
 	ret
 
 .export __gfx_hline16
 __gfx_hline16:
-	ld ix,#0x0
+	push bc
+	push ix
+	ld ix,#0x04
 	add ix,sp
 	; case w < 2
 	ld l,(ix+6)
@@ -164,13 +171,13 @@ hline16loop:
 ; draw right edge (never more than 1 pixel by definition)
 	ld a,(ix+6)
 	and 1
-	ret z
+	jr z,hline16done
 	ld a,(de)
 	and #0x0F
 	ld c,(ix+8)
 	or c
 	ld (de),a
-	ret
+	jr hline16done
 hline16short: ; 1 pixel case
 	ld l,(ix+8)
 	ld h,(ix+9)
@@ -185,6 +192,9 @@ hline16short: ; 1 pixel case
 	pop hl
 	pop hl
 	pop hl
+hline16done:
+	pop ix
+	pop bc
 	ret
 	
 .export __gfx_hline
@@ -193,8 +203,6 @@ __gfx_hline:
 
 .export _Gfx_HLine
 _Gfx_HLine:
-	pop bc
 	ld hl,(__gfx_hline)
-	push bc
 	push hl
 	ret ; redirect call to __gfx_hline

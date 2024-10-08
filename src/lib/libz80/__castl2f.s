@@ -7,7 +7,9 @@
 
 .export __castl_f
 __castl_f:
-	ld ix,0
+	push bc
+	push ix
+	ld ix,#0x04
 	add ix,sp
 	ld l,(ix+2)
 	ld h,(ix+3)
@@ -15,11 +17,15 @@ __castl_f:
 	ld d,(ix+5)
 	call i32tof32
 	ld (__hireg),de
+	pop ix
+	pop bc
 	ret
 
 .export __castul_f
 __castul_f:
-	ld ix,0
+	push bc
+	push ix
+	ld ix,#0x04
 	add ix,sp
 	ld l,(ix+2)
 	ld h,(ix+3)
@@ -27,6 +33,8 @@ __castul_f:
 	ld d,(ix+5)
 	call u32tof32
 	ld (__hireg),de
+	pop ix
+	pop bc
 	ret
 
 ; Code below this point adapted from z88dk IEEE Floating Point Package

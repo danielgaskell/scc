@@ -3,9 +3,10 @@
 ; Clipboard_Put
 .export _Clip_Put
 _Clip_Put:
+	push bc
 	push ix
 	push iy
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld e,(ix+6)
 	ld d,(ix+12)
@@ -23,14 +24,16 @@ _Clip_Put:
 	adc hl,hl		; result is in CF
 	pop iy
 	pop ix
+	pop bc
 	ret
 	
 ; Clipboard_Get
 .export _Clip_Get
 _Clip_Get:
+	push bc
 	push ix
 	push iy
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld e,(ix+6)
 	ld d,(ix+12)
@@ -48,6 +51,7 @@ _Clip_Get:
 	pop hl			; FIXME return error
 	pop iy
 	pop ix
+	pop bc
 	ret
 
 ; Clipboard_Status (1)

@@ -47,7 +47,9 @@ __castf_uc:
 .export __castf_ul
 __castf_l:
 __castf_ul:
-	ld ix,0
+	push bc
+	push ix
+	ld ix,#0x04
 	add ix,sp
 	ld l,(ix+2)
 	ld h,(ix+3)
@@ -55,6 +57,8 @@ __castf_ul:
 	ld d,(ix+5)
 	call f32toi32
 	ld (__hireg),de
+	pop ix
+	pop bc
 	ret
 	
 .export f32toi16

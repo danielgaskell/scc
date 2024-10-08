@@ -31,15 +31,25 @@ _transfer Window form1 = {
     &ctrls};    // controls
 
 char winID;
-int x, y, i, dx, dy; // CRITICAL FIXME: Gfx_Put() is borking the stack version of these if they are local variables (?)
-unsigned char redraw_x, redraw_y, redraw_w, redraw_h;
+
+int test2(int x) {
+    register y = 0;
+    ++y;
+}
+
+int test(int x) {
+    register y = 0;
+    ++y;
+}
 
 int main(int argc, char *argv[]) {
+    int x, y, i, dx, dy;
+    unsigned char redraw_x, redraw_y, redraw_w, redraw_h;
 
     Gfx_Init(canvas, 128, 96);
     Gfx_Select(canvas);
 
-    // draw background
+    // draw checkerboard background
     i = 0;
     for (y = 0; y < 96; y += 16) {
         for (x = 0; x < 128; x += 16) {
@@ -52,11 +62,15 @@ int main(int argc, char *argv[]) {
     }
 
     // set up ball
-    Gfx_Load("ball.sgx", ballimg);
+    if (Gfx_Load("ball.sgx", ballimg)) {
+        MsgBox("Could not find BALL.SGX", "", "", COLOR_BLACK, BUTTON_OK, 0, 0);
+        exit(1);
+    }
     x = 0;
     y = 0;
     dx = 8;
     dy = 0;
+    test(x);
     Gfx_Put(ballimg, x, y, PUT_XOR);
 
     // set up frame counter
@@ -70,7 +84,8 @@ int main(int argc, char *argv[]) {
         // handle messages
 		_symmsg[0] = 0;
 		Msg_Receive(_sympid, -1, _symmsg);
-		if (_symmsg[0] == MSR_DSK_WCLICK && _symmsg[2] == DSK_ACT_CLOSE) { // Alt+F4 or click close
+		if (_symmsg[0] == MSR_DSK_WCLICK && _symmsg[2] == DSK_ACT_CLOSE) {
+            // Alt+F4 or click close
             Counter_Delete(_symbank, &countbyte);
             exit();
 		}
@@ -93,7 +108,7 @@ int main(int argc, char *argv[]) {
 
             // request a redraw of just the relevant part of the canvas
             redraw_w = abs(dx) + 16;
-            redraw_h = abs(dy) + 17; // +1 to account for gravity
+            redraw_h = abs(dy) + 17; // +1 to account for gravity change in dy
             if (dx > 0) { redraw_x = x - dx; } else { redraw_x = x; }
             if (dy > 0) { redraw_y = y - dy; } else { redraw_y = y; }
             Win_Redraw_Area(winID, 1, 0, redraw_x, redraw_y, redraw_w, redraw_h);

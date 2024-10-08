@@ -46,7 +46,10 @@ gshift4cpc_fast:
 	
 .export __gfx_get4
 __gfx_get4:
-	ld ix,#0x02
+	push bc
+	push ix
+	push iy
+	ld ix,#0x08
 	add ix,sp
 	call __gfx_xy4  ; DE = read
 	ld l,(ix+0)		; HL = write address
@@ -85,6 +88,9 @@ get4loop:
 get4done:
 	pop de					; clean up stack
 	pop de
+	pop iy
+	pop ix
+	pop bc
 	ret
 	
 ; shifts the BC bytes prior to DE left by 1 pixel (16-color mode), preserving BC, DE, and HL.
@@ -107,7 +113,10 @@ shiftleft16loop:
 	
 .export __gfx_get16
 __gfx_get16:
-	ld ix,#0x02
+	push bc
+	push ix
+	push iy
+	ld ix,#0x08
 	add ix,sp
 	call __gfx_xy16 ; DE = read
 	ld l,(ix+0)		; HL = write address
@@ -146,6 +155,9 @@ get16loop:
 	jr nz,get16loop
 	pop de					; clean up stack
 	pop de
+	pop iy
+	pop ix
+	pop bc
 	ret
 get16fastloop:
 	ldir
@@ -161,6 +173,9 @@ get16fastloop:
 get16fastdone:
 	pop de					; clean up stack
 	pop de
+	pop iy
+	pop ix
+	pop bc
 	ret
 	
 .export __gfx_get
@@ -169,8 +184,6 @@ __gfx_get:
 	
 .export _Gfx_Get
 _Gfx_Get:
-	pop bc
 	ld hl,(__gfx_get)
-	push bc
 	push hl
 	ret ; redirect call to __gfx_get

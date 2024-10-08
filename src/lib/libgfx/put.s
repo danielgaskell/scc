@@ -152,7 +152,10 @@ shift4cpcdone:
 
 .export __gfx_put4
 __gfx_put4:
-	ld ix,#0x02
+	push bc
+	push ix
+	push iy
+	ld ix,#0x08
 	add ix,sp
 	call __gfx_xy4			; DE = write
 	ld l,(ix+0)
@@ -202,6 +205,9 @@ put4loop:
 put4done:
 	pop de					; clean up stack
 	pop de
+	pop iy
+	pop ix
+	pop bc
 	ret
 
 ; equivalent to ldir, but shifts by the number of pixels in IX+2 (16-color mode).
@@ -286,7 +292,10 @@ shift16done:
 
 .export __gfx_put16
 __gfx_put16:
-	ld ix,#0x02
+	push bc
+	push ix
+	push iy
+	ld ix,#0x08
 	add ix,sp
 	call __gfx_xy16			; DE = write
 	ld l,(ix+0)
@@ -336,6 +345,9 @@ put16loop:
 put16done:
 	pop de					; clean up stack
 	pop de
+	pop iy
+	pop ix
+	pop bc
 	ret
 	
 .export __gfx_put
@@ -344,8 +356,6 @@ __gfx_put:
 	
 .export _Gfx_Put
 _Gfx_Put:
-	pop bc
 	ld hl,(__gfx_put)
-	push bc
 	push hl
 	ret ; redirect call to __gfx_put

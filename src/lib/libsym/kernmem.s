@@ -3,6 +3,7 @@
 ; Memory_Summary (1)
 .export _Mem_Free
 _Mem_Free:
+	push bc
 	push ix
 	push iy
 	ld hl,#0x8100
@@ -13,11 +14,13 @@ _Mem_Free:
 	pop hl
 	pop iy
 	pop ix
+	pop bc
 	ret
 
 ; Memory_Summary (1)
 .export _Mem_Banks
 _Mem_Banks:
+	push bc
 	push ix
 	push iy
 	ld hl,#0x8100
@@ -26,11 +29,13 @@ _Mem_Banks:
 	ld l,d
 	pop iy
 	pop ix
+	pop bc
 	ret
 
 ; Memory_Information
 .export _Mem_Longest
 _Mem_Longest:
+	push bc
 	push ix
 	push iy
 	ld ix,0
@@ -43,13 +48,15 @@ _Mem_Longest:
 	ld l,c
 	pop iy
 	pop ix
+	pop bc
 	ret
 	
 ; Memory_Get
 .export _Mem_Reserve
 _Mem_Reserve:
+	push bc
 	push ix
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld a,(ix+4)
 	ld e,(ix+6)
@@ -70,13 +77,15 @@ _Mem_Reserve:
 	ld hl,0
 	adc hl,hl		; error is in CF
 	pop ix
+	pop bc
 	ret
 	
 ; Memory_Free
 .export _Mem_Release
 _Mem_Release:
+	push bc
 	push ix
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld a,(ix+4)
 	ld l,(ix+6)
@@ -86,5 +95,6 @@ _Mem_Release:
 	rst #0x20
 	.word #0x811B
 	pop ix
+	pop bc
 	ret
 	

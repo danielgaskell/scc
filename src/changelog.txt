@@ -1,0 +1,19 @@
+v1.1
++ Added libgfx
++ Added gfx2sgx
++ Added gfxdemo.c sample
++ Added compression system calls
++ Added Shell_CharWatch() system call
+@ libz80 is now in the primary codebase
+@ Fixed float casting
+@ Fixed passing floats as variadic arguments
+@ Redesigned float library around z80float and z88dk code
++ Added printf("%f") support
+- Removed unnecessary float->float casts
+@ Fixed register variables
+@ Mem_ResizeX() is now the primary Mem_Resize()
+@ Fixed typo in makecalc_native.bat
++ Various documentation tweaks and additions
+
+v1.0
++ Initial release

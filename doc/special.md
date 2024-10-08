@@ -54,13 +54,13 @@ The usual system of `.export` and `extern` applies for sharing symbols between a
 .code                ; emit to code segment
 .export _asmadd      ; export symbol _asmadd
 _asmadd:
-	pop bc           ; pop return address
+	pop de           ; pop return address
 	pop hl           ; pop first argument (8-bit, so in L)
 	ld a,(_asmbuf+0)
 	add l
 	ld l,a           ; 8-bit return value goes in L
 	push hl          ; restore stack (caller cleans up)
-	push bc          ; restore return address
+	push de          ; restore return address
 	ret
 
 .symtrans            ; emit to transfer segment
@@ -84,6 +84,8 @@ int main(int argc, char* argv[]) {
 The assembled version of shared symbols is assumed to start with an underscore, so the C symbol `main` assembles to `_main` and the assembly symbol `_asmfunc` is referenced in C as `asmfunc`. If a symbol is not exported, it remains local to its own assembly file.
 
 SCC uses an approximately cdecl calling convention: all arguments are passed on the stack, right to left, before the function is called with `call`. On function entry, the top word of the stack will be the return address, followed by the leftmost argument, the next leftmost argument, and so on. The caller cleans up the stack, so the stack should be returned to this state (at least in quantity, if not in content) before calling `ret`. 8-bit values are passed as the low byte of the 16-bit value pushed to stack. 32-bit values are passed as two successive 16-bit values on the stack. 8-bit values are returned in the L register. 16-bit values are returned in the HL register pair. 32-bit values are returned with the low word in HL and the high word in `(__hireg)`, a globally defined symbol in `libz80.a` that will be linked into all SymbOS executables.
+
+**Note that assembly routines should preserve the values of the IX, IY, and (ideally) BC registers on entry/exit.** SCC uses IX and/or IY to track the local variables of the calling function, and may use BC as a `register` variable. (If no `register` variables are used, it is safe to destroy BC.)
 
 `as` supports standard Z80 opcodes, with notable directives including:
 

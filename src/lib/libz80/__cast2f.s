@@ -11,35 +11,40 @@
 
 .export __cast_f
 __cast_f:
-	pop bc
+	pop de
 	pop hl
 	push hl
+	push de
 	push bc
 	ld bc,__floatd
 	call i16tof32
 	ld hl,(__floatd+2)
 	ld (__hireg),hl
 	ld hl,(__floatd+0)
+	pop bc
 	ret
 
 .export __castu_f
 __castu_f:
-	pop bc
+	pop de
 	pop hl
 	push hl
+	push de
 	push bc
 	ld bc,__floatd
 	call u16tof32
 	ld hl,(__floatd+2)
 	ld (__hireg),hl
 	ld hl,(__floatd+0)
+	pop bc
 	ret
 	
 .export __castc_f
 __castc_f:
-	pop bc
+	pop de
 	pop hl
 	push hl
+	push de
 	push bc
 	ld a,l
 	ld bc,__floatd
@@ -47,13 +52,15 @@ __castc_f:
 	ld hl,(__floatd+2)
 	ld (__hireg),hl
 	ld hl,(__floatd+0)
+	pop bc
 	ret
 
 .export __castuc_f
 __castuc_f:
-	pop bc
+	pop de
 	pop hl
 	push hl
+	push de
 	push bc
 	ld a,l
 	ld bc,__floatd
@@ -61,6 +68,7 @@ __castuc_f:
 	ld hl,(__floatd+2)
 	ld (__hireg),hl
 	ld hl,(__floatd+0)
+	pop bc
 	ret
 	
 .export i16tof32

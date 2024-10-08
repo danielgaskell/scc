@@ -3,8 +3,10 @@
 ; Banking_Decompress
 .export _Bank_Decompress
 _Bank_Decompress:
+	push bc
 	push ix
-	ld ix,0
+	push iy
+	ld ix,#0x04
 	add ix,sp
 _BD_Start:
 	ld b,(ix+4)
@@ -21,5 +23,7 @@ _BD_Start:
 	rst #0x30
 	jr _BD_Start
 _BD_End:
+	pop iy
 	pop ix
+	pop bc
 	ret

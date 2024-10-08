@@ -80,9 +80,10 @@ _Mouse_Buttons:
 ; Device_KeyTest
 .export _Key_Down
 _Key_Down:
+	push bc
 	push ix
 	push iy
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld e,(ix+6)
 	ld hl,#0x8145
@@ -91,11 +92,13 @@ _Key_Down:
 	ld l,e
 	pop iy
 	pop ix
+	pop bc
 	ret
 
 ; Device_KeyStatus
 .export _Key_Status
 _Key_Status:
+	push bc
 	push ix
 	push iy
 	ld hl,#0x8148
@@ -104,13 +107,15 @@ _Key_Status:
 	ld l,e
 	pop iy
 	pop ix
+	pop bc
 	ret
 
 ; Device_KeyPut
 .export _Key_Put
 _Key_Put:
+	push bc
 	push ix
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld a,(ix+4)
 	rst #0x20
@@ -118,14 +123,16 @@ _Key_Put:
 	ld hl,0
 	adc hl,hl		; result is in CF
 	pop ix
+	pop bc
 	ret
 
 ; Device_KeyMulti
 .export _Key_Multi
 _Key_Multi:
+	push bc
 	push ix
 	push iy
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld e,(ix+6)
 	ld d,(ix+8)
@@ -147,14 +154,16 @@ _Key_Multi:
 	ld l,e
 	pop iy
 	pop ix
+	pop bc
 	ret
 
 ; Screen_TextLength (1)
 .export _Text_Width
 _Text_Width:
+	push bc
 	push ix
 	push iy
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld a,(ix+6)
 	ld l,(ix+8)
@@ -169,14 +178,16 @@ _Text_Width:
 	ld l,e
 	pop iy
 	pop ix
+	pop bc
 	ret
 
 ; Screen_TextLength (2)
 .export _Text_Height
 _Text_Height:
+	push bc
 	push ix
 	push iy
-	ld ix,0
+	ld ix,#0x02
 	add ix,sp
 	ld a,(ix+6)
 	ld l,(ix+8)
@@ -191,4 +202,5 @@ _Text_Height:
 	ld l,a
 	pop iy
 	pop ix
+	pop bc
 	ret

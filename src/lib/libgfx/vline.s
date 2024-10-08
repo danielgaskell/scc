@@ -3,7 +3,9 @@
 
 .export __gfx_vline4
 __gfx_vline4:
-	ld ix,#0x0
+	push bc
+	push ix
+	ld ix,#0x04
 	add ix,sp
 	call __gfx_xy4
 	call __gfx_coff4
@@ -31,11 +33,15 @@ vline4loop:
 	add hl,de
 	dec b
 	jr nz,vline4loop
+	pop ix
+	pop bc
 	ret
 
 .export __gfx_vline16
 __gfx_vline16:
-	ld ix,#0x0
+	push bc
+	push ix
+	ld ix,#0x04
 	add ix,sp
 	call __gfx_xy16
 	ld hl,(__gfx_activebw)  ; DE = row width in bytes
@@ -52,6 +58,8 @@ vline16loop1:
 	ld (hl),a				; write byte back
 	add hl,de				; go down a line
 	djnz vline16loop1
+	pop ix
+	pop bc
 	ret
 vline16left:
 	ld c,(ix+8)				; C = color
@@ -66,6 +74,8 @@ vline16loop2:
 	ld (hl),a				; write byte back
 	add hl,de				; go down a line
 	djnz vline16loop2
+	pop ix
+	pop bc
 	ret
 	
 .export __gfx_vline
@@ -74,8 +84,6 @@ __gfx_vline:
 
 .export _Gfx_VLine
 _Gfx_VLine:
-	pop bc
 	ld hl,(__gfx_vline)
-	push bc
 	push hl
 	ret ; redirect call to __gfx_vline

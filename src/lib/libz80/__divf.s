@@ -10,11 +10,13 @@ __divf:
 	ex de,hl
 	ld hl,6
 	add hl,sp
+	push bc
 	ld bc,__floatd
 	call f32div
 	ld hl,(__floatd+2)
 	ld (__hireg),hl
 	ld hl,(__floatd+0)
+	pop bc
 	ret
 
 ; uses stack and registers for all operations
