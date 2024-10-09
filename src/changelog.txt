@@ -13,6 +13,7 @@ v1.1
 @ Fixed register variables
 @ Mem_ResizeX() is now the primary Mem_Resize()
 @ Fixed typo in makecalc_native.bat
+@ Fixed missing Win_ContentX/Y calls
 + Various documentation tweaks and additions
 
 v1.0
