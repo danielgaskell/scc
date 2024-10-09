@@ -590,7 +590,14 @@ void Win_Redraw_Area(unsigned char winID, unsigned char what, unsigned char firs
                      unsigned short x, unsigned short y, unsigned short w, unsigned short h);
 ```
 
-Equivalent to `Win_Redraw()`, but only redraws controls within the box specified by the upper left coordinates `x` and `y`, width `w`, and height `h` (in pixels). Note that these coordinates are relative to the window content, including any scroll. This command is particularly useful for redrawing only part of a large graphic area (such as a game playfield), since it is much faster than redrawing the entire area.
+Equivalent to `Win_Redraw()`, but only redraws controls within the box specified by the upper left coordinates `x` and `y`, width `w`, and height `h` (in pixels). This command is particularly useful for redrawing only part of a large graphic area (such as a game playfield), since it is much faster than redrawing the entire area.
+
+Note that these coordinates are relative to the window content, but do *not* include any scroll. The behavior for resizable windows can be slightly odd and should be tested carefully; e.g., for coordinate calculations within a resizable scrolling window area, try:
+
+```c
+x = xpos - form1.xscroll + 8;
+y = ypos - form1.yscroll + 8;
+```
 
 *SymbOS name*: `Window_Redraw_ContentArea_Command` (`MSC_DSK_WINPIN`).
 
