@@ -129,3 +129,21 @@ void Win_Redraw_Sub(unsigned char winID, unsigned char collection, unsigned char
     _Desk_Msg();
     _msemaoff();
 }
+
+void Win_ContentX(unsigned char winID, unsigned short newX) {
+    _msemaon();
+    _symmsg[0] = 38;
+    _symmsg[1] = winID;
+    *((unsigned short*)(_symmsg + 2)) = newX;
+    _Desk_Msg();
+    _msemaoff();
+}
+
+void Win_ContentY(unsigned char winID, unsigned short newY) {
+    _msemaon();
+    _symmsg[0] = 39;
+    _symmsg[1] = winID;
+    *((unsigned short*)(_symmsg + 2)) = newY;
+    _Desk_Msg();
+    _msemaoff();
+}
