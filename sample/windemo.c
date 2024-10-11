@@ -17,7 +17,7 @@ _transfer Ctrl c_area = {
 	0, 0,                      // x, y
 	10000, 10000};             // width, height
 _transfer Ctrl c_text1 = {
-	0, C_TEXT, -1,             // control ID, type, bank
+	1, C_TEXT, -1,             // control ID, type, bank
 	(unsigned short)&cd_text1, // param (extended data record)
 	20, 10,                    // x, y
 	100, 8};                   // width, height

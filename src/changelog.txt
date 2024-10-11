@@ -4,6 +4,7 @@ v1.1
 + Added gfxdemo.c sample
 + Added compression system calls
 + Added Shell_CharWatch() system call
++ Added Sys_Version() system call
 @ libz80 is now in the primary codebase
 @ Fixed float casting
 @ Fixed passing floats as variadic arguments

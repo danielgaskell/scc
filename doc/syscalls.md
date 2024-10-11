@@ -437,6 +437,16 @@ Returns the height (in pixels) of the text string at bank `bank`, address `addre
 
 *SymbOS name*: `Screen_TextLength` (`TXTLEN`).
 
+### Sys_Version()
+
+```c
+unsigned short Sys_Version(void);
+```
+
+Returns the current SymbOS version, with the major version number in the tens digit and the minor version number in the ones digit (i.e., SymbOS 3.1 = `31`).
+
+*SymbOS name*: `System_Information` (`SYSINF`).
+
 ## Mouse status
 
 In addition to `symbos.h`, these functions can be found in `symbos/device.h`.
@@ -573,10 +583,10 @@ For performance reasons the window will only actually be redrawn if it has focus
 
 *SymbOS name*: `Window_Redraw_Content_Command` (`MSC_DSK_WININH`).
 
-### Win_RedrawExt()
+### Win_Redraw_Ext()
 
 ```c
-void Win_RedrawExt(unsigned char winID, signed char what, unsigned char first);
+void Win_Redraw_Ext(unsigned char winID, signed char what, unsigned char first);
 ```
 
 Equivalent to `Win_Redraw()`, but redraws controls whether or not the window has focus. (This is slightly slower than `Win_Redraw()` because SymbOS must check for window overlap.)
