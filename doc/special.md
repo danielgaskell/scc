@@ -24,7 +24,7 @@ A more advanced (but slower) native preprocessor is available in the `bin/symbos
 
 ### File sizes
 
-Due to a limitation of the filesystem, files stored on AMSDOS filesystems (e.g., CPC floppy disks) will often be terminated with an EOF character 0x1A and then some garbage padding (see [File Access](syscalls.md#file-access)). To improve compatibility, most `stdio.h` functions treat character 0x1A as EOF. If we need to read a binary file that includes legitimate 0x1A characters, the file should be opened in binary (`b`) mode, e.g.:
+Due to a limitation of the filesystem, files stored on AMSDOS filesystems (e.g., CPC floppy disks) will often be terminated with an EOF character 0x1A and then some garbage padding (see [File Access](syscall2.md#file-access)). To improve compatibility, most `stdio.h` functions treat character 0x1A as EOF. If we need to read a binary file that includes legitimate 0x1A characters, the file should be opened in binary (`b`) mode, e.g.:
 
 ```c
 f = fopen("data.dat", "rb");

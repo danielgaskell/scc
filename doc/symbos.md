@@ -17,7 +17,7 @@
 	* [Resizing calculations](#resizing-calculations)
 	* [Modal windows](#modal-windows)
 	
-See also: [System call reference](syscalls.md).
+See also: [System call reference](syscall1.md).
 
 ## Console applications
 
@@ -37,7 +37,7 @@ The only subtlety is that SymbOS expects console applications to have the file e
 cc -o condemo.com condemo.c
 ```
 
-While SCC's `stdio` functions are meant to work relatively seamlessly in SymShell, they are somewhat slow and bulky and are not entirely optimized for SymShell's display model. When writing code from scratch for SymbOS, consider designing it around the [system shell functions](syscalls.md#shell-functions) (`Shell_StringOut()`, `Shell_CharIn()`, etc.) rather than the standard `stdio` functions.
+While SCC's `stdio` functions are meant to work relatively seamlessly in SymShell, they are somewhat slow and bulky and are not entirely optimized for SymShell's display model. When writing code from scratch for SymbOS, consider designing it around the [system shell functions](syscall2.md#shell-functions) (`Shell_StringOut()`, `Shell_CharIn()`, etc.) rather than the standard `stdio` functions.
 
 ## Windowed applications
 
@@ -234,7 +234,7 @@ _transfer Ctrl_Group ctrls = {
 
 ### Desktop commands
 
-To display a window, we need to tell the desktop manager to open it. `symbos.h` provides a number of helper functions for making system calls (see the [System Call Reference](syscalls.md#window-management)); the first one we need is `Win_Open()`:
+To display a window, we need to tell the desktop manager to open it. `symbos.h` provides a number of helper functions for making system calls (see the [System Call Reference](syscall1.md#window-management)); the first one we need is `Win_Open()`:
 
 ```c
 char Win_Open(char bank, void* addr);
@@ -851,7 +851,7 @@ cd_textbox1.self = &cd_textbox1;
 
 `selection` = 0 when no characters are selected, greater than 0 when the cursor marks the start of the selection, and less than 0 when the cursor marks the end of the selection.
 
-To update the contents, cursor, or selection of the textbox, it is recommended to use the special system calls [`TextBox_Redraw()`](syscalls.md#textbox-redraw) and [`TextBox_Select()`](syscalls.md#textbox-select) rather than trying to update all the relevant properties manually.
+To update the contents, cursor, or selection of the textbox, it is recommended to use the special system calls [`TextBox_Redraw()`](syscall1.md#textbox-redraw) and [`TextBox_Select()`](syscall1.md#textbox-select) rather than trying to update all the relevant properties manually.
 
 Note that, because the buffer must be stored in a continuous 16KB segment (usually the **data** segment), this control is effectively limited to no more than 16KB of text. Note also that, if we wish the textbox to be prefilled, we must be sure to set the properties (`cursor`, `len`, etc.) correctly. (For input by the user, SymbOS will update these properties automatically.)
 
@@ -1097,7 +1097,7 @@ typedef struct {
 
 If `MENU_SUBMENU` is set, `value` points to the `Menu` struct defining the submenu to open. Note that `MENU_CHECKED` will not be updated automatically---it is our responsibility to receive menu events and take the necessary action, such as toggling the `MENU_CHECKED` flag for a given entry.
 
-Windows can have main menus if their `WIN_MENU` flag is set and their `menu` property points to a `Menu` struct similar to the above. Menus can also be opened independently (see the [Context_Menu()](syscalls.md#context-menu) system call).
+Windows can have main menus if their `WIN_MENU` flag is set and their `menu` property points to a `Menu` struct similar to the above. Menus can also be opened independently (see the [Menu_Context()](syscall1.md#menu_context) system call).
 
 ```c
 // example

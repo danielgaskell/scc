@@ -3,7 +3,7 @@
 * [Introduction](#introduction) (this page)
 * [SymbOS programming guide](symbos.md)
 	* **Start here** for a quickstart guide to writing your first SymbOS app (both console apps to run in SymShell and windowed apps to run on the desktop).
-* [System call reference](syscalls.md)
+* [System call reference](syscall1.md)
 * [Graphics library](graphics.md)
 * [Special considerations](special.md) (compiler quirks, etc.)
 
@@ -127,7 +127,7 @@ Images can be converted to SGX format using software such as [MSX Viewer 5](http
 * A proper libc port [work in progress] so existing code can be compiled unmodified.
 * Headers, typedefs, and support functions for most SymbOS system calls (`symbos.h`).
 * Clean handling of SymbOS segments, with data, buffers, and literals located correctly in the executable without duplication (other compilers struggle with this). Keywords `_data` and `_transfer` allow specifying the segment of globals.
-* Multithreading (yes, [really](syscalls.md#multithreading)!)
+* Multithreading (yes, [really](syscall2.md#multithreading)!)
 
 ## Limitations
 

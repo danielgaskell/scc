@@ -1,7 +1,7 @@
-# Simple Markdown (.md) to SymbOS Help (.hlp) converter. Supports a subset of
-# standard Markdown syntax (below). Note that links are not currently supported,
-# and, due to how SymbOS Help is designed, italics generally only work for
-# uppercase (bold will always work).
+# Quick-and-dirty Markdown (.md) to SymbOS Help (.hlp) converter. Supports a
+# subset of standard Markdown syntax (listed below). Note that links are not
+# currently supported. Due to how SymbOS Help is designed, bold will generally
+# look better than italics, which will typically be converted to uppercase.
 #
 #   # Main section start
 #   ## Main section start
@@ -41,13 +41,12 @@ def bold(bstring):
     return bytearray([(45 if x == 45 else (61 if x == 61 else (95 if x == 95 else (133 if x == 96 else (x + 94 if x >= 33 and x <= 125 else x))))) for x in bstring])
     
 def italic(bstring):
-    return bytearray([(x + 165 if x >= 65 and x <= 90 else (x + 172 if x >= 48 and x <= 57 else x)) for x in bstring])
+    return bytearray([(x + 165 if x >= 65 and x <= 90 else (x + 133 if x >= 97 and x <= 122 else (x + 172 if x >= 48 and x <= 57 else x))) for x in bstring])
     
 def underline(bstring):
     return bytearray([(190 if x == 32 else (27 if x == 74 else (28 if x == 77 else (x - 64 if x >= 65 and x <= 90 else x)))) for x in bstring])
 
 def format_text(bstring):
-    global code_mode
     global char_width
     font_terminators = [10, 13, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 58, 59, 60, 61, 62, 63, 64, 91, 92, 93, 94, 95, 123, 124, 125, 126]
     sstring = bstring.decode('ascii')
@@ -60,6 +59,7 @@ def format_text(bstring):
     tab_widths = [0]
     tab_pos = 0
     pixel = 0
+    code_mode = 0
     while index < len(bstring) - 1:
         index += 1
         byte = bstring[index]
@@ -124,7 +124,7 @@ def format_text(bstring):
                         pixel += 1
                 tab_id += 1
             continue
-        if (byte == 32 or byte == 9) and tab_id > 0 and (outstring[-1] == 32 or outstring[-1] == 9 or bstring[index-1] == 124):
+        if (byte == 32 or byte == 9) and tab_id > 0 and ((tab_id < len(tab_widths) and (outstring[-1] == 32 or outstring[-1] == 9)) or bstring[index-1] == 124):
             continue
         if byte == 13 or byte == 10:
             pixel = 0
@@ -150,15 +150,12 @@ split_count = 1
 for line in lines:
     if line[0:2] == "# ":
         chapter = line[2:]
-        code_mode = 0
         split_count = 1
     elif line[0:3] == "## ":
         chapter = line[3:]
-        code_mode = 0
         split_count = 1
     elif line[0:4] == "### ":
         chapter = "  " + line[4:]
-        code_mode = 0
         split_count = 1
     else:
         if chapter not in chdata:
@@ -168,13 +165,9 @@ for line in lines:
         if line[0:3] == "```":
             while len(chdata[chapter]) > 0 and (chdata[chapter][-1] == 13 or chdata[chapter][-1] == 10):
                 chdata[chapter] = chdata[chapter][:-1]
-            chdata[chapter] += b"\r\n____________\r\n\r\n"
-            if code_mode == 0:
-                code_mode = 1
-            else:
-                code_mode = 0
+            chdata[chapter] += b"\r\n`____________\r\n\r\n"
         else:
-            if len(chdata[chapter]) + len(line) > (7936 if chapter[0:2] == "  " else 3840):
+            if len(chdata[chapter]) + len(line) > 7936:
                 if split_count == 1:
                     chdata[chapter + " (" + str(split_count) + ")"] = chdata[chapter]
                     del chdata[chapter]

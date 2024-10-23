@@ -19,7 +19,6 @@ mkdir ..\release\symbos\sample
 del /S /Q ..\release\*.*
 
 copy /Y ..\bin\*.exe ..\release\win32\bin
-copy /Y ..\bin\*.hlp ..\release\win32\bin
 copy /Y ..\bin\*.z80 ..\release\win32\bin
 copy /Y ..\doc\*.* ..\release\win32\doc
 copy /Y ..\lib\*.a ..\release\win32\lib
@@ -43,7 +42,6 @@ copy /Y ..\sample\makegfx.bat ..\release\win32\sample
 copy /Y install.txt ..\release\symbos
 copy /Y ..\bin\symbos\*.exe ..\release\symbos
 copy /Y ..\bin\symbos\*.com ..\release\symbos
-copy /Y ..\bin\symbos\*.hlp ..\release\symbos
 copy /Y ..\bin\symbos\*.z80 ..\release\symbos
 copy /Y ..\lib\*.a ..\release\symbos\lib
 copy /Y ..\lib\*.o ..\release\symbos\lib
@@ -61,4 +59,4 @@ copy /Y ..\sample\makecalc_native.bat ..\release\symbos\sample\makecalc.bat
 copy /Y ..\sample\ball.png ..\release\symbos\sample
 copy /Y ..\sample\ball.sgx ..\release\symbos\sample
 copy /Y ..\sample\gfxdemo.c ..\release\symbos\sample
-copy /Y ..\sample\makegfx_native.bat ..\release\symbos\sample
+copy /Y ..\sample\makegfx_native.bat ..\release\symbos\sample\makegfx.bat
