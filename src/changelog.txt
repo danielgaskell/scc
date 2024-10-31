@@ -15,6 +15,7 @@ v1.1
 @ Mem_ResizeX() is now the primary Mem_Resize()
 @ Fixed typo in makecalc_native.bat
 @ Fixed missing Win_ContentX/Y calls
+@ fgetc(stdin)/getchar() now treat \n correctly
 + Various documentation tweaks and additions
 
 v1.0

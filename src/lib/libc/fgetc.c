@@ -34,5 +34,7 @@ int fgetc(FILE * fp)
             return EOF;
         }
 	}
+	if (ch == '\r')
+        return '\n';
 	return ch;
 }
