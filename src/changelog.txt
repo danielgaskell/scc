@@ -16,6 +16,7 @@ v1.1
 @ Fixed typo in makecalc_native.bat
 @ Fixed missing Win_ContentX/Y calls
 @ fgetc(stdin)/getchar() now treat \n correctly
+@ Fixed escaped hex codes being outputted backwards
 + Various documentation tweaks and additions
 
 v1.0
