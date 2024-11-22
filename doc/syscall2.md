@@ -392,6 +392,12 @@ Most shell functions will set `_shellerr` to an error code on failure; see [erro
 
 In addition to `symbos.h`, these functions can be found in `symbos/shell.h`.
 
+### A note on exiting
+
+When an app's host SymShell instance is forcibly closed by clicking the "X" button, SymShell will send message 0 to the app (i.e., `msg[0]` = 0) to tell it to exit. It is important that the app obey this message and exit, or else it will end up "orphaned", running in the background and forever waiting for responses from a SymShell window that no longer exists.
+
+The default behavior of the shell routines below is to watch for message 0 and call `exit(0)` to quit immediately if detected. This is usually what we want and does not require any special consideration of message 0 on our part. However, if the app needs to shut down more gracefully (e.g., by calling [`Mem_Release()`](syscall1.md#mem_release) to free allocated memory), we can override this behavior by setting the global variable `_shellexit` = 1 at the beginning of `main()`. When `_shellexit` is nonzero, shell functions will instead respond to message 0 by setting `_shellexit` = 2 and behaving as if there is no available shell (i.e., `_shellerr` = `ERR_NOSHELL`). We can then watch for `_shellexit` = 2 and perform any necessary shutdown manually.
+
 ### Shell_CharIn()
 
 ```c
@@ -958,16 +964,16 @@ Initializes the network interface, if present. This should be called before usin
 ### TCP_OpenClient()
 
 ```c
-signed char TCP_OpenClient(unsigned long ip, unsigned short lport, signed short rport);
+signed char TCP_OpenClient(unsigned long ip, signed short lport, unsigned short rport);
 ```
 
-Opens a client TCP connection to the IPv4 address `ip` (formatted as a 32-bit number) on local port `lport`, connecting to remote port `rport`. For client connections, `rport` should usually be set to -1 to obtain a dynamic port number.
+Opens a client TCP connection to the IPv4 address `ip` (formatted as a 32-bit number) on local port `lport`, connecting to remote port `rport`. For client connections, `lport` should usually be set to -1 to obtain a dynamic port number.
 
 *Return value*: On success, returns a socket handle to the new connection. On failure, sets `_neterr` and returns -1.
 
 *SymbOS name*: `TCP_Open` (`TCPOPN`).
 
-### TCP_OpenClient()
+### TCP_OpenServer()
 
 ```c
 signed char TCP_OpenServer(unsigned short lport);
@@ -1031,6 +1037,8 @@ typedef struct {
     unsigned short remaining;    // bytes remaining in the buffer
 } TCP_Trans;
 ```
+
+A subtlety: Note that setting `len` to the total number of available bytes and calling `TCP_Receive()` is not guaranteed to leave the buffer empty, because the network daemon can receive additional bytes at any time. The main situation where this matters is when the app wants to empty the buffer and wait for a message from the network daemon alerting it when new data arrives. However, the network daemon will only send such a message when adding data *to an empty buffer*, so if the initial `TCP_Receive()` call does not actually empty the buffer completely, no message will arrive. One way to avoid this is to check the returned `TCP_Trans.remaining` value and keep calling `TCP_Receive()` until this value is actually zero; alternatively, the app can not rely on receiving a message.
 
 *Return value*: On success, returns 0 and loads information into `obj`, if specified. On failure, sets `_neterr` and returns -1.
 
@@ -1180,10 +1188,10 @@ Skips and throws away a complete packet which has already been received from the
 ### DNS_Resolve()
 
 ```c
-unsigned long DNS_Resolve(char* addr);
+unsigned long DNS_Resolve(unsigned char bank, char* addr);
 ```
 
-Performs a DNS lookup and attempts to resolve the host IP/URL stored in the string at memory address `addr` into an IPv4 address.
+Performs a DNS lookup and attempts to resolve the host IP/URL stored in the string at bank `bank`, address `addr` into an IPv4 address.
 
 *Return value*: On success, returns the IPv4 address (as a 32-bit integer). On failure, sets `_neterr` and returns 0.
 
@@ -1192,10 +1200,10 @@ Performs a DNS lookup and attempts to resolve the host IP/URL stored in the stri
 ### DNS_Verify()
 
 ```c
-unsigned char DNS_Verify(char* addr);
+unsigned char DNS_Verify(unsigned char bank, char* addr);
 ```
 
-Verifies whether the IP/URL stored in the string at memory address `addr` is a valid IP or domain address. This function does not interact with the network hardware, so can be used to quickly determine whether an address is valid before initiating a full network request.
+Verifies whether the IP/URL stored in the string at bank `bank`, address `addr` is a valid IP or domain address. This function does not interact with the network hardware, so can be used to quickly determine whether an address is valid before initiating a full network request.
 
 *Return value*: On success, returns `DNS_IP` for a valid IP address, `DNS_DOMAIN` for a valid domain address, or `DNS_INVALID` for an invalid address. On failure, sets `_neterr` and returns `DNS_INVALID`.
 

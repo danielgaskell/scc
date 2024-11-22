@@ -47,9 +47,10 @@ typedef struct {
 extern unsigned char _netpid;
 extern unsigned char _neterr;
 extern unsigned char Net_Init(void);
-extern signed char TCP_OpenClient(unsigned long ip, unsigned short lport, signed short rport);
+extern signed char TCP_OpenClient(unsigned long ip, signed short lport, unsigned short rport);
 extern signed char TCP_OpenServer(unsigned short lport);
 extern signed char TCP_Close(unsigned char handle);
+extern void TCP_Event(NetStat* obj);
 extern signed char TCP_Status(unsigned char handle, NetStat* obj);
 extern signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, unsigned short len, TCP_Trans* obj);
 extern signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len, TCP_Trans* obj);
@@ -62,7 +63,7 @@ extern signed char UDP_Status(unsigned char handle, NetStat* obj);
 extern signed char UDP_Receive(unsigned char handle, char* addr);
 extern signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, unsigned long ip, unsigned short rport);
 extern signed char UDP_Skip(unsigned char handle);
-extern unsigned long DNS_Resolve(char* addr);
-extern unsigned char DNS_Verify(char* addr);
+extern unsigned long DNS_Resolve(unsigned char bank, char* addr);
+extern unsigned char DNS_Verify(unsigned char bank, char* addr);
 
 #endif

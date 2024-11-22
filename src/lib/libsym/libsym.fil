@@ -2,6 +2,9 @@ argv.o
 filebox.o
 memsize.o
 msgbox.o
+tcp.o
+udp.o
+dns.o
 network.o
 popups.o
 system.o

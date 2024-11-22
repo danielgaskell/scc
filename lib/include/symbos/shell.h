@@ -16,6 +16,7 @@ extern unsigned char _shellpid;
 extern unsigned char _shellwidth;
 extern unsigned char _shellheight;
 extern unsigned char _shellver;
+extern unsigned char _shellexit;
 
 extern int Shell_CharIn(unsigned char channel);
 extern signed char Shell_StringIn(unsigned char channel, unsigned char bank, char* addr);

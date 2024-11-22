@@ -17,6 +17,8 @@ v1.1
 @ Fixed missing Win_ContentX/Y calls
 @ fgetc(stdin)/getchar() now treat \n correctly
 @ Fixed escaped hex codes being outputted backwards
+@ Fixed bug that kept some network functions from working
++ Now properly detects SymShell close and exits
 + Various documentation tweaks and additions
 
 v1.0

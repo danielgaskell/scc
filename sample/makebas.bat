@@ -1,1 +1,1 @@
-..\bin\cc -h 16384 -N "Tiny BASIC" -o basic.com basic.c
+..\bin\cc -h 16384 -N "Tiny BASIC" -o basic.com basic.c -lm

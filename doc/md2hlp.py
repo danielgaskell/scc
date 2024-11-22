@@ -146,16 +146,20 @@ lines = [unidecode(line).replace("\n", "") for line in lines]
 chdata = {}
 chapter = ""
 
+id = 0
 split_count = 1
 for line in lines:
     if line[0:2] == "# ":
-        chapter = line[2:]
+        id = id + 1
+        chapter = str(id) + " " + line[2:]
         split_count = 1
     elif line[0:3] == "## ":
-        chapter = line[3:]
+        id = id + 1
+        chapter = str(id) + " " + line[3:]
         split_count = 1
     elif line[0:4] == "### ":
-        chapter = "  " + line[4:]
+        id = id + 1
+        chapter = str(id) + " " + "  " + line[4:]
         split_count = 1
     else:
         if chapter not in chdata:
@@ -193,14 +197,15 @@ with open(sys.argv[1][:-3] + ".hlp", mode="wb") as file:
     data = b""
     for chapter in chdata:
         if len(chapter) > 0:
+            chname = chapter[chapter.find(" ")+1:]
             oldlen = len(data)
             data += b'\x00' # font = multi
             data += b'\x00' # number of links = 0
-            data += b'\x0D\x0A' + bold(bytes(chapter.strip().replace("`", '"').upper(), 'ascii')) + b'\x0D\x0A'
+            data += b'\x0D\x0A' + bold(bytes(chname.strip().replace("`", '"').upper(), 'ascii')) + b'\x0D\x0A'
             data += format_text(chdata[chapter]).replace(b"\r\n\r\n\r\n", b"\r\n\r\n").replace(b"\r\n____________\r\n", underline(b"\r\n            \r\n")) + b'\x00'
-            listdata += word16(len(data) - oldlen + (0 if chapter[:2] == "  " else 8192))
+            listdata += word16(len(data) - oldlen + (0 if chname[:2] == "  " else 8192))
             listdata += word16(len(chtitles))
-            chtitles += bytes(chapter.replace("`", '"'), 'ascii')[:24] + b'\x00'
+            chtitles += bytes(chname.replace("`", '"'), 'ascii')[:24] + b'\x00'
     file.write(b"SYMHLP10")
     file.write(word16(len(listdata)))
     file.write(word16(len(chtitles)))
