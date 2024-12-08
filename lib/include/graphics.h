@@ -8,6 +8,7 @@ extern void Gfx_Clear(char* canvas, unsigned char color);
 extern void Gfx_Init(char* canvas, unsigned short w, unsigned char h);
 extern void Gfx_Select(char* canvas);
 extern void Gfx_Prep(char* buffer);
+extern void Gfx_Prep_Set(char* buffer);
 extern unsigned char Gfx_Load(char* filename, char* buffer);
 extern unsigned char Gfx_Load_Set(char* filename, char* buffer);
 extern unsigned char Gfx_Save(char* filename, char* buffer);

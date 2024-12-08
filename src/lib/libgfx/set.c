@@ -1,18 +1,20 @@
 #include <graphics.h>
 #include "gfxcore.h"
 
-unsigned char Gfx_Load_Set(char* filename, char* buffer) {
+void Gfx_Prep_Set(char* buffer) {
     unsigned char i;
-    unsigned short len;
-    char* ptr;
-    if (_Gfx_Load(filename, buffer))
-        return 1;
-    ptr = buffer + 3;
-    len = *(unsigned short*)buffer;
+    unsigned short len = *(unsigned short*)buffer;
+    char* ptr = buffer + 3;
     for (i = 0; i < buffer[2]; ++i) {
         Gfx_Prep(ptr);
         ptr += len;
     }
+}
+
+unsigned char Gfx_Load_Set(char* filename, char* buffer) {
+    if (_Gfx_Load(filename, buffer))
+        return 1;
+    Gfx_Prep_Set(buffer);
     return 0;
 }
 

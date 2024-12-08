@@ -336,6 +336,14 @@ int main(int argc, char* argv[]) {
 }
 ```
 
+### Gfx_Prep_Set()
+
+```c
+void Gfx_Prep_Set(char* buffer);
+```
+
+Equivalent to `Gfx_Prep()`, but preps image sets instead of single images.
+
 ### Moving sprites
 
 Because `graphics.h` implements a raw canvas, it does not have any built-in features for redrawing the background behind a sprite after it is moved or deleted. Anything drawn to the canvas will simply stay there until overdrawn by something else. However, several simple techniques can be employed to create moveable sprites, depending on the specific needs of the application:
