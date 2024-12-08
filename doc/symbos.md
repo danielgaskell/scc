@@ -43,9 +43,11 @@ While SCC's `stdio` functions are meant to work relatively seamlessly in SymShel
 
 Writing windowed applications in SCC is not inherently difficult, but requires a thorough knowledge of SymbOS's desktop model. SCC provides the necessary headers and data types to interact with the SymbOS desktop manager, but there are no shortcuts here; writing a windowed application requires careful coding, testing, and regularly cross-referencing the documentation to ensure that every byte is where it needs to be. The most important data structures and functions are summarized here, but you may also find it useful to consult the [SymbOS developer documentation](https://symbos.org/download.htm).
 
-(For a more plug-and-play experience, try the useful---if quirky---[Quigs](https://symbos.org/quigs.htm) language.)
+This section has a lot to take in, but don't worry! To keep you from getting overwhelmed, a good place to start is to try compiling `windemo.c` (in the `sample` folder). Then, read through this section with the goal of learning what each line in `windemo.c` actually does. Once you understand it, you can use the code in `windemo.c` as a skeleton for building your own graphical application, referring to this documentation as needed to see how SymbOS handles the controls and events you want to add. Once you understand the basic concepts of segments, data structures, and messaging, writing windowed applications isn't actually that hard.
 
-We first need to include the header file `symbos.h`, which defines many of the features referenced in the following sections:
+(If you want a more Visual Basic-like experience with a graphical form editor, try the useful---if quirky---[Quigs](https://symbos.org/quigs.htm) language.)
+
+The first thing `windemo.c` does is include the header file `symbos.h`, which defines many of the features referenced in the following sections:
 
 ```c
 #include <symbos.h>
