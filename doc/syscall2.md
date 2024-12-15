@@ -55,10 +55,12 @@ Opens the file at the absolute path stored in bank `bank`, address `path` and re
 ### File_New()
 
 ```c
-unsigned char File_New(unsigned char bank, char* path);
+unsigned char File_New(unsigned char bank, char* path, unsigned char attrib);
 ```
 
 Creates a new file at the absolute path stored in bank `bank`, address `path` and returns the system file handle. If the file already existed, it will be emptied. The seek position will be set to the start of the file.
+
+`attrib` is an OR'd list of any or none of the following: `ATTRIB_READONLY`, `ATTRIB_HIDDEN`, `ATTRIB_SYSTEM`, `ATTRIB_ARCHIVE`.
 
 *Return value*: On success, returns the file handle (0 to 7). On failure, sets and returns `_fileerr` (which will always be greater than 7).
 
