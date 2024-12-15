@@ -750,6 +750,26 @@ Resizes the window `winID` so that the main content of the window has the width 
 
 *SymbOS name*: `Window_Set_Size_Command` (`MSC_DSK_WINSIZ`).
 
+### Win_Width()
+
+```c
+unsigned short Win_Width(Window* win);
+```
+
+A utility function that returns the width of the visible content area of the window `win`, in pixels. (Note that the window is passed as the address of the relevant `Window` record, *not* as the window ID!)
+
+When determining the visible size of a resizable window, this function should be used instead of directly reading the `Window.w` record. This is because the `Window.w` record contains the width the window *wants* to be, not necessarily its true current size; for example, when a window is maximized, `Window.w` will be the original "restored" width rather than the true "maximized" width. This function handles all the necessary calculations for determining the true width automatically.
+
+### Win_Height()
+
+```c
+unsigned short Win_Height(Window* win);
+```
+
+A utility function that returns the height of the visible content area of the window `win`, in pixels. (Note that the window is passed as the address of the relevant `Window` record, *not* as the window ID!)
+
+When determining the visible size of a resizable window, this function should be used instead of directly reading the `Window.h` record. This is because the `Window.h` record contains the height the window *wants* to be, not necessarily its true current size; for example, when a window is maximized, `Window.h` will contain the original "restored" height rather than the true "maximized" height. This function handles all the necessary calculations for determining the true height automatically.
+
 ### TextBox_Pos()
 
 ```c
