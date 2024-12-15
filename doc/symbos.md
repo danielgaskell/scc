@@ -1028,7 +1028,7 @@ Sent when the focus status of a control has changed.
 
 A window has been resized by the user (including maximizing or restoring a maximized or minimized window). The new window size can be read from the window's `w` and `h` properties, although we must also check whether the window's `state` property is `WIN_MAXIMIZED`; in this case the `w` and `h` properties will reflect the restored size of the window, not its maximized size.
 
-* `msg[0]`: `MSR_DSK_WRESIZE`
+* `msg[0]`: `MSR_DSK_WRESIZ`
 * `msg[1]`: Window ID
 
 The maximized size of a window's main content area will depend on the window layout (i.e., toolbar height and whether it has a menu or statusbar), but can be calculated from the screen size (`Screen_Width()` and `Screen_Height()`).

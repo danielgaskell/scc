@@ -445,4 +445,7 @@ typedef struct {
     unsigned short len;
 } Img_Header;
 
+extern unsigned short Win_Width(Window* win);
+extern unsigned short Win_Height(Window* win);
+
 #endif
