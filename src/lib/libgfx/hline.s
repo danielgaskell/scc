@@ -149,7 +149,7 @@ __gfx_hline16:
 	and 1
 	jr z,hline16middle
 	ld a,(de)
-	and #0x0F
+	and #0xF0
 	ld c,(ix+8)
 	or c
 	ld (de),a
