@@ -134,31 +134,31 @@ __gfx_hline16:
 	ld ix,#0x04
 	add ix,sp
 	; case w < 2
-	ld l,(ix+6)
-	ld h,(ix+7)
-	ld bc,2
+	ld a,(ix+6)
 	or a
-	sbc hl,bc
+	jr nz,hline16long
+	ld a,(ix+7)
+	cp 2
 	jp c,hline16short
+hline16long:
 	call __gfx_xy16			; DE = write address
-	ld b,(ix+6)             ; b = bytes left (w >> 1)
-	ld c,(ix+7)
-	srl c
-    rr b
+	ld c,(ix+8)				; C = color (low nibble)
 	ld a,(ix+2)
 	and 1
 	jr z,hline16middle
 	ld a,(de)
 	and #0xF0
-	ld c,(ix+8)
 	or c
 	ld (de),a
 	inc de
-	dec b
+	dec (ix+6)
 	; draw middle
 hline16middle:
-	ld a,(ix+8)				; A = color (in both nibbles)
-	ld c,a
+	ld b,(ix+6)             ; b = bytes left (w >> 1)
+	ld l,(ix+7)
+	sra l
+    rr b
+	ld a,c					; A = color (in both nibbles)
 	sla c
 	sla c
 	sla c
@@ -174,11 +174,11 @@ hline16loop:
 	jr z,hline16done
 	ld a,(de)
 	and #0x0F
-	ld c,(ix+8)
-	or c
+	or c					; C = color << 4
 	ld (de),a
 	jr hline16done
-hline16short: ; 1 pixel case
+	; 1 pixel case
+hline16short:
 	ld l,(ix+8)
 	ld h,(ix+9)
 	push hl
