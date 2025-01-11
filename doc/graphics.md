@@ -30,7 +30,7 @@ To create a canvas, first define a `char` buffer with the size `(width * height 
 _data char canvas[(128*64/2) + 24];
 ```
 
-Canvas size is limited to 504x255 pixels, and **the width of a canvas in pixels must be a multiple of 8**. To ensure that the headers (which will be placed at the start of this buffer) are in the same 16KB memory block as the image data, this buffer should typically be defined in the **data** segment.
+Canvas size is limited to 504x255 pixels, and **the width of a canvas in pixels must be a multiple of 8**. To work correctly on all platforms, a single canvas must also stay within a single 16KB memory segment; the easiest way to guarantee this is to place it in either the **data** or **transfer** segment. (This 16KB limit unfortunately means that the maximum *practical* size of a single canvas is much smaller than 504x255: e.g., 180x180, 240x136, 504x64, etc.)
 
 To show this canvas in a window, we can use the `C_IMAGE_EXT` control. Set the `param` argument to point to the address of the canvas, and the `w` and `h` arguments to match the desired pixel width and height of the canvas:
 
