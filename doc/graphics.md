@@ -192,6 +192,16 @@ void Gfx_Circle(signed short x0, signed short y0, signed short radius, unsigned 
 
 Draws an unfilled circle with the color `color`, a radius of `radius` pixels, and its centerpoint at `x0`, `y0`. The circle may overlap the edges of the canvas. In 4-color modes, higher colors will be automatically rendered down to 4 colors.
 
+### Gfx_Text()
+
+```c
+void Gfx_Text(unsigned short x, unsigned char y, char* text, unsigned char color, char* font);
+```
+
+Draws the text string `text` at the pixel coordinates `x`, `y` on the currently active canvas, using color `color` and the font at the address `font`. If `font` = 0, the system font will be used. No bounds-checking is performed, so be sure that the coordinates are actually valid (including that the text will not overflow the right margin).
+
+This routine is a bit slower than the native text-drawing used for controls, mainly because using the system font requires banked memory access. The upside is that subsequently refreshing the window is faster, since the text is now part of the canvas and does not need to be redrawn from scratch. A description of the font format can be found in the SymbOS Developer Documentation; fonts can be created using the SymbOS Font Editor application.
+
 ### Gfx_Clear()
 
 ```c

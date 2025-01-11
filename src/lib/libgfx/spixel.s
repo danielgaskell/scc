@@ -20,9 +20,10 @@ _Gfx_Safe_Pixel:
 	sbc hl,de
 	jr c,GSP_done
 	pop ix
-	ld hl,(__gfx_pix)
-	push hl  ; redirect call to __gfx_pix
-	ret
+	ld a,(__gfx_16)
+	or a
+	jp z,__gfx_pix4
+	jp __gfx_pix16
 GSP_done:
 	pop ix
 	ret

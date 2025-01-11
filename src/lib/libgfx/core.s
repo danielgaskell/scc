@@ -13,7 +13,10 @@ mul8loop:
 mul8skip:
 	djnz mul8loop
 	ret
-	
+
+.export __gfx_16		 ; 16-color mode
+__gfx_16:
+	.byte 255
 .export __gfx_active     ; active canvas
 __gfx_active:
 	.word 0

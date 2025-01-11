@@ -197,12 +197,9 @@ hline16done:
 	pop bc
 	ret
 	
-.export __gfx_hline
-__gfx_hline:
-	.word __gfx_hline4
-
 .export _Gfx_HLine
 _Gfx_HLine:
-	ld hl,(__gfx_hline)
-	push hl
-	ret ; redirect call to __gfx_hline
+	ld a,(__gfx_16)
+	or a
+	jp z,__gfx_hline4
+	jp __gfx_hline16

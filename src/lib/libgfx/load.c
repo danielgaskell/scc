@@ -14,7 +14,7 @@ char _preptab2[4][4] =
      {0x22, 0x32, 0x23, 0x33}};
 
 void Gfx_Prep(char* buffer) {
-    unsigned char imgcolors = 16;
+    unsigned char img16 = 1;
     char *ptr, *ptr2, *ptrend;
     signed char ptroff = 0;
     unsigned short len;
@@ -27,9 +27,9 @@ void Gfx_Prep(char* buffer) {
         ptroff = -2;
     }
     if ((buffer[1] / buffer[0]) == 4)
-        imgcolors = 4;
+        img16 = 0;
 
-    if (_screencolors == 16 && imgcolors == 4) {
+    if (_gfx_16 && !img16) {
         // convert 4-color to 16-color
         buffer[0] = (buffer[1] >> 1);
         len = (((unsigned short)buffer[1] * buffer[2]) >> 2);
@@ -62,11 +62,11 @@ void Gfx_Prep(char* buffer) {
             *ptr2++ = d;
         }
 
-    } else if (_screencolors == 16 && imgcolors == 16) {
+    } else if (_gfx_16 && img16) {
         // convert 16-color to 16-color: just remove excess header
         memcpy(buffer + 3, buffer + 10, (unsigned short)buffer[0] * buffer[2]);
 
-    } else if (_screencolors == 4 && imgcolors == 16) {
+    } else if (!_gfx_16 && img16) {
         // convert 16-color to 4-color
         buffer[0] = (buffer[1] >> 2);
         ptrend = buffer + 10 + (((unsigned short)buffer[1] * buffer[2]) >> 1);

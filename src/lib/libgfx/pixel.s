@@ -60,14 +60,11 @@ pix16offset:
 	ld (de),a
 	pop ix
 	pop bc
-	ret					
-
-.export __gfx_pix
-__gfx_pix:
-	.word __gfx_pix4
+	ret
 
 .export _Gfx_Pixel
 _Gfx_Pixel:
-	ld hl,(__gfx_pix)
-	push hl
-	ret ; redirect call to __gfx_pix
+	ld a,(__gfx_16)
+	or a
+	jp z,__gfx_pix4
+	jp __gfx_pix16

@@ -77,13 +77,10 @@ vline16loop2:
 	pop ix
 	pop bc
 	ret
-	
-.export __gfx_vline
-__gfx_vline:
-	.word __gfx_vline4
 
 .export _Gfx_VLine
 _Gfx_VLine:
-	ld hl,(__gfx_vline)
-	push hl
-	ret ; redirect call to __gfx_vline
+	ld a,(__gfx_16)
+	or a
+	jp z,__gfx_vline4
+	jp __gfx_vline16

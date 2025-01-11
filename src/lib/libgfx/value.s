@@ -66,12 +66,10 @@ val16offset:
 	pop bc
 	ret
 
-.export __gfx_val
-__gfx_val:
-	.word __gfx_val4
-
 .export _Gfx_Value
 _Gfx_Value:
-	ld hl,(__gfx_val)
-	push hl
-	ret ; redirect call to __gfx_val
+	ld a,(__gfx_16)
+	or a
+	jp z,__gfx_val4
+	jp __gfx_val16
+	

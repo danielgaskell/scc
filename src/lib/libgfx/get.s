@@ -178,12 +178,10 @@ get16fastdone:
 	pop bc
 	ret
 	
-.export __gfx_get
-__gfx_get:
-	.word __gfx_get4
-	
 .export _Gfx_Get
 _Gfx_Get:
-	ld hl,(__gfx_get)
-	push hl
-	ret ; redirect call to __gfx_get
+	ld a,(__gfx_16)
+	or a
+	jp z,__gfx_get4
+	jp __gfx_get16
+	

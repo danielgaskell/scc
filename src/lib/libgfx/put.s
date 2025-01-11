@@ -350,12 +350,9 @@ put16done:
 	pop bc
 	ret
 	
-.export __gfx_put
-__gfx_put:
-	.word __gfx_put4
-	
 .export _Gfx_Put
 _Gfx_Put:
-	ld hl,(__gfx_put)
-	push hl
-	ret ; redirect call to __gfx_put
+	ld a,(__gfx_16)
+	or a
+	jp z,__gfx_put4
+	jp __gfx_put16
