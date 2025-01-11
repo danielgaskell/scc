@@ -13,11 +13,13 @@ __coltab:
 __gfx_text4:
 	push bc
 	push ix
-	push hl		; IX-5,6 = working 16-bit field (on stack for thread safety)
-	push hl		; IX-7 = current bit shift, IX-8 = font bank
-	push hl		; IX-9 = saved font height, IX-10 = saved font first char
-	ld ix,#0x0A
+	ld ix,#0x04
 	add ix,sp
+	ld hl,-22	; 22 bytes of storage (on stack for thread safety):
+	add hl,sp	; IX-5,6 = working 16-bit field
+	ld sp,hl	; IX-7 = current bit shift, IX-8 = font bank
+				; IX-9 = saved font height, IX-10 = saved font first char
+				; IX-26 = 16-byte cache for system font character
 	; get system font address -> IX+10,11 if needed
 	ld a,(__symbank)
 	ld (ix-8),a			; assume font is in _symbank until proven otherwise
@@ -75,17 +77,19 @@ text4loop:
 	ld c,(ix+10)
 	ld b,(ix+11)
 	add hl,bc
+	; set HL = actual character data address, caching system font if needed (when page == 0)
 	ld a,(ix-8)
-	rst #0x20
-	.word #0x812A		; Banking_ReadByte, width -> B
+	or a
+	call z,text4cache
+	ld b,(hl)
+	inc hl
 	push de				; save write for later
 	push bc				; save width for later
 	ld b,(ix-9)			; height -> B
 char4loop:
 	push bc
-	push af
-	rst #0x20
-	.word #0x812A		; Banking_ReadByte
+	ld b,(hl)
+	inc hl
 	; shift B into 2 bytes -> IX-5,6
 	ld c,0
 	ld a,(ix-7)
@@ -145,7 +149,6 @@ text4nextrow:
 	dec hl
 	dec hl
 	ex de,hl			; restore write to DE
-	pop af
 	pop bc
 	djnz char4loop
 	; increment IX+6,7 (string pointer) and loop
@@ -169,9 +172,9 @@ text4noinc:
 	ld (ix-7),a
 	jp text4loop
 text4done:
-	pop hl
-	pop hl
-	pop hl
+	ld hl,22
+	add hl,sp
+	ld sp,hl
 	pop ix
 	pop bc
 	ret
@@ -187,6 +190,29 @@ text4nibble:
 	and (hl)
 	or c				; background |= colorfield
 	ld (hl),a			; write result
+	ret
+	
+; caches the 16 bytes at HL, bank 0 -> IX-26 and sets HL to IX-26
+; destroys AF, BC
+text4cache:
+	ld a,(__symbank)
+	rlca
+	rlca
+	rlca
+	rlca
+	push de
+	ex de,hl
+	ld hl,-26
+	push ix
+	pop bc
+	add hl,bc
+	ex de,hl
+	ld bc,16
+	push de
+	rst #0x20
+	.word #0x8130		; Banking_Copy
+	pop hl
+	pop de
 	ret
 	
 .export __gfx_text16
