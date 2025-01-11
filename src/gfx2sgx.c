@@ -5,6 +5,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+unsigned char cmode = 0, cwidth = 0;
+unsigned short imgsize = 0;
+
 typedef struct {
     unsigned char red;
     unsigned char green;
@@ -54,29 +57,43 @@ unsigned char numeric(char* str) {
     return 1;
 }
 
+void charout(unsigned char ch, FILE* fp) {
+    if (cmode) {
+        fprintf(fp, "0x%02X, ", ch);
+        ++cwidth;
+        if (cwidth > 16) {
+            cwidth = 0;
+            fputs("\n", fp);
+        }
+    } else {
+        fputc(ch, fp);
+    }
+    ++imgsize;
+}
+
 unsigned short write_header(FILE* fp, int xsize, int ysize, unsigned char outcolors) {
     if (outcolors == 4) {
-        fputc((unsigned char)xsize / 4, fp);
-        fputc((unsigned char)xsize, fp);
-        fputc((unsigned char)ysize, fp);
+        charout((unsigned char)xsize / 4, fp);
+        charout((unsigned char)xsize, fp);
+        charout((unsigned char)ysize, fp);
         return 3;
     } else {
-        fputc((unsigned char)xsize / 2, fp);
-        fputc((unsigned char)xsize, fp);
-        fputc((unsigned char)ysize, fp);
-        fputc(0x00, fp);
-        fputc(0x00, fp);
-        fputc(0x00, fp);
-        fputc(0x00, fp);
-        fputc(0x20, fp);
-        fputc(0x01, fp);
-        fputc(0x05, fp);
+        charout((unsigned char)xsize / 2, fp);
+        charout((unsigned char)xsize, fp);
+        charout((unsigned char)ysize, fp);
+        charout(0x00, fp);
+        charout(0x00, fp);
+        charout(0x00, fp);
+        charout(0x00, fp);
+        charout(0x20, fp);
+        charout(0x01, fp);
+        charout(0x05, fp);
         return 10;
     }
 }
 
 void usage(void) {
-    printf("usage: gfx2sgx infile [[tilewidth] [tileheight]] [-4] [-m] [-o outfile]\n\n");
+    printf("usage: gfx2sgx infile [[tilewidth] [tileheight]] [-4] [-m] [-c] [-o outfile]\n\n");
 
     printf("Converts an image (.BMP, .JPG, .PNG, .GIF, .TGA) to a .SGX graphics asset for\n");
     printf("SCC's graphics.h library. Images are converted pixel-perfect by Euclidean\n");
@@ -88,7 +105,8 @@ void usage(void) {
     printf("   -4       Convert in 4 colors only (default is 16)\n");
     printf("   -m       Convert alpha channel to sprite mask\n");
     printf("            (image sets will be ordered mask-tile-mask-tile...)\n");
-    printf("   -o file  Specify filename of output .SGX\n");
+    printf("   -o file  Specify output filename\n");
+    printf("   -c       Output as .C source file instead of .SGX\n");
 
     exit(1);
 }
@@ -121,6 +139,9 @@ int main(int argc, char* argv[]) {
             case 'm':
                 maskmode = 1;
                 maskmax = 2;
+                break;
+            case 'c':
+                cmode = 1;
                 break;
             case 'o':
                 ++i;
@@ -169,8 +190,6 @@ int main(int argc, char* argv[]) {
         fatal("image dimensions too large!");
     if (xsize % 4)
         fatal("image width is not a multiple of 4!");
-    if (tilewidth % 4)
-        fatal("tile width is not a multiple of 4!");
     if (((xsize % tilewidth) || (ysize % tileheight)))
         fatal("image cannot be evenly divided into tiles!");
     tiles = (xsize / tilewidth) * (ysize / tileheight);
@@ -180,7 +199,9 @@ int main(int argc, char* argv[]) {
         outfile = strdup(infile);
         ptr = strrchr(outfile, '.');
         if (ptr != NULL) {
-            if (tiles > 1 || maskmode != 0)
+            if (cmode)
+                strcpy(ptr, ".c");
+            else if (tiles > 1 || maskmode != 0)
                 strcpy(ptr, ".gfx");
             else
                 strcpy(ptr, ".sgx");
@@ -190,12 +211,16 @@ int main(int argc, char* argv[]) {
     if (fp == NULL)
         fatal("unable to open output file");
 
+    // create C header if necessary
+    if (cmode)
+        fprintf(fp, "char img[           \n");
+
     // create set header if necessary
     tilelen = (tilewidth * tileheight / 2) + 10;
     if (tiles > 1 || maskmode != 0) {
-        fputc(tilelen & 0xFF, fp);
-        fputc((tilelen >> 8) & 0xFF, fp);
-        fputc(maskmode ? tiles*2 : tiles, fp);
+        charout(tilelen & 0xFF, fp);
+        charout((tilelen >> 8) & 0xFF, fp);
+        charout(maskmode ? tiles*2 : tiles, fp);
     }
 
     // process image
@@ -209,7 +234,7 @@ int main(int argc, char* argv[]) {
 
             // pad tile to tilelen
             while (written < tilelen) {
-                fputc(0, fp);
+                charout(0, fp);
                 ++written;
             }
 
@@ -236,7 +261,7 @@ int main(int argc, char* argv[]) {
                     }
                     ++offset;
                     if ((outcolors == 16 && offset == 2) || (outcolors == 4 && offset == 4)) {
-                        fputc(outbyte, fp);
+                        charout(outbyte, fp);
                         outbyte = 0;
                         offset = 0;
                         ++written;
@@ -251,6 +276,14 @@ int main(int argc, char* argv[]) {
             xstart = 0;
             ystart += tileheight;
         }
+    }
+
+    // create C footer if necessary
+    if (cmode) {
+        fseek(fp, -2, SEEK_CUR); // remove last comma
+        fputs("};\n", fp);
+        fseek(fp, 9, SEEK_SET);
+        fprintf(fp, "%i] = {", imgsize); // update array size
     }
 
     // clean up

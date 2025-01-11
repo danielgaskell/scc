@@ -346,6 +346,12 @@ int main(int argc, char* argv[]) {
 }
 ```
 
+Character arrays like this can be created by running [`gfx2sgx`](#converting-images) with the `-c` option, which will output the image data as a character array in a `.c` file instead of as binary data in a `.sgx` file:
+
+```bash
+gfx2sgx icon.png -c
+```
+
 ### Gfx_Prep_Set()
 
 ```c
