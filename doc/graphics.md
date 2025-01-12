@@ -200,9 +200,11 @@ Draws an unfilled circle with the color `color`, a radius of `radius` pixels, an
 void Gfx_Text(unsigned short x, unsigned char y, char* text, unsigned char color, char* font);
 ```
 
-Draws the text string `text` at the pixel coordinates `x`, `y` on the currently active canvas, using color `color` and the font at the address `font`. If `font` = 0, the system font will be used. No clipping is performed, so be sure that the coordinates are actually valid (including that the text will not overflow the right margin).
+Draws the text string `text` at the pixel coordinates `x`, `y` on the currently active canvas, using color `color` and the font at the address `font`. If `font` = 0, the system font will be used. No clipping is performed, so be sure that the coordinates are actually valid (including that the text will not overflow the right margin). In 4-color modes, higher colors will be automatically rendered down to 4 colors. 
 
-Drawing text using the system font is a bit slower than using a custom font because of the need for banked memory access. (This is the opposite of how system text controls behave, where using the system font is faster.) Unlike system controls, it does not matter which segment custom font data is stored in. A description of the font format can be found in the SymbOS Developer Documentation; fonts can be created using the SymbOS Font Editor application.
+Drawing text in 16-color mode is currently slower than in 4-color mode. Drawing text using the system font is also a bit slower than using a custom font because of the need for banked memory access. (This is the opposite of how system text controls behave, where using the system font is faster.) Unlike system controls, it does not matter which segment custom font data is stored in.
+
+A description of the font format can be found in the SymbOS Developer Documentation; fonts can be created using the SymbOS Font Editor application.
 
 ### Gfx_Clear()
 
