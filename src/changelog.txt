@@ -2,13 +2,16 @@ v1.1
 + Added libgfx
 + Added gfx2sgx
 + Added gfxdemo.c sample
++ Added sound daemon support
++ Added snddemo.c sample
++ Added md2hlp.py and SymbOS .HLP documentation
 + Added compression system calls
 + Added Shell_CharWatch() system call
 + Added Sys_Version() system call
 @ libz80 is now in the primary codebase
 @ Fixed float casting
 @ Fixed passing floats as variadic arguments
-@ Redesigned float library around z80float and z88dk code
+@ Redesigned float library around faster z80float/z88dk code
 + Added printf("%f") support
 - Removed unnecessary float->float casts
 @ Fixed register variables
@@ -18,7 +21,7 @@ v1.1
 @ fgetc(stdin)/getchar() now treat \n correctly
 @ Fixed escaped hex codes being outputted backwards
 @ Fixed bug that kept some network functions from working
-+ Now properly detects SymShell close and exits
++ Now properly detects SymShell close and exits cleanly
 + Various documentation tweaks and additions
 
 v1.0
