@@ -1,7 +1,5 @@
 #include <symbos.h>
-
-extern unsigned char _netpid;
-extern unsigned char _neterr;
+#include "network.h"
 
 /* ========================================================================== */
 /* SymbOS Network Daemon calls (UDP)                                          */

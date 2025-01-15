@@ -12,6 +12,7 @@
 #include <symbos/popups.h>
 #include <symbos/proc.h>
 #include <symbos/shell.h>
+#include <symbos/sound.h>
 #include <symbos/systray.h>
 #include <symbos/threads.h>
 #include <symbos/time.h>

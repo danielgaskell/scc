@@ -6,6 +6,9 @@ tcp.o
 udp.o
 dns.o
 network.o
+music.o
+effects.o
+sound.o
 popups.o
 system.o
 systray.o

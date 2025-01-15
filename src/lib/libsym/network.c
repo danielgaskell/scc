@@ -17,8 +17,10 @@ unsigned char Net_Init(void) {
 
 unsigned char Net_Command(void) {
     unsigned char id = _symmsg[0] + 128;
-    if (_netpid == 0)
+    if (_netpid == 0) {
+        _neterr = ERR_OFFLINE;
         return ERR_OFFLINE;
+    }
     while (Msg_Send(_sympid, _netpid, _symmsg) == 0);
     for (;;) {
         Msg_Sleep(_sympid, _netpid, _symmsg);
