@@ -7,12 +7,12 @@ unsigned char _neterr;
 /* SymbOS Network Daemon calls (common)                                       */
 /* ========================================================================== */
 
-unsigned char Net_Init(void) {
+signed char Net_Init(void) {
     _netpid = (App_Search(_symbank, "Network Daem") >> 8);
     if (_netpid)
         return 0;
     _neterr = ERR_OFFLINE;
-    return ERR_OFFLINE;
+    return -1;
 }
 
 unsigned char Net_Command(void) {

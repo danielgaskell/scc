@@ -1120,12 +1120,12 @@ In addition to `symbos.h`, these functions can be found in `symbos/network.h`.
 ### Net_Init()
 
 ```c
-unsigned char Net_Init(void);
+signed char Net_Init(void);
 ```
 
 Initializes the network interface, if present. This should be called before using any other network functions.
 
-*Return value*: On success, sets `_netpid` to the process ID of the network daemon and returns 0. On failure, returns `ERR_OFFLINE`.
+*Return value*: On success, sets `_netpid` to the process ID of the network daemon and returns 0. On failure, sets `_neterr` and returns -1.
 
 ### TCP_OpenClient()
 

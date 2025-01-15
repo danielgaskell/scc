@@ -46,7 +46,7 @@ typedef struct {
 
 extern unsigned char _netpid;
 extern unsigned char _neterr;
-extern unsigned char Net_Init(void);
+extern signed char Net_Init(void);
 extern signed char TCP_OpenClient(unsigned long ip, signed short lport, unsigned short rport);
 extern signed char TCP_OpenServer(unsigned short lport);
 extern signed char TCP_Close(unsigned char handle);
