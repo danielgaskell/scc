@@ -7,6 +7,8 @@ unsigned short Win_Width(Window* win) {
             w = Screen_Width();
             if ((win->flags & WIN_RESIZABLE) && !(win->flags & WIN_ADJUSTX))
                 w -= 8;
+            if (w > win->wmax)
+                return win->wmax;
             return w;
         }
     }
@@ -30,6 +32,8 @@ unsigned short Win_Height(Window* win) {
                 h -= win->toolheight;
             if (win->flags & WIN_STATUS)
                 h -= 9;
+            if (h > win->hmax)
+                return win->hmax;
             return h;
         }
     }
