@@ -121,8 +121,8 @@ Some commentary on these elements is useful.
 * `WIN_TITLE` = show titlebar
 * `WIN_MENU` = show menubar
 * `WIN_STATUS` = show statusbar
-* `WIN_ADJUSTX` = automatically adjust the content width to the window width
-* `WIN_ADJUSTY` = automatically adjust the content height to the window height
+* `WIN_ADJUSTX` = disable horizontal slider in resizable windows (i.e., the program will adjust its own X scroll, not the system)
+* `WIN_ADJUSTY` = disable vertical slider in resizable windows (i.e., the program will adjust its own Y scroll, not the system)
 * `WIN_NOTTASKBAR` = do not display in taskbar
 * `WIN_NOTMOVEABLE` = window cannot be moved
 * `WIN_MODAL` = modal window ([see below](#modal-windows))
