@@ -20,6 +20,7 @@
 * [Clipboard functions](#clipboard-functions)
 * [Time functions](#time-functions)
 * [System tray](#system-tray)
+* [Sound](#sound)
 * [Network interface](#network-interface)
 * [Multithreading](#multithreading)
 * [Reference tables](#reference-tables)

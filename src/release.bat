@@ -2,6 +2,14 @@
 call make.bat
 call makesym.bat
 
+python ..\doc\md2hlp.py ..\doc\index.md
+python ..\doc\md2hlp.py ..\doc\symbos.md
+python ..\doc\md2hlp.py ..\doc\syscall1.md
+python ..\doc\md2hlp.py ..\doc\syscall2.md
+python ..\doc\md2hlp.py ..\doc\graphics.md
+python ..\doc\md2hlp.py ..\doc\porting.md
+python ..\doc\md2hlp.py ..\doc\special.md
+
 mkdir ..\release\win32
 mkdir ..\release\win32\bin
 mkdir ..\release\win32\doc
@@ -11,6 +19,7 @@ mkdir ..\release\win32\lib\include\sys
 mkdir ..\release\win32\lib\include\symbos
 mkdir ..\release\win32\sample
 mkdir ..\release\symbos
+mkdir ..\release\symbos\doc
 mkdir ..\release\symbos\lib
 mkdir ..\release\symbos\lib\include
 mkdir ..\release\symbos\lib\include\sys
@@ -20,7 +29,9 @@ del /S /Q ..\release\*.*
 
 copy /Y ..\bin\*.exe ..\release\win32\bin
 copy /Y ..\bin\*.z80 ..\release\win32\bin
-copy /Y ..\doc\*.* ..\release\win32\doc
+copy /Y ..\doc\*.txt ..\release\win32\doc
+copy /Y ..\doc\*.md ..\release\win32\doc
+copy /Y ..\doc\*.png ..\release\win32\doc
 copy /Y ..\lib\*.a ..\release\win32\lib
 copy /Y ..\lib\*.o ..\release\win32\lib
 copy /Y ..\lib\include\*.h ..\release\win32\lib\include
@@ -38,11 +49,15 @@ copy /Y ..\sample\ball.png ..\release\win32\sample
 copy /Y ..\sample\ball.sgx ..\release\win32\sample
 copy /Y ..\sample\gfxdemo.c ..\release\win32\sample
 copy /Y ..\sample\makegfx.bat ..\release\win32\sample
+copy /Y ..\sample\snddemo.c ..\release\win32\sample
+copy /Y ..\sample\startup.spm ..\release\win32\sample
 
 copy /Y install.txt ..\release\symbos
 copy /Y ..\bin\symbos\*.exe ..\release\symbos
 copy /Y ..\bin\symbos\*.com ..\release\symbos
 copy /Y ..\bin\symbos\*.z80 ..\release\symbos
+copy /Y ..\doc\*.txt ..\release\symbos\doc
+copy /Y ..\doc\*.hlp ..\release\symbos\doc
 copy /Y ..\lib\*.a ..\release\symbos\lib
 copy /Y ..\lib\*.o ..\release\symbos\lib
 copy /Y ..\lib\include\*.h ..\release\symbos\lib\include
@@ -60,3 +75,5 @@ copy /Y ..\sample\ball.png ..\release\symbos\sample
 copy /Y ..\sample\ball.sgx ..\release\symbos\sample
 copy /Y ..\sample\gfxdemo.c ..\release\symbos\sample
 copy /Y ..\sample\makegfx_native.bat ..\release\symbos\sample\makegfx.bat
+copy /Y ..\sample\snddemo.c ..\release\\symbos\sample
+copy /Y ..\sample\startup.spm ..\release\\symbos\sample

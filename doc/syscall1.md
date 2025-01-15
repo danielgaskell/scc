@@ -30,6 +30,7 @@ These headers are not 100% comprehensive; SymbOS provides some additional system
 * [Clipboard functions](syscall2.md#clipboard-functions)
 * [Time functions](syscall2.md#time-functions)
 * [System tray](syscall2.md#system-tray)
+* [Sound](syscall2.md#sound)
 * [Network interface](syscall2.md#network-interface)
 * [Multithreading](syscall2.md#multithreading)
 * [Reference tables](syscall2.md#reference-tables)

@@ -6,6 +6,7 @@
 * [System call reference](syscall1.md)
 * [Graphics library](graphics.md)
 * [Special considerations](special.md) (compiler quirks, etc.)
+* [Porting tips](porting.md)
 
 # Introduction
 
