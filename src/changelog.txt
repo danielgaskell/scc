@@ -5,13 +5,15 @@ v1.1
 + Added sound daemon support
 + Added snddemo.c sample
 + Added md2hlp.py and SymbOS .HLP documentation
++ Added sortmap tool for reading memory maps
 + Added compression system calls
 + Added Shell_CharWatch() system call
 + Added Sys_Version() system call
++ Added Win_Width() and Win_Height() utility functions
 @ libz80 is now in the primary codebase
+@ Redesigned float library around faster z80float/z88dk code
 @ Fixed float casting
 @ Fixed passing floats as variadic arguments
-@ Redesigned float library around faster z80float/z88dk code
 + Added printf("%f") support
 - Removed unnecessary float->float casts
 @ Fixed register variables
