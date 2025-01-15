@@ -8,4 +8,4 @@ extern unsigned char _soundmus;
 extern unsigned char _soundfx[];
 extern unsigned char _soundfxhw[];
 
-unsigned char Sound_Command(void);
+unsigned char Sound_Command(unsigned char wait);

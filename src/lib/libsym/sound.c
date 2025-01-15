@@ -1,6 +1,9 @@
 #include <symbos.h>
 #include "sound.h"
 
+// Note: STARTUP.SPM is the SymbOS 4.0 startup sound as a separate file, from
+// the Sound Daemon source code (licensed GPLv3).
+
 unsigned char _soundpid;
 unsigned char _soundhw;
 unsigned char _soundpref;
@@ -16,24 +19,28 @@ unsigned char sound_needs_hook = 1;
 /* SymbOS Sound Daemon calls (common)                                       */
 /* ========================================================================== */
 
-unsigned char Sound_Command(void) {
+unsigned char Sound_Command(unsigned char wait) {
     unsigned char id = _symmsg[0] + 128;
     if (_soundpid == 0) {
         _sounderr = ERR_NOSOUND;
         return ERR_NOSOUND;
     }
     while (Msg_Send(_sympid, _soundpid, _symmsg) == 0);
-    for (;;) {
-        Msg_Sleep(_sympid, _soundpid, _symmsg);
-        if (_symmsg[0] == id)
-            break;
-        Msg_Send(_soundpid, _sympid, _symmsg); // put message back on queue
-    }
-    if (_symmsg[2] & 0x01) {
-        _sounderr = _symmsg[3];
-        return _sounderr;
+    if (wait) {
+        for (;;) {
+            Msg_Sleep(_sympid, _soundpid, _symmsg);
+            if (_symmsg[0] == id)
+                break;
+            Msg_Send(_soundpid, _sympid, _symmsg); // put message back on queue
+        }
+        if (_symmsg[2] & 0x01) {
+            _sounderr = _symmsg[3];
+            return _sounderr;
+        } else {
+            _sounderr = 0;
+            return 0;
+        }
     } else {
-        _sounderr = 0;
         return 0;
     }
 }
@@ -43,7 +50,7 @@ void Music_Free(void) {
         _msemaon();
         _symmsg[0] = 9;
         _symmsg[3] = _soundmus;
-        Sound_Command();
+        Sound_Command(0);
         _msemaoff();
         _soundmus = 255;
     }
@@ -54,7 +61,7 @@ void Effect_Free(unsigned char handle) {
         _msemaon();
         _symmsg[0] = 17;
         _symmsg[3] = _soundfx[handle-1];
-        Sound_Command();
+        Sound_Command(0);
         _msemaoff();
         _soundfx[handle-1] = 0;
     }
@@ -67,7 +74,7 @@ void _sound_cleanup(void) {
         Music_Free();
     for (i = 0; i < SOUND_MAX_FX; ++i) {
         if (_soundfx[i])
-            Effect_Free(i);
+            Effect_Free(i+1);
     }
 }
 
@@ -91,7 +98,7 @@ signed char Sound_Init(void) {
         _msemaon();
         _symmsg[0] = 1;
         _symmsg[3] = _soundpid;
-        Sound_Command();
+        Sound_Command(1);
         _soundhw = _symmsg[3];
         _soundpref = _symmsg[8];
         _msemaoff();

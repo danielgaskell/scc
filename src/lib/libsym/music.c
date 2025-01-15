@@ -13,7 +13,7 @@ signed char Music_Load(unsigned char fid, unsigned char hw) {
     _symmsg[3] = fid;
     _symmsg[6] = 0; // source = file
     _symmsg[7] = hw;
-    if (Sound_Command()) {
+    if (Sound_Command(1)) {
         _msemaoff();
         return -1;
     }
@@ -32,7 +32,7 @@ signed char Music_Load_Mem(unsigned char bank, char* addr, unsigned short len) {
     *((unsigned short*)(_symmsg + 8)) = (unsigned short)addr;
     _symmsg[6] = 1; // source = memory
     _symmsg[7] = 1; // hardware = PSG
-    if (Sound_Command()) {
+    if (Sound_Command(1)) {
         _msemaoff();
         return -1;
     }
@@ -48,6 +48,7 @@ void Music_Start(unsigned char track) {
     _symmsg[0] = 10;
     _symmsg[3] = _soundmus;
     _symmsg[8] = track;
+    Sound_Command(0);
     _msemaoff();
 }
 
@@ -57,6 +58,7 @@ void Music_Stop(void) {
     _msemaon();
     _symmsg[0] = 12;
     _symmsg[3] = _soundmus;
+    Sound_Command(0);
     _msemaoff();
 }
 
@@ -66,6 +68,7 @@ void Music_Continue(void) {
     _msemaon();
     _symmsg[0] = 11;
     _symmsg[3] = _soundmus;
+    Sound_Command(0);
     _msemaoff();
 }
 
@@ -76,5 +79,6 @@ void Music_Volume(unsigned char vol) {
     _symmsg[0] = 13;
     _symmsg[3] = _soundmus;
     _symmsg[9] = vol;
+    Sound_Command(0);
     _msemaoff();
 }

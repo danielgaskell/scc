@@ -28,7 +28,7 @@ signed char Effect_Load(unsigned char fid, unsigned char hw) {
     _symmsg[3] = fid;
     _symmsg[6] = 0; // source = file
     _symmsg[7] = hw;
-    result = Sound_Command();
+    result = Sound_Command(1);
     if (result) {
         _msemaoff();
         return -1;
@@ -45,7 +45,7 @@ signed char Effect_Load_Mem(unsigned char bank, char* addr, unsigned short len) 
     *((unsigned short*)(_symmsg + 8)) = (unsigned short)addr;
     _symmsg[6] = 1; // source = memory
     _symmsg[7] = 1; // hardware = PSG
-    result = Sound_Command();
+    result = Sound_Command(1);
     if (result) {
         _msemaoff();
         return -1;
@@ -77,6 +77,7 @@ void Effect_Play(unsigned char handle, unsigned char id, unsigned char volume,
     *((int*)(_symmsg + 6)) = pitch;
     _symmsg[8] = id;
     _symmsg[9] = volume;
+    Sound_Command(0);
     _msemaoff();
 }
 
@@ -85,5 +86,6 @@ void Effect_Stop(unsigned char handle, unsigned char id) {
     _symmsg[0] = 19;
     _symmsg[3] = (handle > 0) ? _soundfx[handle-1] : 0;
     _symmsg[8] = id;
+    Sound_Command(0);
     _msemaoff();
 }
