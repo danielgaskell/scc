@@ -23,6 +23,7 @@ v1.1
 @ fgetc(stdin)/getchar() now treat \n correctly
 @ Fixed escaped hex codes being outputted backwards
 @ Fixed bug that kept some network functions from working
+@ Replaced rand(), memmove() with faster versions
 + Now properly detects SymShell close and exits cleanly
 + Various documentation tweaks and additions
 
