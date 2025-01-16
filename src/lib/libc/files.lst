@@ -3,5 +3,6 @@ longjmp.s
 memcpy.s
 memmove.s
 memset.s
+rand.s
 setjmp.s
 systime.s
