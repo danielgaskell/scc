@@ -1,6 +1,7 @@
 fnum.s
 longjmp.s
 memcpy.s
+memmove.s
 memset.s
 setjmp.s
 systime.s

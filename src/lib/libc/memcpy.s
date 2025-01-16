@@ -5,21 +5,24 @@
 
 	.export _memcpy
 _memcpy:
-	pop af
-	pop de
-	pop hl
-	pop bc
-	push af         ; push return address back to stack
-	push hl			; save starting address
+	push bc
+	push ix
+	ld ix,#0x04
+	add ix,sp
+	ld l,(ix+4)		; read address -> HL
+	ld h,(ix+5)
+	ld c,(ix+6)		; len -> BC
+	ld b,(ix+7)
 	ld a,b			; skip if BC = 0 (ldir wraps rather than doing nothing)
 	or c
 	jr z,skip
-	ldir
+	ld e,(ix+2)		; write address -> DE
+	ld d,(ix+3)
+	ldir			; do copy
+	ld l,(ix+4)		; restore starting address
+	ld h,(ix+5)
 skip:
-	pop hl
-	pop af
-	push bc
-	push hl
-	push de
-	push af
+	pop ix
+	pop bc
 	ret
+
