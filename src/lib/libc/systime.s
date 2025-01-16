@@ -3,9 +3,10 @@
 ; Device_TimeGet
 .export _Time_Get
 _Time_Get:
+	push bc
 	push ix
 	push iy
-	ld iy,0
+	ld iy,2
 	add iy,sp
 	ld l,(iy+6)
 	ld h,(iy+7)
@@ -25,14 +26,16 @@ _Time_Get:
 	ld (iy+7),a
 	pop iy
 	pop ix
+	pop bc
 	ret
 
 ; Device_TimeSet
 .export _Time_Set
 _Time_Set:
+	push bc
 	push ix
 	push iy
-	ld ix,0
+	ld ix,2
 	add ix,sp
 	ld b,(ix+6)
 	ld c,(ix+7)
@@ -52,5 +55,6 @@ _Time_Set:
 	.word #0x810F
 	pop iy
 	pop ix
+	pop bc
 	ret
 	
