@@ -1,4 +1,8 @@
-#define MAX_SYMBOLS 2048
+#ifdef SYMBUILD
+#define MAX_SYMBOLS 1024
+#else
+#define MAX_SYMBOLS 4096
+#endif
 #define SYMBOL_LEN 15
 
 #include <stdio.h>
