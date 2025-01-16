@@ -219,7 +219,7 @@ char *etext[] = {
 	"phase error",
 	"multiple definitions",
 	"syntax error",
-	"must be absolute",
+	"requires absolute segment (.abs)",
 	"missing delimiter",
 	"invalid constant",
 	"JR out of range",

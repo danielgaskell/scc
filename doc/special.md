@@ -93,7 +93,7 @@ SCC uses an approximately cdecl calling convention: all arguments are passed on 
 * `.symdata`: output subsequent code to the SymbOS **data** segment
 * `.symtrans`: output subsequent code to the SymbOS **transfer** segment
 * `.abs`: output subsequent code at the absolute address specified by `.org` (this may not link correctly into a SymbOS executable)
-* `.org ____`: set absolute address of subsequent code to `____`
+* `.org ____`: set absolute address of subsequent code to `____`. **Must be preceded by `.abs`!**
 * `.export ____`: export symbol `____` for linking
 * `.byte ____`: emit the raw byte `____` (also `.db` or `db` or `defb`). Multiple values can be separated by commas.
 * `.word ____`: emit the raw 2-byte word `____` (also `.dw` or `dw` or `defw`). Multiple values can be separated by commas.
