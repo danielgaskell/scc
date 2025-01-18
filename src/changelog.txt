@@ -26,6 +26,7 @@ v1.1
 @ Fixed bug that kept some network functions from working
 @ Fixed bug with native cpp keeping track of seek
 @ Replaced rand(), memmove() with faster versions
+@ Reduced ld memory usage by removing unused segments
 + Now properly detects SymShell close and exits cleanly
 + Various documentation tweaks and additions
 
