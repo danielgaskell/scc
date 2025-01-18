@@ -21,8 +21,7 @@
 
 extern void __assert(const char *__expr, const char *__file, const int __line);
 
-#define assert(e)	\
-  ((void) ((e) || (__assert (__STRING(e),  __FILE__, __LINE__), 0)))
+#define assert(e) ((void) ((e) || (__assert (__STRING(e),  __FILE__, __LINE__), 0)))
 
 #endif /* NDEBUG */
 

@@ -65,21 +65,12 @@ extern int signgam;
 #define y1(a)		y1f(a)
 #define yn(a,b)		ynf(a,b)
 
-#define isinf(x) ( \
-  (__float_bits(x) & 0x7fffffff) == 0x7f800000)
+#define isinf(x) ((__float_bits(x) & 0x7fffffff) == 0x7f800000)
+#define isnan(x) ((__float_bits(x) & 0x7fffffff) > 0x7f800000)
+#define isnormal(x) (((__float_bits(x)+0x00800000) & 0x7fffffff) >= 0x0100000)
+#define isfinite(x) ((__float_bits(x) & 0x7fffffff) < 0x7f800000)
 
-#define isnan(x) ( \
-   (__float_bits(x) & 0x7fffffff) > 0x7f800000)
-
-#define isnormal(x) ( \
-   ((__float_bits(x)+0x00800000) & 0x7fffffff) >= 0x0100000)
-
-#define isfinite(x) ( \
-   (__float_bits(x) & 0x7fffffff) < 0x7f800000)
-
-
-#define signbit(x) ( \
-  (int)(__float_bits(x)>>31))
+#define signbit(x) ((int)(__float_bits(x)>>31))
 
 extern float acosf(float);
 extern float acoshf(float);

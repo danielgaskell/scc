@@ -1,5 +1,7 @@
 @echo off
 
+echo cpp.c
+gcc -m32 -static -static-libgcc -static-libstdc++ cpp.c -o ..\bin\cpp2.exe
 echo as.c
 gcc -m32 -static -static-libgcc -static-libstdc++ as.c -o ..\bin\as.exe
 echo cc.c

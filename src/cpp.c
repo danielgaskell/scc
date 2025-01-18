@@ -48,6 +48,7 @@ typedef struct {
     int fd;
     long seek;
     unsigned short line;
+    unsigned char ifdepth;
     char name[NAMELEN + 1];
     char path[PATHSTRLEN + 1];
 } FileRecord;
@@ -81,8 +82,8 @@ signed char ifd, ofd;
 unsigned char fr = 0;
 unsigned char ifdepth = 0;
 unsigned short line;
-long seek;
 unsigned char linenum_pending = 1;
+long seek;
 
 // general globals for speed (careful!)
 unsigned char gc, gn, state, inquotes, escaped, incomment;
@@ -458,6 +459,7 @@ void get_dirval(void) {
 unsigned char fill_buf(void) {
     int readlen;
     if (*inptr == 0x7F) {
+        seek = lseek(ifd, 0, SEEK_CUR);
         readlen = rread(ifd, inbuf, INBUF);
         if (readlen == 0)
             return 1;
@@ -661,6 +663,7 @@ void pp_file(char* filename) {
 
     // update old file record
     files[fr].line = line;
+    files[fr].ifdepth = ifdepth;
     files[fr].seek = seek + (inptr - inbuf);
 
     // set up new file record
@@ -745,6 +748,7 @@ void pp_file(char* filename) {
     files[fr].fd = ifd;
     line = 1;
     seek = 0;
+    ifdepth = 0;
 
     // process file
     incomment = 0;
@@ -764,6 +768,7 @@ void pp_file(char* filename) {
     --fr;
     if (fr) {
         line = files[fr].line;
+        ifdepth = files[fr].ifdepth;
         ifd = files[fr].fd;
         seek = files[fr].seek;
         lseek(ifd, seek, SEEK_SET);
