@@ -56,7 +56,11 @@ copy /Y install.txt ..\release\symbos
 copy /Y ..\bin\symbos\*.exe ..\release\symbos
 copy /Y ..\bin\symbos\*.com ..\release\symbos
 copy /Y ..\bin\symbos\*.z80 ..\release\symbos
-copy /Y ..\doc\*.txt ..\release\symbos\doc
+copy /Y ..\doc\apache.txt ..\release\symbos\doc\apache.txt
+copy /Y ..\doc\artistic.txt ..\release\symbos\doc\artistic.txt
+copy /Y ..\doc\cpp-lic.txt ..\release\symbos\doc\cpp-lic.txt
+copy /Y ..\doc\gpl-3.0.txt ..\release\symbos\doc\gpl3.txt
+copy /Y ..\doc\lgpl-3.0.txt ..\release\symbos\doc\lgpl3.txt
 copy /Y ..\doc\*.hlp ..\release\symbos\doc
 copy /Y ..\lib\*.a ..\release\symbos\lib
 copy /Y ..\lib\*.o ..\release\symbos\lib

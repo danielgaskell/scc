@@ -1,7 +1,5 @@
 # Graphics Library
 
-**Note: The graphics library is a work in progress; it is not included in the latest stable 1.0 release, but can be found in the source repository.**
-
 While SymbOS provides features (primarily the `C_IMAGE` and `C_IMAGE_EXT` controls) for directly plotting images, the graphics format is internally complicated and depends on the exact platform and screen mode in which the application is running. The SCC graphics library simplifies this process by implementing a set of standard functions for loading and plotting images and sprites and directly manipulating pixels on a canvas.
 
 **Note:** All graphics functions are thread-safe, except that only one canvas may be [active](#initializing-canvases) at a time. However, multiple threads can draw to the same canvas at the same time.
