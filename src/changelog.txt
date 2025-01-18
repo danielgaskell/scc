@@ -7,6 +7,7 @@ v1.1
 + Added md2hlp.py and SymbOS .HLP documentation
 + Added sortmap tool for reading memory maps
 + Added compression system calls
++ Added C_GRID and C_TREE controls
 + Added Shell_CharWatch() system call
 + Added Sys_Version() system call
 + Added Win_Width() and Win_Height() utility functions

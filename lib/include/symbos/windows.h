@@ -98,17 +98,27 @@
 #define WRAP_WIDTH 3
 #define LIST_SCROLL 1
 #define LIST_MULTI 2
+#define SORT_TREE 32
 #define SORT_AUTO 64
 #define SORT_REVERSE 128
 #define LTYPE_TEXT 0
 #define LTYPE_IMAGE 4
 #define LTYPE_16 8
 #define LTYPE_32 12
+#define LTYPE_TREE 16
+#define LTYPE_CTRL 3
 #define ROW_MARKED 0x8000
 #define MENU_ACTIVE 1
 #define MENU_CHECKED 2
 #define MENU_SUBMENU 4
 #define MENU_SEPARATOR 8
+#define GRID_HORIZONTAL 0
+#define GRID_VERTICAL 1
+#define GRID_FIXED 1
+#define TREE_NODE 1
+#define TREE_EXPANDED 2
+#define TREE_HIDDEN 16
+#define TREE_MARKED 128
 
 #define SYSTRAY_LEFT 0
 #define SYSTRAY_RIGHT 1
@@ -121,6 +131,7 @@
 #define C_PROGRESS 4
 #define C_TEXT_FONT 5
 #define C_TEXT_CTRL 6
+#define C_GRID 7
 #define C_IMAGE 8
 #define C_ICON 9
 #define C_IMAGE_EXT 10
@@ -138,6 +149,7 @@
 #define C_LISTBOX 41
 #define C_DROPDOWN 42
 #define C_LISTFULL 43
+#define C_TREE 44
 
 #define MSR_DSK_WOPNER  160
 #define MSR_DSK_WOPNOK  161
@@ -297,6 +309,12 @@ typedef struct {
 } Ctrl_Text_Ctrl;
 
 typedef struct {
+    unsigned char color;
+    unsigned char lines;
+    unsigned char spacing;
+} Ctrl_Grid;
+
+typedef struct {
     char* icon;
     char* line1;
     char* line2;
@@ -393,13 +411,15 @@ typedef struct {
     unsigned short lines;
     unsigned short scroll;
     void* rowdata;
-    unsigned short unused1;
+    unsigned short status;
     unsigned char columns;
     unsigned char sorting;
     void* coldata;
     unsigned short clicked;
     unsigned char flags;
     unsigned char unused2;
+	unsigned short treelines;
+	unsigned short treefirst;
 } List;
 
 typedef struct {
@@ -435,6 +455,40 @@ typedef struct {
     char* value3;
     char* value4;
 } List_Row4Col;
+
+typedef struct {
+    unsigned char indent;
+    unsigned char flags;
+    char* value;
+    unsigned short id;
+} Tree_Row;
+
+typedef struct {
+    unsigned char indent;
+    unsigned char flags;
+    char* value1;
+    char* value2;
+    unsigned short id;
+} Tree_Row2Col;
+
+typedef struct {
+    unsigned char indent;
+    unsigned char flags;
+    char* value1;
+    char* value2;
+    char* value3;
+    unsigned short id;
+} Tree_Row3Col;
+
+typedef struct {
+    unsigned char indent;
+    unsigned char flags;
+    char* value1;
+    char* value2;
+    char* value3;
+    char* value4;
+    unsigned short id;
+} Tree_Row4Col;
 
 typedef struct {
     unsigned char bytew;

@@ -948,17 +948,19 @@ Remove the icon with the ID `id` from the system tray.
 
 ## Sound
 
-Sound capabilities are only available if an appropriate sound daemon is running, which is only provided with SymbOS 4.0 or later.
+Sound capabilities are only available if an appropriate sound daemon is running (in SymbOS 4.0 or later).
 
-SymbOS supports two incompatible sound chips, PSG and OPL4. PSG refers to the standard 3-voice "chiptune" Programmable Sound Generator (e.g., AY-3-8912) integrated into most platforms, like the CPC and MSX. The OPL4 is a more powerful "sound card" chip that supports recorded audio playback and is usually only available in expansion cards.
+SymbOS supports two incompatible sound chips, PSG and OPL4. PSG refers to the standard 3-voice "chiptune" Programmable Sound Generator (e.g., AY-3-8912) integrated into most classic platforms SymbOS can run on. The OPL4 is a more powerful "wavetable" chip that supports recorded audio playback and is usually only available in expansion cards.
 
 The SymbOS sound daemon makes a distinction between "music" and "sound effects." In general, only one music track can be playing at a time, but multiple shorter sound effects may be triggered and mixed together on top of it as it plays. Music and effects are loaded as part of "collections," which contain multiple subsongs or effects that can be referred to by numerical ID.
 
-Sound errors are recorded in the global variable `_sounderr`, documented [below](#error-codes). In addition to `symbos.h`, these functions can be found in `symbos/sound.h`.
+Sound errors are recorded in the global variable `_sounderr`, documented [below](#error-codes). An example sound application (`snddemo.c`) is included in SCC's `sample` folder.
+
+In addition to `symbos.h`, these functions can be found in `symbos/sound.h`.
 
 ### Creating/getting sounds
 
-For PSG, music/effect collections consist of packaged and compressed Arkos Tracker II .AKG/.AKS files (for music) or .AKX files (for sound effects). For OPL4, music/effect collections consist of packaged and compressed Amiga MOD files (for music) or WAV files (for sound effects). Tools for packaging raw files into collections are provided alongside SymbOS 4.0 and up.
+For PSG, music/effect collections consist of packaged and compressed Arkos Tracker II .AKG/.AKS files (for music) or .AKX files (for sound effects). For OPL4, music/effect collections consist of packaged and compressed Amiga MOD files (for music) or PCM WAV files (for sound effects). Tools for packaging raw files into collections are described [here](https://github.com/Prodatron/symbos-wiki/wiki/SoundD-%E2%80%90-creating-sound-files).
 
 An easy way to add sound effects without creating your own collection is to use the default system effects collection. This is always loaded and can be accessed using the resource handle 0. The effects in this collection have standard names and are intended for use by programs: `FX_CLICK1`, `FX_CLICK2`, `FX_BEEP1`, `FX_BEEP2`, `FX_RING1`, `FX_RING2`, `FX_ALERT1`, `FX_ALERT2`, `FX_SLIDE1`, `FX_SLIDE2`, `FX_RAISE`, `FX_LOWER`, `FX_POPUP`, `FX_SHRINK`, `FX_TIC1`, `FX_TIC2`, `FX_SHOOT`, `FX_EXPLODE`, `FX_STEP`, `FX_LOSE`, `FX_WIN`, `FX_CAR`, and `FX_PLANE`. Note that the user can theoretically change what collection is used for the system sounds, so there is no guarantee of exactly what a given effect will sound like on every computer. However, the system effects should be stable enough that (e.g.) `FX_BEEP1` can always be expected to be some kind of beep.
 

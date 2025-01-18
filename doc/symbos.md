@@ -4,19 +4,19 @@
 
 * [Console applications](#console-applications)
 * [Windowed applications](#windowed-applications)
-	* [Memory segments](#memory-segments)
-	* [Windows](#windows)
-	* [Controls](#controls)
-	* [Desktop commands](#desktop-commands)
-	* [Handling events](#handling-events)
+    * [Memory segments](#memory-segments)
+    * [Windows](#windows)
+    * [Controls](#controls)
+    * [Desktop commands](#desktop-commands)
+    * [Handling events](#handling-events)
 * [Control reference](#control-reference)
 * [Event reference](#event-reference)
 * [Advanced topics](#advanced-topics)
-	* [Menus](#menus)
-	* [Toolbars](#toolbars)
-	* [Resizing calculations](#resizing-calculations)
-	* [Modal windows](#modal-windows)
-	
+    * [Menus](#menus)
+    * [Toolbars](#toolbars)
+    * [Resizing calculations](#resizing-calculations)
+    * [Modal windows](#modal-windows)
+    
 See also: [System call reference](syscall1.md).
 
 ## Console applications
@@ -212,26 +212,26 @@ Combining this into a set of controls for our example window:
 ```c
 // extended data record for c_text1
 _transfer Ctrl_Text cd_text1 = {
-	"Hello world!",                    // text
-	(COLOR_BLACK << 2) | COLOR_ORANGE, // color
-	ALIGN_LEFT};                       // flags
+    "Hello world!",                    // text
+    (COLOR_BLACK << 2) | COLOR_ORANGE, // color
+    ALIGN_LEFT};                       // flags
 
 // two controls, immediately after each other
 _transfer Ctrl c_area = {
-	0, C_AREA, -1,             // control ID, type, bank
-	COLOR_ORANGE,              // param (color)
-	0, 0,                      // x, y
-	10000, 10000};             // width, height
+    0, C_AREA, -1,             // control ID, type, bank
+    COLOR_ORANGE,              // param (color)
+    0, 0,                      // x, y
+    10000, 10000};             // width, height
 _transfer Ctrl c_text1 = {
-	0, C_TEXT, -1,             // control ID, type, bank
-	(unsigned short)&cd_text1, // param (extended data record)
-	20, 10,                    // x, y
-	100, 8};                   // width, height
+    0, C_TEXT, -1,             // control ID, type, bank
+    (unsigned short)&cd_text1, // param (extended data record)
+    20, 10,                    // x, y
+    100, 8};                   // width, height
 
 // control group
 _transfer Ctrl_Group ctrls = {
-	2, 0,                      // number of controls, process ID
-	&c_area};                  // address of first control
+    2, 0,                      // number of controls, process ID
+    &c_area};                  // address of first control
 ```
 
 ### Desktop commands
@@ -298,22 +298,22 @@ Message type codes are [documented below](#event-reference). The most immediatel
 * `msg[0]`: `MSR_DSK_WCLICK`
 * `msg[1]`: Window ID
 * `msg[2]`: Action type, one of:
-	* `DSK_ACT_CLOSE`: Close button has been clicked, or the user has typed Alt+F4.
-	* `DSK_ACT_MENU`: A menu option has been clicked, with:
-		* `msg[8]` = Value of the clicked menu entry
-	* `DSK_ACT_CONTENT` = A control has been clicked or modified, with:
-		* `msg[3]`: Sub-action, one of:
-			* `DSK_SUB_MLCLICK`: Left mouse button clicked
-			* `DSK_SUB_MRCLICK`: Right mouse button clicked
-			* `DSK_SUB_MDCLICK`: Left mouse button double clicked
-			* `DSK_SUB_MMCLICK`: Middle mouse button clicked
-			* `DSK_SUB_KEY`: Key pressed, with key ASCII value in `msg[4]`
-		* `*(int*)&msg[4]` = Mouse X position relative to window content
-		* `*(int*)&msg[6]` = Mouse y position relative to window content
-		* `msg[8]` = control ID
-	* `DSK_ACT_TOOLBAR`: Equivalent to `DSK_ACT_CONTENT`, but for controls in the toolbar.
-	* `DSK_ACT_KEY`: A key has been pressed without modifying any control:
-		* `msg[4]` = key ASCII value
+    * `DSK_ACT_CLOSE`: Close button has been clicked, or the user has typed Alt+F4.
+    * `DSK_ACT_MENU`: A menu option has been clicked, with:
+        * `msg[8]` = Value of the clicked menu entry
+    * `DSK_ACT_CONTENT` = A control has been clicked or modified, with:
+        * `msg[3]`: Sub-action, one of:
+            * `DSK_SUB_MLCLICK`: Left mouse button clicked
+            * `DSK_SUB_MRCLICK`: Right mouse button clicked
+            * `DSK_SUB_MDCLICK`: Left mouse button double clicked
+            * `DSK_SUB_MMCLICK`: Middle mouse button clicked
+            * `DSK_SUB_KEY`: Key pressed, with key ASCII value in `msg[4]`
+        * `*(int*)&msg[4]` = Mouse X position relative to window content
+        * `*(int*)&msg[6]` = Mouse y position relative to window content
+        * `msg[8]` = control ID
+    * `DSK_ACT_TOOLBAR`: Equivalent to `DSK_ACT_CONTENT`, but for controls in the toolbar.
+    * `DSK_ACT_KEY`: A key has been pressed without modifying any control:
+        * `msg[4]` = key ASCII value
 
 Putting this all together, an example of a skeleton main loop is below. This opens our previously-defined window `form1` and loops, waiting for an event. In this example, the only event implemented is the most important one: exiting the application when the user tries to close the window!
 
@@ -321,20 +321,20 @@ Putting this all together, an example of a skeleton main loop is below. This ope
 char winID;
 
 int main(int argc, char *argv[]) {
-	winID = Win_Open(_symbank, &form1);
-	
-	while (1) {
-		// handle events
-		_symmsg[0] = 0;
-		Msg_Sleep(_sympid, -1, _symmsg);
-		if (_symmsg[0] == MSR_DSK_WCLICK) {
-			switch (_symmsg[2]) {
-				case DSK_ACT_CLOSE: // Alt+F4 or click close
-					exit();
-				// more event cases go here...
-			}
-		}
-	}
+    winID = Win_Open(_symbank, &form1);
+    
+    while (1) {
+        // handle events
+        _symmsg[0] = 0;
+        Msg_Sleep(_sympid, -1, _symmsg);
+        if (_symmsg[0] == MSR_DSK_WCLICK) {
+            switch (_symmsg[2]) {
+                case DSK_ACT_CLOSE: // Alt+F4 or click close
+                    exit();
+                // more event cases go here...
+            }
+        }
+    }
 }
 ```
 
@@ -365,9 +365,9 @@ Displays a line of text in the default system font.
 typedef struct {
     char* text;           // address of text
     unsigned char color;  // 4-color mode:  (foreground << 2) | background
-	                      // 16-color mode: (foreground << 4) | background
+                          // 16-color mode: (foreground << 4) | background
     unsigned char flags;  // one of: ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT
-	                      //   OR with TEXT_16COLOR for 16-color mode
+                          //   OR with TEXT_16COLOR for 16-color mode
 } Ctrl_Text;
 ```
 
@@ -389,9 +389,9 @@ Displays a line of text in an alternative font.
 typedef struct {
     char* text;           // address of text
     unsigned char color;  // 4-color mode:  (foreground << 2) | background
-	                      // 16-color mode: (foreground << 4) | background
+                          // 16-color mode: (foreground << 4) | background
     unsigned char flags;  // one of: ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT
-	                      //   OR with TEXT_16COLOR for 16-color mode
+                          //   OR with TEXT_16COLOR for 16-color mode
     char* font;           // address of font
 } Ctrl_Text_Font;
 ```
@@ -407,7 +407,7 @@ _transfer Ctrl c_text_font1 = {1, C_TEXT_FONT, -1, (unsigned short)&cd_text_font
 
 ### C_TEXT_CTRL
 
-Displays a line of "rich" text with optional control codes that can change the appearance of the text mid-line.
+Displays a line of "rich" text with optional control codes that can change the appearance of the text mid-line. This renders more slowly than `C_TEXT`, but allows for very complex effects.
 
 *Parameter*: Address of extended data record:
 
@@ -425,16 +425,17 @@ The following control bytes can be included in the text string:
 
 * 0x00 = end of string
 * 0x01 0xNN = change text color, where NN is (foreground << 4) | background
-* 0x02 0xNNNN = change font, where NNNN is the address of the font, or -1 for the default font. The font must be in the same 16KB segment as the text (usually the **data** segment).
+* 0x02 0xAAAA = change font, where AAAA is the address of the font, or -1 for the default font. The font must be in the same 16KB segment as the text (usually the **data** segment).
 * 0x03 = switch underlining on
 * 0x04 = switch underlining off
 * 0x05 0xNN = insert NN pixels of extra space before the next character
+* 0x06 0xNN 0xBB 0xAAAA = plot a [graphics canvas](graphics.md) as an inline image, where NN is the Y position relative to the line (0 = 128 pixels up, 128 = in line with text, 255 = 128 pixels down); BB is the bank number of the canvas, or -1 for "same bank as text"; and AAAA is the address of the canvas + 1. (This feature is only available in SymbOS 4.0 and up.)
 * 0x08 to 0x0B = skip next (code - 8) * 2 + 1 bytes
 * 0x0C to 0x1F = insert (code - 8) pixels of extra space before the next character
 
 ```c
 // example
-_transfer Ctrl_Text_Ctrl cd_text_ctrl1 = {"Text", 100, -1, (COLOR_BLACK << 2) | COLOR_ORANGE, 0};
+_transfer Ctrl_Text_Ctrl cd_text_ctrl1 = {"Text \x03underlined\x04 and not", 100, -1, (COLOR_BLACK << 2) | COLOR_ORANGE, 0};
 _transfer Ctrl c_text_ctrl1 = {1, C_TEXT_CTRL, -1, (unsigned short)&cd_text_ctrl1, 10, 10, 80, 8};
 ```
 
@@ -464,8 +465,8 @@ Displays a rectangular frame with a line of text at the top.
 typedef struct {
     char* text;           // address of text
     unsigned char color;  // 4-color mode:  (foreground << 2) | background
-	                      // 16-color mode: line color
-						  //   OR with AREA_16COLOR for 16-color mode
+                          // 16-color mode: line color
+                          //   OR with AREA_16COLOR for 16-color mode
     unsigned char color2; // 16-color mode only: (foreground << 2) | background
 } Ctrl_TFrame;
 ```
@@ -474,6 +475,32 @@ typedef struct {
 // example
 _transfer Ctrl_TFrame cd_tframe1 = {"Title", COLOR_BLACK | AREA_16COLOR, (COLOR_BLACK << 2) | COLOR_LBLUE};
 _transfer Ctrl c_tframe1 = {1, C_TFRAME, -1, (unsigned short)&cd_tframe1, 10, 10, 64, 64};
+```
+
+### C_GRID
+
+Displays repeated horizontal or vertical lines. By overlapping two `C_GRID` controls, one horizontal and one vertical, it is also possible to draw a grid of boxes. (This control is only available in SymbOS 4.0 and up.)
+
+*Parameter*: Address of extended data record:
+
+```c
+typedef struct {
+    unsigned char color;   // line color, OR'd with either GRID_HORIZONTAL or GRID_VERTICAL
+    unsigned char lines;   // number of lines to draw
+    unsigned char spacing; // (spacing << 1) | GRID_FIXED
+} Ctrl_Grid;
+```
+
+Grid lines will start being drawn at the control's location `x`, `y` and continue down (for horizontal lines) or right (for vertical lines) for the specified number of lines. The `spacing` parameter requires some explanation. If this value is OR'd with `GRID_FIXED` (e.g., `(8 << 1) | GRID_FIXED`), all the lines will be drawn with the specified spacing (8 pixels in the preceding example). If `GRID_FIXED` is omitted, however, each line will have its own spacing. In this case, the `spacing` parameter indicates the spacing for the first line, and the `spacing` parameter for subsequent lines will be drawn from a `char` array that must immediately follow the `Ctrl_Grid` record (one `char` per remaining line). (The values in this array are treated exactly like the original `spacing` parameter, so once an array element with `GRID_FIXED` is encountered, the desktop manager will stop reading the array and draw all subsequent lines with the same spacing.)
+
+```c
+// example
+_transfer Ctrl_Grid cd_grid1 = {COLOR_BLACK | GRID_HORIZONTAL, 10, (8 << 1)};
+_transfer char grid1_sp[9] = {(8 << 1), (10 << 1), (12 << 1),
+                              (8 << 1), (10 << 1), (12 << 1),
+                              (8 << 1), (10 << 1), (12 << 1)};
+                               
+_transfer Ctrl c_grid1 = {1, C_GRID, -1, (unsigned short)&cd_grid1, 10, 10, 1000, 1000};
 ```
 
 ### C_PROGRESS
@@ -503,9 +530,9 @@ _transfer Ctrl c_image1 = {1, C_IMAGE, -1, (unsigned short)imgbuf, 10, 10, 24, 2
 
 ### C_IMAGE_EXT
 
-Displays an image with an extended graphics header.
+Displays an image with an extended graphics header. (See the [graphics library](graphics.md) for how to use this in practice.)
 
-*Parameter*: Address of the extended graphics header. Extended graphics are complicated, but allow plotting 16-color images and breaking up an image that is larger than 256 pixels wide/tall into multiple blocks that can be displayed side by side. The details of the graphics format are described in the SymbOS Developer Documentation; SCC provides a struct type, `Img_Header`, to implement the header itself:
+*Parameter*: Address of the extended graphics header. Extended graphics are complicated, but allow plotting 16-color images and breaking up an image that is larger than 256 pixels wide/tall into multiple blocks that can be displayed side by side. The details of the graphics format are described in the SymbOS Developer Documentation. In practice, it is usually easier to use the [graphics library](graphics.md) rather than trying to deal with extended graphics headers directly. However, if needed, SCC provides a struct type (`Img_Header`) to implement the header itself:
 
 ```
 typedef struct {
@@ -538,7 +565,7 @@ Displays a 24x24 icon with up to two lines of text below it.
 
 ```c
 typedef struct {
-    char* icon;             // address of standard graphic or extended graphic header
+    char* icon;             // address of standard graphic or extended graphic header (e.g., a canvas)
     char* line1;            // address of first line of text
     char* line2;            // address of second line of text
     unsigned char flags;    // 4-color mode:  (foreground_color << 2) | background_color
@@ -749,9 +776,9 @@ _transfer Ctrl_Collection cd_collect = {cg_collect, 200, 100, 0, 0, CSCROLL_H};
 _transfer Ctrl c_collect = {1, C_COLLECTION, -1, (unsigned short)&cd_collect, 10, 10, 100, 100};
 
 int main(int argc, char* argv[]) {
-	cg_collect.pid = _sympid; // ensure collection's Ctrl_Group has the correct process ID for sending back events
-	
-	/* ... */
+    cg_collect.pid = _sympid; // ensure collection's Ctrl_Group has the correct process ID for sending back events
+    
+    /* ... */
 }
 ```
 
@@ -824,7 +851,7 @@ typedef struct {
     unsigned short yoffset;   // (used internally, set to 0)
     unsigned char wrapmode;   // WRAP_WINDOW or WRAP_WIDTH
     unsigned char tabwidth;   // tab stop width (1-255, or 0 for no tab stop)
-	int column;               // TextBox_Pos() returns values here
+    int column;               // TextBox_Pos() returns values here
     int line;                 // TextBox_Pos() returns values here
     char reserved[4];         // (used internally, set to 0)
 } Ctrl_TextBox;
@@ -862,19 +889,19 @@ Note that, because the buffer must be stored in a continuous 16KB segment (usual
 _data char textbuf[4096];
 _transfer Ctrl_TextBox cd_textbox1 = {
     textbuf,         // text address
-	0, 0, 0, 0,      // unused1, cursor, selection, len
-	4095, 0, 0, 0,   // maxlen, flags, textcolor, unused2
-	0, 0, 0, -1,     // font, unused3, lines, wrapwidth
-	1000, 0, 0,      // maxlines, xvisible, yvisible
-	0,               // self
-	-8, 0, 0, 0,     // xtotal, ytotal, xoffset, yoffset
-	WRAP_WIDTH, 50}; // wrapmode, tabwidth
+    0, 0, 0, 0,      // unused1, cursor, selection, len
+    4095, 0, 0, 0,   // maxlen, flags, textcolor, unused2
+    0, 0, 0, -1,     // font, unused3, lines, wrapwidth
+    1000, 0, 0,      // maxlines, xvisible, yvisible
+    0,               // self
+    -8, 0, 0, 0,     // xtotal, ytotal, xoffset, yoffset
+    WRAP_WIDTH, 50}; // wrapmode, tabwidth
 _transfer unsigned short textbox1_lines[1000] = {0}; // line-length buffer
 _transfer Ctrl c_textbox1 = {1, C_TEXTBOX, -1, (unsigned short)&cd_textbox1, 0, 0, 200, 100};
 
 int main(int argc, char* argc[]) {
-	cd_textbox1.self = &cd_textbox1; // fill "self" property at runtime
-	/* ... */
+    cd_textbox1.self = &cd_textbox1; // fill "self" property at runtime
+    /* ... */
 }
 ```
 
@@ -886,16 +913,18 @@ Displays a list box, which may have one or more columns. The structure of lists 
 
 ```c
 typedef struct {
-    unsigned short lines;    // number of list rows
-    unsigned short scroll;   // index of first shown row
-    void* rowdata;           // address of the row data (see below)
-    unsigned short unused1;
-    unsigned char columns;   // number of columns (from 1 to 64)
-    unsigned char sorting;   // sorting flags (see below)
-    void* coldata;           // address of the column data (see below)
-    unsigned short clicked;  // index of last clicked row
-    unsigned char flags;     // flags (see below)
-    unsigned char unused2;
+    unsigned short lines;     // number of list rows
+    unsigned short scroll;    // index of first shown row
+    void* rowdata;            // address of the row data (see below)
+    unsigned short status;    // (only used by tree views, see C_TREE)
+    unsigned char columns;    // number of columns (from 1 to 64)
+    unsigned char sorting;    // sorting flags (see below)
+    void* coldata;            // address of the column data (see below)
+    unsigned short clicked;   // index of last clicked row
+    unsigned char flags;      // flags (see below)
+    unsigned char unused2;    // (set to 0)
+    unsigned short treelines; // (only used by tree views, see C_TREE)
+    unsigned short treefirst; // (only used by tree views, see C_TREE)
 } List;
 ```
 
@@ -918,7 +947,7 @@ typedef struct {
 } List_Column;
 ```
 
-`flags` for `List_Column` consists of `ALIGN_LEFT`, `ALIGN_RIGHT`, or `ALIGN_CENTER`; OR'd with `LTYPE_TEXT` (for text data), `LTYPE_IMAGE` (for image data), `LTYPE_16` (for a 16-bit number), or `LTYPE_32` (for a 32-bit number). This controls how the column is aligned and sorted, as well as what is displayed on each row.
+`flags` for `List_Column` controls how the column is aligned and sorted, as well as what is displayed on each row. It consists of one of `ALIGN_LEFT`, `ALIGN_RIGHT`, or `ALIGN_CENTER`; OR'd with one of `LTYPE_TEXT` (for text data), `LTYPE_IMAGE` (for image data), `LTYPE_16` (for a 16-bit number), or `LTYPE_32` (for a 32-bit number). Alternatively, on SymbOS 4.0 and up, `flags` may just be set to `LTYPE_CTRL`, with no other flags (indicating text with control codes---see [`C_TEXT_CTRL`](C_TEXT_CTRL) for what codes are available).
 
 The format of row definitions is a bit trickier. Internally, each row consists of a 16-bit flags word, followed by as many 16-bit value words as there are columns; these store either the value of the row in that column (for `LTYPE_16`) or the address of the data shown in that column. For a 1-column list, we can represent this structure with a series of `List_Row` structs, directly after one another:
 
@@ -931,7 +960,7 @@ typedef struct {
 
 `flags` for `List_Row` (and its variants) is a 14-bit numeric value associated with the row. If the row is selected, the high bit of `flags` will be set; this can be tested with `row.flags & ROW_MARKED`.
 
-Additional struct types for multi-column rows (up to 4 columns) are defined in `symbos.h`; for example:
+Additional struct types for multi-column rows (up to 4 columns) are defined in `symbos/windows.h`; for example:
 
 ```c
 typedef struct {
@@ -941,16 +970,16 @@ typedef struct {
 } List_Row2Col;
 ```
 
-The control width must be at least 11, and the control height must be at least 16. Note that column names will not be displayed in the base `C_LISTBOX` control type; to shwo them, use `C_LISTFULL` instead.
+The control width must be at least 11, and the control height must be at least 16. Note that column names will not be displayed in the base `C_LISTBOX` control type; to show them, use `C_LISTFULL` instead.
 
 ```c
 // example
+_transfer List_Column cd_list1_col1 = {ALIGN_LEFT | LTYPE_TEXT, 0, 80, "Column 1"};
+_transfer List_Column cd_list1_col2 = {ALIGN_LEFT | LTYPE_TEXT, 0, 80, "Column 2"};
+
 _transfer List_Row2Col cd_list1_r1 = {1, "Row 1", "Value 1"};
 _transfer List_Row2Col cd_list1_r2 = {2, "Row 2", "Value 2"};
 _transfer List_Row2Col cd_list1_r3 = {3, "Row 3", "Value 3"};
-
-_transfer List_Column cd_list1_col1 = {ALIGN_LEFT | LTYPE_TEXT, 0, 80, "Column 1"};
-_transfer List_Column cd_list1_col2 = {ALIGN_LEFT | LTYPE_TEXT, 0, 80, "Column 2"};
 
 _transfer List cd_list1 = {3, 0, &cd_list1_r1, 0, 2, 1 | SORT_AUTO, &cd_list1_col1, 0, LIST_MULTI};
 
@@ -965,7 +994,7 @@ Equivalent to `C_LISTBOX`, but also displays column titles. Clicking a column ti
 
 ### C_LISTTITLE
 
-Displays the title of a listbox, in isolation. Control height must always be 10.
+Displays the column titles of a listbox or tree view, in isolation. Control height must always be 10.
 
 *Parameter*: Same as for `C_LISTBOX`.
 
@@ -977,6 +1006,80 @@ Note that, even though dropdown lists generally only have one column and do not 
 
 *Parameter*: Same as for `C_LISTBOX`.
 
+### C_TREE
+
+Equivalent to `C_LISTBOX`, but displays a tree view listbox where the user can fold or expand rows as groups of nested nodes. (This control is only available in SymbOS 4.0 and up.)
+
+*Parameter*: Same as for `C_LISTBOX`, with the following differences:
+
+* `.sorting` should be set to `SORT_TREE`.
+* `.flags` should never have `LIST_MULTI` set.
+
+The format for columns and rows is also slightly different. Columns are defined in the usual way, except that `flags` for the first `List_Column` record should either be `LTYPE_TREE` (for normal text) or `LTYPE_TREE | LTYPE_CTRL` (for [text with control codes](#C_TEXT_CTRL)). Rows are defined slightly differently, using `Tree_Row` structs instead of `List_Row` structs:
+
+```c
+typedef struct {
+    unsigned char indent;    // indentation level (see below)
+    unsigned char flags;     // flags (see below)
+    char* value;             // address of row content (or value for LTYPE_16 - cast to char*)
+    unsigned short id;       // numerical ID of row
+} Tree_Row;
+```
+
+`flags` for `Tree_Row` (and its variants) is an OR'd bitmask of one or more of the following:
+
+* `TREE_NODE` - indicates that this row is a node (and starts a group of collapsible child rows).
+* `TREE_EXPANDED` - indicates that subsequent child rows are currently expanded and visible.
+* `TREE_HIDDEN` - indicates that this row is currently hidden.
+* `TREE_MARKED` - indicates that this row is currently marked/selected.
+
+Conceptually, a tree consists of a series of rows, each of which can be either a node (which will be followed by more child rows) or a leaf (which has no children). The first node has `indent` = 0, and any children of a node should have `indent` set to 1 greater than the `indent` of the parent. When the user collapses a node, all of its children (i.e., all contiguous rows following it with a greater `indent` than the node that was clicked) will be hidden.
+
+Additional struct types for multi-column rows (up to 4 columns) are defined in `symbos/windows.h`; for example:
+
+```c
+typedef struct {
+    unsigned char indent;
+    unsigned char flags;
+    char* value1;
+    char* value2;
+    unsigned short id;
+} Tree_Row2Col;
+```
+
+**Note that all visibility flags, etc. must be initialized correctly** for how we want the tree to initially look. (Any subsequent modifications by the user will be tracked automatically.) Indentation levels must be correct, and all collapsed lines must have `TREE_HIDDEN` set. In addition, the text strings for the first column must begin with a special character followed by a space, which will be used to display the node symbols:
+
+* `\x7F ` - for a leaf with no children.
+* `\x81 ` - for a collapsed node.
+* `\x82 ` - for an expanded node.
+
+In addition to being dispatched as a normal `DSK_ACT_CONTENT` event, any user events that collapse or expand a node will be recorded in the `status` property of the tree's `List` struct. If `status & 0x8000` is nonzero, a node event has taken place, and the relevant information can be extracted as:
+
+* `status & 0x0FFF` - the numerical ID of the node row
+* `status & 0x4000` - nonzero if expanded, otherwise collapsed
+
+Control width must be at least 11, and control height must be at least 16. Note that column titles will not be displayed automatically; to show them, use a separate `C_LISTTITLE` control, as in the example below.
+
+Tip: By using the `LTYPE_TREE | LTYPE_CTRL` setting and using [control codes](#C_TEXT_CTRL) to draw inline images, it is possible to include icons in the tree view.
+
+```c
+// example
+_transfer List_Column cd_tree1_col1 = {LTYPE_TREE, 0, 80, "Column 1"};
+_transfer List_Column cd_tree1_col2 = {ALIGN_LEFT | LTYPE_TEXT, 0, 80, "Column 2"};
+
+_transfer Tree_Row2Col cd_tree1_r1 = {0, TREE_NODE | TREE_EXPANDED, "\x82 Node 1", "Value 1", 1};
+_transfer Tree_Row2Col cd_tree1_r2 = {1, 0,                         "\x7F Leaf 1", "Value 2", 2};
+_transfer Tree_Row2Col cd_tree1_r3 = {1, TREE_NODE | TREE_EXPANDED, "\x82 Node 2", "Value 3", 3};
+_transfer Tree_Row2Col cd_tree1_r4 = {2, 0,                         "\x7F Leaf 2", "Value 4", 4};
+_transfer Tree_Row2Col cd_tree1_r5 = {0, TREE_NODE,                 "\x81 Node 3", "Value 5", 5};
+_transfer Tree_Row2Col cd_tree1_r6 = {1, TREE_HIDDEN,               "\x7F Leaf 3", "Value 6", 6};
+
+_transfer List cd_tree1 = {6, 0, &cd_tree1_r1, 0, 2, SORT_TREE, &cd_tree1_col1, 0, LIST_SCROLL};
+
+_transfer Ctrl c_treetitle1   = {1, C_LISTTITLE, -1, (unsigned short)&cd_tree1, 0, 0,  160, 10};
+_transfer Ctrl c_treecontent1 = {2, C_TREE,      -1, (unsigned short)&cd_tree1, 0, 10, 160, 100};
+```
+
 ## Event reference
 
 ### MSR_DSK_WCLICK
@@ -986,22 +1089,22 @@ The primary event sent for most interactions with a window's controls.
 * `msg[0]`: `MSR_DSK_WCLICK`
 * `msg[1]`: Window ID
 * `msg[2]`: Action type, one of:
-	* `DSK_ACT_CLOSE`: Close button has been clicked, or the user has typed Alt+F4.
-	* `DSK_ACT_MENU`: A menu option has been clicked, with:
-		* `msg[8]` = Value of the clicked menu entry
-	* `DSK_ACT_CONTENT` = A control has been clicked or modified, with:
-		* `msg[3]`: Sub-action, one of:
-			* `DSK_SUB_MLCLICK`: Left mouse button clicked
-			* `DSK_SUB_MRCLICK`: Right mouse button clicked
-			* `DSK_SUB_MDCLICK`: Left mouse button double clicked
-			* `DSK_SUB_MMCLICK`: Middle mouse button clicked
-			* `DSK_SUB_KEY`: Key pressed, with key ASCII value in `msg[4]`
-		* `*(int*)&msg[4]` = Mouse X position relative to window content
-		* `*(int*)&msg[6]` = Mouse y position relative to window content
-		* `msg[8]` = control ID
-	* `DSK_ACT_TOOLBAR`: Equivalent to `DSK_ACT_CONTENT`, but for controls in the toolbar.
-	* `DSK_ACT_KEY`: A key has been pressed without modifying any control:
-		* `msg[4]` = key ASCII value
+    * `DSK_ACT_CLOSE`: Close button has been clicked, or the user has typed Alt+F4.
+    * `DSK_ACT_MENU`: A menu option has been clicked, with:
+        * `msg[8]` = Value of the clicked menu entry
+    * `DSK_ACT_CONTENT` = A control has been clicked or modified, with:
+        * `msg[3]`: Sub-action, one of:
+            * `DSK_SUB_MLCLICK`: Left mouse button clicked
+            * `DSK_SUB_MRCLICK`: Right mouse button clicked
+            * `DSK_SUB_MDCLICK`: Left mouse button double clicked
+            * `DSK_SUB_MMCLICK`: Middle mouse button clicked
+            * `DSK_SUB_KEY`: Key pressed, with key ASCII value in `msg[4]`
+        * `*(int*)&msg[4]` = Mouse X position relative to window content
+        * `*(int*)&msg[6]` = Mouse y position relative to window content
+        * `msg[8]` = control ID
+    * `DSK_ACT_TOOLBAR`: Equivalent to `DSK_ACT_CONTENT`, but for controls in the toolbar.
+    * `DSK_ACT_KEY`: A key has been pressed without modifying any control:
+        * `msg[4]` = key ASCII value
 
 ### MSR_DSK_WFOCUS
 
@@ -1010,8 +1113,8 @@ The focus status of a window has changed.
 * `msg[0]`: `MSR_DSK_WFOCUS`
 * `msg[1]`: Window ID
 * `msg[2]`: Event type, one of:
-	* 0 = window lost focus
-	* 1 = window received focus
+    * 0 = window lost focus
+    * 1 = window received focus
 
 ### MSR_DSK_CFOCUS
 
@@ -1021,9 +1124,9 @@ Sent when the focus status of a control has changed.
 * `msg[1]`: Window ID
 * `msg[2]`: Number of newly focused control (not the control ID/value, but an index starting from 1)
 * `msg[3]`: Event type, one of:
-	* 0 = User navigated with mouse
-	* 1 = User navigated with Tab key
-	
+    * 0 = User navigated with mouse
+    * 1 = User navigated with Tab key
+    
 ### MSR_DSK_WRESIZ
 
 A window has been resized by the user (including maximizing or restoring a maximized or minimized window). The new window size can be read from the window's `w` and `h` properties, although we must also check whether the window's `state` property is `WIN_MAXIMIZED`; in this case the `w` and `h` properties will reflect the restored size of the window, not its maximized size.
@@ -1046,13 +1149,13 @@ The user has clicked or cancelled an open context menu.
 
 * `msg[0]`: `MSR_DSK_MENCTX`
 * `msg[1]`: Event type, one of:
-	* 0 = menu cancelled
-	* 1 = entry clicked
+    * 0 = menu cancelled
+    * 1 = entry clicked
 * `*(int*)&msg[2]`: Value associated with the clicked entry
 * `msg[4]`: Menu entry type, one of:
-	* 0 = normal entry
-	* 1 = checked entry
-	
+    * 0 = normal entry
+    * 1 = checked entry
+    
 ### MSR_DSK_EVTCLK
 
 The user has clicked a system tray icon associated with this application.
@@ -1060,10 +1163,10 @@ The user has clicked a system tray icon associated with this application.
 * `msg[0]`: `MSR_DSK_EVTCLK`
 * `msg[1]`: Value associated with the system tray icon
 * `msg[2]`: Mouse button pressed, one of:
-	* `SYSTRAY_LEFT` = left click
-	* `SYSTRAY_RIGHT` = right click
-	* `SYSTRAY_DOUBLE` = double left click
-	
+    * `SYSTRAY_LEFT` = left click
+    * `SYSTRAY_RIGHT` = right click
+    * `SYSTRAY_DOUBLE` = double left click
+    
 ### MSR_DSK_WMODAL
 
 The user has clicked a window that is modal and cannot be focused. (This is useful for creating windows that disappear if the user clicks the main window.)

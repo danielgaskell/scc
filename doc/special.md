@@ -124,7 +124,7 @@ The behavior without the `-b` option is slightly different. `ld` assumes that we
 
 ## Building SCC
 
-The current primary build target for SCC is Windows. Install MinGW, ensure that its `bin` folder is in the system path, and then run the `make.bat` batch files found throughout the SCC source tree to compile the relevant parts of the codebase. (This really ought to transition to proper Makefiles, but whatever.)
+The current primary build target for SCC is Windows. Install MinGW and Python 3, ensure that their `bin` folders are in the system path, and then run the `make.bat` batch files found throughout the SCC source tree to compile the relevant parts of the codebase. (This really ought to transition to proper Makefiles, but whatever.)
 
 ## SCC vs. SDCC
 
@@ -142,3 +142,4 @@ However, SCC aims to improve on SymbosMake in several important ways:
 * Static initializers can contain direct pointers to other data structures, rather than having to initialize this at runtime (very useful when defining windows and controls)
 * Much faster compilation times
 * Much more comprehensive documentation
+* Faster floating-point library
