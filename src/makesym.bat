@@ -19,7 +19,7 @@ echo as.c
 ..\bin\cc -DSYMBUILD -h 16384 -N "as" -o ..\bin\symbos\as.exe as.c
 echo.
 echo ld.c
-..\bin\cc -DSYMBUILD -h 23000 -N "ld" -Os -o ..\bin\symbos\ld.exe ld.c
+..\bin\cc -DSYMBUILD -h 23552 -N "ld" -o ..\bin\symbos\ld.exe ld.c
 echo.
 echo reloc.c
 ..\bin\cc -DSYMBUILD -h 0 -N "reloc" -o ..\bin\symbos\reloc.exe reloc.c

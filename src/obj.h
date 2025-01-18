@@ -21,36 +21,18 @@ typedef uint16_t	addr_t;
 #endif
 #endif
 
-#define OSEG	14
+#define OSEG	8
 
 struct objhdr
 {
     uint16_t o_magic;
-    uint8_t o_arch;
-#define OA_8080		1
-#define OA_6502		2
-#define OA_DGNOVA	3	/* So I can test PC relative */
-#define OA_6800		4
-#define OA_Z8		5
-#define OA_1802		6
-#define OA_TMS9900	7
-#define OA_8008		8
-#define OA_INS8060	9
-#define OA_INS8070	10
-#define OA_WARREX	11
-#define OA_BYTE		12	/* Bytecode */
-#define OA_6809		13
-#define OA_PE16		14	/* Interdata/Perkin Elmer 16bit */
-#define OA_8086		15
-#define OA_GB		16	/* Gameboy */
-#define	OA_6805		17	/* 6805/05/HC08 - 6808 is unrelated */
-#define OA_H316		18	/* System 16 */
-#define OA_CP1600	19	/* CP1600 */
-#define OA_PE32		20	/* Interdata/Perkin Elmer 32bit */
-    uint8_t o_flags;
-#define OF_BIGENDIAN	1
-#define OF_WORDMACHINE	2	/* 16bit word addressed */
-    uint16_t o_cpuflags;
+    uint16_t o_segbase[OSEG];
+    addr_t o_size[OSEG];
+    uint16_t unused; // for alignment
+    uint32_t o_symbase;
+    uint32_t o_dbgbase;
+};
+
 #define OA_8080_Z80	1
 #define OA_8080_Z180	2
 #define OA_8080_Z280	4
@@ -58,49 +40,6 @@ struct objhdr
 #define OA_8080_8085	16
 #define OA_8080_Z80N	32
 #define OA_8080_EZ80	64
-
-#define OA_6502_BCD	1	/* Uses BCD instructions */
-#define OA_6502_NMOS	2	/* Uses NMOS undocumented */
-#define OA_6502_65C02	4	/* Uses 65C02 */
-#define OA_6502_BITOPS	8	/* Uses extended bit operations */
-#define OA_6502_65C816	16	/* 65C816 and relatives */
-#define OA_6502_ZPAT0	32	/* Binary Assumes ZP is at 0 */
-#define OA_6502_65CE02	64	/* Does anyone really care ? */
-#define OA_6502_65C816_16 128	/* 16bit mode binary */
-
-#define OA_DGNOVA_MUL	1
-#define OA_DGNOVA_FPU	2
-#define OA_DGNOVA_NOVA3	4
-#define	OA_DGNOVA_NOVA4	8
-
-#define OA_6800_6803	1
-#define OA_6800_6303	2
-#define OA_6800_68HC11	4
-
-#define OA_Z8_BASE	1	/* Define 1 for each form as they all conflict */
-#define OA_Z8_SUPER	2
-#define OA_Z8_EZ8	4
-
-#define OA_TMS9900_9995 1	/* TMS 9995 */
-
-#define OA_WARREX_CPU6	1
-
-#define OA_6809_6309	1
-
-#define OA_8086_186	1
-#define OA_8086_286	2
-
-#define OA_6805_HC08	1
-
-#define OA_H316_516	1
-#define OA_H316_HSA	2
-
-    uint16_t o_unused;		/* So it packs right */
-    uint32_t o_segbase[OSEG];
-    addr_t o_size[OSEG];
-    uint32_t o_symbase;
-    uint32_t o_dbgbase;
-};
 
 /* This byte introduces a relocation or may be escaped */
 #define REL_ESC		0xDA
@@ -183,17 +122,13 @@ struct objhdr
 #define ABSOLUTE	0		/* Constant, not relocated */
 #define CODE		1		/* Relocated versus code */
 #define DATA		2		/* Relocated versus data */
-#define BSS		3		/* Relocated versus BSS */
-#define ZP		4		/* Relocated versus zero page */
-#define DISCARD		5		/* Discard for things like kernels */
-#define COMMON		6		/* Common for things like kernels */
-#define LITERAL		7		/* Literals (mostly a compiler helper) */
-#define COMMONDATA	8		/* Common for writables */
-#define BUFFERS		9		/* Buffers for kernel */
-#define SYMDATA		10		/* SymbOS data segment */
-#define SYMTRANS	11		/* SymbOS transfer segment */
-/* Special cases 12+ don't exist as real segments */
-#define PCREL		14		/* assumed signed */
+#define BSS		    3		/* Relocated versus BSS */
+#define ZP		    4		/* Relocated versus zero page */
+#define LITERAL		5		/* Literals (mostly a compiler helper) */
+#define SYMDATA		6		/* SymbOS data segment */
+#define SYMTRANS	7		/* SymbOS transfer segment */
+/* Special cases 8+ don't exist as real segments */
+//#define PCREL		14		/* assumed signed */
 /* and 15 is 'any' */
 
 #endif

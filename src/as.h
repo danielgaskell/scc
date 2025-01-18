@@ -186,8 +186,8 @@ typedef	uint16_t	VALUE;		/* For symbol values */
 #define CODE		1
 #define DATA		2
 #define BSS		    3
-#define SYMDATA		10
-#define SYMTRANS	11
+#define SYMDATA		6
+#define SYMTRANS	7
 
 /*
  * Expression priority

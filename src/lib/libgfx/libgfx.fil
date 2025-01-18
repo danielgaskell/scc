@@ -8,11 +8,11 @@ load.o
 line.o
 lineb.o
 save.o
+hline.o
+vline.o
 spixel.o
 pixel.o
 put.o
 value.o
-hline.o
-vline.o
 text.o
 core.o

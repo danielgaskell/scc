@@ -42,7 +42,7 @@ SYM	*uhash[NHASH];
 int	pass;
 int	line;
 jmp_buf	env;
-int	debug_write = 1 ;
+int	debug_write = 0;//1 ;
 int	noobj;
 int	cpu_flags = ARCH_CPUFLAGS;
 
@@ -70,7 +70,7 @@ static int listbytes;
 
 static void list_header(void)
 {
-	fprintf(lfp, "%c %04X : ", "ACDBZXSLsbdt"[segment], dot[segment]);
+	fprintf(lfp, "%c %04X : ", "ACDBZLdt"[segment], dot[segment]);
 	listbytes = 0;
 }
 

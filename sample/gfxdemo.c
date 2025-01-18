@@ -1,4 +1,5 @@
-#include <symbos.h>
+#include <symbos/windows.h>
+#include <symbos/popups.h>
 #include <graphics.h>
 
 _transfer char icon[19] = {0x02, 0x08, 0x08, 0xFF, 0xFF, 0xF8, 0xF1, 0xF8, 0xF1,

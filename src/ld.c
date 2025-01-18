@@ -85,13 +85,10 @@ static uint_fast8_t ldmode = LD_FUZIX;	/* Operating mode */
 static uint_fast8_t rawstream;		/* Outputting raw or quoted ? */
 
 static uint_fast8_t split_id;		/* True if code and data both zero based */
-static unsigned arch;			/* Architecture */
-static uint16_t arch_flags;		/* Architecture specific flags */
 static uint_fast8_t verbose;		/* Verbose reporting */
 static int err;				/* Error tracking */
 /*static int dbgsyms = 1;*/			/* Set to dumb debug symbols */
 static int strip = 0;			/* Set to strip symbols */
-static int obj_flags = -1;		/* Object module flags for compat */
 static const char *mapname;		/* Name of map file to write */
 static const char *outname;		/* Name of output file */
 static char *appname = NULL; /* SymbOS application name */
@@ -102,7 +99,7 @@ static addr_t dot;			/* Working address as we link */
 
 static unsigned progress;		/* Did we make forward progress ?
 					   Used while library linking */
-static const char *segmentorder = "CDBXLdt";	/* Segment default order */
+static const char *segmentorder = "CDBLdt";	/* Segment default order */
 
 static int_fast8_t rel_shift;		/* Relocation scaling */
 static addr_t rel_mask;			/* Relocation mask */
@@ -359,19 +356,6 @@ static addr_t xstrtoul(const char *p)
 }
 
 /*
- *	Target specific behaviour
- */
-
-static unsigned target_has_regzp(void)
-{
-	/* Processors which have has ZP as register space don't write out
-	   the ZP segment as it's not part of the actual real memory map */
-	if (arch == OA_Z8)
-		return 1;
-	return 0;
-}
-
-/*
  *	Manage the linked list of object files and object modules within
  *	libraries that we have seen.
  */
@@ -589,7 +573,7 @@ static void print_symbol(struct symbol *s, FILE *fp)
 	if (s->type & S_UNKNOWN)
 		c = 'U';
 	else {
-		c = "ACDBZXSLsbdt"[s->type & S_SEGMENT];
+		c = "ACDBZLdt"[s->type & S_SEGMENT];
 		if (s->type & S_PUBLIC)
 			c = toupper(c);
 	}
@@ -608,20 +592,6 @@ static void write_map_file(FILE *fp)
 		for (s = symhash[i]; s != NULL; s=s->next)
 			print_symbol(s, fp);
 	}
-}
-
-/*
- *	Check that the newly discovered object file is the same format
- *	as the existing one. Also check for big endian as we don't yet
- *	support that (although we are close).
- */
-static void compatible_obj(struct objhdr *oh)
-{
-	if (obj_flags != -1 && oh->o_flags != obj_flags) {
-		fprintf(stderr, "Mixed object types not supported.\n");
-		exit(1);
-	}
-	obj_flags = oh->o_flags;
 }
 
 /*
@@ -695,13 +665,12 @@ static struct object *load_object(off_t off, int lib, const char *path)
 			return NULL;
 		}
 		else	/* But an object file must be valid */
-			error("bad object file");
+			error("bad object file (1)");
 	}
-	compatible_obj(o->oh);
 	/* Load up the symbols */
 	nsym = (o->oh->o_dbgbase - o->oh->o_symbase) / S_ENTRYSIZE;
 	if (nsym < 0||nsym > 65535)
-		error("bad object file");
+		error("bad object file (2)");
 	/* Allocate the symbol entries */
 	o->syment = (struct symbol **) xmalloc(sizeof(struct symbol *) * nsym);
 	o->nsym = nsym;
@@ -740,14 +709,7 @@ restart:
 		return NULL;
 	}
 	insert_object(o);
-	/* Make sure all the files are the same architeture */
-	if (arch) {
-		if (o->oh->o_arch != arch)
-			error("wrong architecture");
-	} else
-		arch = o->oh->o_arch;
 	/* The CPU features required is the sum of all the flags in the objects */
-	arch_flags |= o->oh->o_cpuflags;
 	processing = NULL;
 	put_object(o);
 	return o;
@@ -767,7 +729,7 @@ static void append_segment(int a, int b)
 		error("image too large");
 }
 
-static char segnames[] = "CDBZXSLsbdt";
+static char segnames[] = "CDBZLdt";
 
 static void order_segments(void)
 {
@@ -812,10 +774,10 @@ static void set_segment_bases(void)
 		if (verbose)
 			printf("%s:\n", o->path);
 		for (i = 1; i < OSEG; i++) {
-			size[i] += o->oh->o_size[i];
+		    size[i] += o->oh->o_size[i];
 			if (verbose)
 				printf("\t%c : %04X  %04X\n",
-					"ACDBZXSLsbdt????"[i], o->oh->o_size[i],
+					"ACDBZLdt????"[i], o->oh->o_size[i],
 						size[i]);
 			if (size[i] < o->oh->o_size[i])
 				error("segment too large");
@@ -829,8 +791,8 @@ static void set_segment_bases(void)
         size[CODE] += 298;
 
 	if (verbose) {
-		for (i = 1; i < 12; i++)
-			printf("Segment %c Size %04X\n", "ACDBZXSLsbdt"[i], size[i]);
+		for (i = 1; i < OSEG; i++)
+			printf("Segment %c Size %04X\n", "ACDBZLdt"[i], size[i]);
 	}
 	/* We now know where to put the binary */
 	if (ldmode == LD_RELOC) {
@@ -856,10 +818,6 @@ static void set_segment_bases(void)
 		insert_internal_symbol("__bss", BSS, 0);
 		insert_internal_symbol("__end", BSS, size[3]);
 		insert_internal_symbol("__zp", ZP, 0);
-		insert_internal_symbol("__discard", DISCARD, 0);
-		insert_internal_symbol("__common", COMMON, 0);
-		insert_internal_symbol("__buffers", BUFFERS, 0);
-		insert_internal_symbol("__commondata", COMMONDATA, 0);
 		insert_internal_symbol("__literal", LITERAL, 0);
 		insert_internal_symbol("__symdata", SYMDATA, 0);
 		insert_internal_symbol("__symtrans", SYMTRANS, 0);
@@ -868,10 +826,6 @@ static void set_segment_bases(void)
 		insert_internal_symbol("__bss_size", ABSOLUTE, size[BSS]);
 		insert_internal_symbol("__literal_size", ABSOLUTE, size[LITERAL]);
 		insert_internal_symbol("__zp_size", ABSOLUTE, size[ZP]);
-		insert_internal_symbol("__discard_size", ABSOLUTE, size[DISCARD]);
-		insert_internal_symbol("__common_size", ABSOLUTE, size[COMMON]);
-		insert_internal_symbol("__buffers_size", ABSOLUTE, size[BUFFERS]);
-		insert_internal_symbol("__commondata_size", ABSOLUTE, size[COMMONDATA]);
 		insert_internal_symbol("__symdata_size", ABSOLUTE, size[SYMDATA]);
 		insert_internal_symbol("__symtrans_size", ABSOLUTE, size[SYMTRANS]);
 	}
@@ -987,7 +941,7 @@ static void record_reloc(unsigned high, unsigned size, unsigned seg, addr_t addr
 static unsigned is_code(unsigned seg)
 {
 	/* TODO: when we add banking/overlays this will need to change */
-	if (seg == CODE || seg == DISCARD || seg == COMMON)
+	if (seg == CODE)
 		return 1;
 	return 0;
 }
@@ -1137,10 +1091,7 @@ static void relocate_stream(struct object *o, int segment)
 				r = target_get(o, size);
 				r += o->base[seg];
 				/* r is now the abs address */
-				if (o->oh->o_flags & OF_WORDMACHINE)
-					r -= dot/ 2;
-				else
-					r -= dot;
+				r -= dot;
 				if (rel_shift) {
 					if (rel_shift < 0)
 						r <<= -rel_shift;
@@ -1247,10 +1198,7 @@ static void relocate_stream(struct object *o, int segment)
 					if (optype == REL_PCREL) {
 						addrdiff_t off = r;
 						/* Word addressed but our dot is byte counting */
-						if (o->oh->o_flags & OF_WORDMACHINE)
-							off -= dot / 2;
-						else
-							off -= dot;
+						off -= dot;
 						if (rel_shift) {
 							if (rel_shift < 0)
 								off <<= -rel_shift;
@@ -1381,17 +1329,9 @@ static void write_binary(FILE *mp)
 
 	memset(&blankhdr, 0, sizeof(blankhdr));
 
-	hdr.o_arch = arch;
-	hdr.o_cpuflags = arch_flags;
-	hdr.o_flags = obj_flags;
 	hdr.o_segbase[0] = sizeof(hdr);
-	hdr.o_size[0] = size[0];
-	hdr.o_size[1] = size[1];
-	hdr.o_size[2] = size[2];
-	hdr.o_size[3] = size[3];
-	hdr.o_size[7] = size[7];
-	hdr.o_size[10] = size[10];
-	hdr.o_size[11] = size[11];
+	for (i = 0; i < OSEG; ++i)
+        hdr.o_size[i] = size[i];
 
 	memset(&symhdr, 0, sizeof(symhdr));
 	symhdr.len_code = size[CODE] + size[DATA] + size[BSS];
@@ -1431,26 +1371,11 @@ static void write_binary(FILE *mp)
 	}
 	/* Absolute images may contain things other than code/data/bss */
 	if (ldmode == LD_ABSOLUTE) {
-		for (i = 4; i < OSEG; i++) {
-			if (target_has_regzp()) {
-				if (i == ZP)
-					continue;
-			}
+		for (i = 4; i < OSEG; i++)
 			write_stream(i);
-		}
-	}
-	else {
-		/* ZP is ok in Fuzix but is not initialized in a defined way */
-		for (i = ldmode == LD_FUZIX ? 5 : 4; i < OSEG; i++) {
-			if (size[i] > 0 && i != LITERAL && i != SYMDATA && i != SYMTRANS) {
-				fprintf(stderr, "Unsupported data in non-standard segment %d.\n", i);
-				break;
-			}
-		}
-		if (!rawstream && !strip) {
-			hdr.o_symbase = out_tell();
-			write_symbols();
-		}
+	} else if (!rawstream && !strip) {
+        hdr.o_symbase = out_tell();
+        write_symbols();
 	}
 	hdr.o_dbgbase = out_tell();
 	hdr.o_magic = MAGIC_OBJ;
@@ -1592,7 +1517,7 @@ int main(int argc, char *argv[])
 
 	arg0 = argv[0];
 
-	while ((opt = getopt(argc, argv, "rbvtsiu:o:m:f:R:A:B:C:D:G:N:S:X:Z:8:d:g:h:T")) != -1) {
+	while ((opt = getopt(argc, argv, "rbvtsiu:o:m:f:R:A:B:C:D:G:N:Z:d:g:h:T")) != -1) {
 		switch (opt) {
 		case 'r':
 			ldmode = LD_RFLAG;
@@ -1658,14 +1583,6 @@ int main(int argc, char *argv[])
 			baseset[2] = 1;
 			break;
 		case 'L':	/* LITERAL */
-			base[7] = xstrtoul(optarg);
-			baseset[7] = 1;
-			break;
-		case 'S':	/* Shared/Common */
-			base[6] = xstrtoul(optarg);
-			baseset[6] = 1;
-			break;
-		case 'X':	/* DISCARD */
 			base[5] = xstrtoul(optarg);
 			baseset[5] = 1;
 			break;
@@ -1673,17 +1590,13 @@ int main(int argc, char *argv[])
 			base[4] = xstrtoul(optarg);
 			baseset[4] = 1;
 			break;
-		case '8':
-			base[8] = xstrtoul(optarg);
-			baseset[8] = 1;
-			break;
 		case 'd':	/* SYMDATA */
-			base[10] = xstrtoul(optarg);
-			baseset[10] = 1;
+			base[6] = xstrtoul(optarg);
+			baseset[6] = 1;
 			break;
 		case 'T':	/* SYMTRANS */
-			base[11] = xstrtoul(optarg);
-			baseset[11] = 1;
+			base[7] = xstrtoul(optarg);
+			baseset[7] = 1;
 			break;
 		default:
 			fprintf(stderr, "%s: name ...\n", argv[0]);

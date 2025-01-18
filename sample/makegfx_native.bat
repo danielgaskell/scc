@@ -1,1 +1,1 @@
-cc gfxdemo.c -lgfx
+cc gfxdemo.c -V -lgfx

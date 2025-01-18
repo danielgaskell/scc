@@ -73,9 +73,6 @@ int outpass(void)
 			segsize[i] = 0;
 		}
 		obh.o_magic = 0;
-		obh.o_arch = ARCH;
-		obh.o_flags = ARCH_FLAGS;
-		obh.o_cpuflags = cpu_flags;
 		obh.o_symbase = base;
 		obh.o_dbgbase = 0;	/* for now */
 		/* Number the symbols for output */
@@ -399,10 +396,7 @@ void outrel(ADDR *a, unsigned len)
 	} else if (segment == a->a_segment) {
 		/* We don't need to issue a relocation if it's within
 		   segment */
-		if (obh.o_flags & OF_WORDMACHINE)
-			av -= dot[segment] / 2;
-		else
-			av -= dot[segment];
+		av -= dot[segment];
 		if (shift) {
 			if (shift < 0)
 				av <<= shift;
