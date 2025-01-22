@@ -12,6 +12,7 @@ sound.o
 popups.o
 system.o
 systray.o
+syspath.o
 textbox.o
 wincore.o
 winxtra.o
@@ -25,5 +26,6 @@ kernbank.o
 kernclip.o
 kerncomp.o
 kerndev.o
+kerncfg.o
 kernmem.o
 kernmult.o

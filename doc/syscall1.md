@@ -448,6 +448,30 @@ Returns the current SymbOS version, with the major version number in the tens di
 
 *SymbOS name*: `System_Information` (`SYSINF`).
 
+### Sys_Path()
+
+*Currently only available in development builds of SCC.*
+
+```c
+char* Sys_Path(void);
+```
+
+Returns the system path (e.g., `C:\SYMBOS\`) as a string, which will always end in a backslash (`\`).
+
+*SymbOS name*: `System_Information` (`SYSINF`).
+
+### Sys_GetConfig()
+
+*Currently only available in development builds of SCC.*
+
+```c
+void Sys_GetConfig(char* dest, unsigned short offset, unsigned char len);
+```
+
+A low-level function that copies `len` bytes starting at `offset` within the SymbOS configuration information into the buffer at address `dest`, which must be in the **transfer** segment. `offset` = 0 is byte 163 in `SYMBOS.INI` (i.e., the system path). For information on offsets and what information can be retrieved this way, see the SymbOS Developer Documentation.
+
+*SymbOS name*: `System_Information` (`SYSINF`).
+
 ## Mouse status
 
 In addition to `symbos.h`, these functions can be found in `symbos/device.h`.
