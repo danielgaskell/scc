@@ -622,11 +622,11 @@ typedef struct {
 } Ctrl_Check;
 ```
 
-The value of the checkbox (0 = unchecked, 1 = checked) will be stored in the byte pointed to by `status`. The control height should always be 8.
+The value of the checkbox (0 = unchecked, 1 = checked) will be stored in the byte pointed to by `status`, which should be in the **transfer** segment. The control height should always be 8.
 
 ```c
 // example
-char check1 = 0;
+_transfer char check1 = 0;
 _transfer Ctrl_Check cd_check1 = {&check1, "Label text", (COLOR_BLACK << 2) | COLOR_ORANGE};
 _transfer Ctrl c_check1 = {1, C_CHECK, -1, (unsigned short)&cd_check1, 10, 10, 32, 8};
 ```
@@ -647,9 +647,9 @@ typedef struct {
 } Ctrl_Radio;
 ```
 
-When a radio button is selected, its `value` property will be loaded into the byte pointed to by `status`. Usually this is an ID of some kind (1, 2, 3...), but it can technically be anything. To determine which radio button is selected, read the value of the byte pointed to by `status` and match it to the known `value` properties of the possible radio buttons.
+When a radio button is selected, its `value` property will be loaded into the byte pointed to by `status`, which should be in the **transfer** segment. Usually this is an ID of some kind (1, 2, 3...), but it can technically be anything. To determine which radio button is selected, read the value of the byte pointed to by `status` and match it to the known `value` properties of the possible radio buttons.
 
-`buffer` points to a 4-byte static buffer used internally by the desktop manager. It should initially contain the values -1, -1, -1, -1.
+`buffer` points to a 4-byte static buffer used internally by the desktop manager. It should initially contain the values -1, -1, -1, -1 and be in the **transfer** segment.
 
 All radio buttons in a group should use the same `status` and `buffer`; to create multiple groups that do not interact, give them different status bytes and coordinate buffers.
 
@@ -657,7 +657,7 @@ The control height should always be 8.
 
 ```c
 // example
-char radio = 0;
+_transfer char radio = 0;
 _transfer char radiocoord[4] = {-1, -1, -1, -1};
 
 _transfer Ctrl_Radio cd_radio1 = {&radio, "First button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 1, &radiocoord};
@@ -701,11 +701,11 @@ typedef struct {
 } Ctrl_Tab;
 ```
 
-The control height must be 11. SymbOS will keep track of the selected tab for us, but it is our responsibility to decide what a click event on a tab actually does (for example, hiding one page of controls and revealing another). A good way to switch between several pages of controls is to create each page as a separate `Ctrl_Group` and have a `C_COLLECTION` control pointing to the `Ctrl_Group` of the visible page. When the tab bar is clicked, change which `Ctrl_Group` the collection's `controls` property points to and redraw it.
+The control height must be 11. SymbOS will keep track of the selected tab for us, but it is our responsibility to decide what a click event on a tab actually does (for example, hiding one page of controls and revealing another). The event-handling code is also responsible for refreshing the tab control so the updated selection is actually displayed. A good way to switch between several pages of controls is to create each page as a separate `Ctrl_Group` and have a `C_COLLECTION` control pointing to the `Ctrl_Group` of the visible page. When the tab bar is clicked, change which `Ctrl_Group` the collection's `controls` property points to and redraw it.
 
 ```c
 // example
-_transfer Ctrl_Tabs cd_tabs = {2, (COLOR_BLACK << 6) | (COLOR_RED << 4) | (COLOR_BLACK) | COLOR_ORANGE, 1};
+_transfer Ctrl_Tabs cd_tabs = {2, (COLOR_BLACK << 6) | (COLOR_RED << 4) | (COLOR_BLACK << 2) | COLOR_ORANGE, 1};
 _transfer Ctrl_Tab cd_tab1 = {"Tab 1", -1};
 _transfer Ctrl_Tab cd_tab2 = {"Tab 2", -1};
 
@@ -772,7 +772,7 @@ If scrollbars are enabled, the control size must be greater than 32x32. `flags` 
 // example
 _transfer Ctrl cc_area = {1, C_AREA, -1, COLOR_ORANGE, 0, 0, 100, 100};
 _transfer Ctrl_Group cg_collect = {1, 0, &cc_area};
-_transfer Ctrl_Collection cd_collect = {cg_collect, 200, 100, 0, 0, CSCROLL_H};
+_transfer Ctrl_Collection cd_collect = {&cg_collect, 200, 100, 0, 0, CSCROLL_H};
 _transfer Ctrl c_collect = {1, C_COLLECTION, -1, (unsigned short)&cd_collect, 10, 10, 100, 100};
 
 int main(int argc, char* argv[]) {
