@@ -134,20 +134,18 @@ _Key_Multi:
 	push iy
 	ld ix,#0x02
 	add ix,sp
+	ld e,(ix+8)
+	ld d,(ix+10)
+    push de
 	ld e,(ix+6)
-	ld d,(ix+8)
-	ld a,(ix+10)
-	.byte 0xDD
-	ld l,a
+	ld d,(ix+16)
 	ld a,(ix+12)
-	.byte 0xDD
-	ld h,a
+	.byte 0xED
+	ld l,a
 	ld a,(ix+14)
 	.byte 0xED
-	ld l,a
-	ld a,(ix+16)
-	.byte 0xED
 	ld h,a
+    pop ix
 	ld hl,#0x8160
 	rst #0x28
 	ld h,0
