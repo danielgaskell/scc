@@ -26,3 +26,5 @@ extern void Gfx_Box(unsigned short x0, unsigned char y0, unsigned short x1, unsi
 extern void Gfx_BoxF(unsigned short x0, unsigned char y0, unsigned short x1, unsigned short y1, unsigned char color);
 extern void Gfx_Circle(signed short x0, signed short y0, signed short radius, unsigned char color);
 extern void Gfx_Text(unsigned short x, unsigned char y, char* text, unsigned char color, char* font);
+extern void Gfx_ScrollX(int pixels);
+extern void Gfx_ScrollY(int pixels);

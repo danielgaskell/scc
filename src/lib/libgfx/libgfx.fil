@@ -8,6 +8,7 @@ load.o
 line.o
 lineb.o
 save.o
+scroll.o
 hline.o
 vline.o
 spixel.o

@@ -4,6 +4,25 @@ While SymbOS provides features (primarily the `C_IMAGE` and `C_IMAGE_EXT` contro
 
 **Note:** All graphics functions are thread-safe, except that only one canvas may be [active](#initializing-canvases) at a time. However, multiple threads can draw to the same canvas at the same time.
 
+## Contents
+
+* [Using the library](#using-the-library)
+* [Using canvases](#using-canvases)
+  * [Creating canvases](#creating-canvases)
+  * [Initializing canvases](#initializing-canvases)
+  * [Refreshing the display](#refreshing-the-display)
+* [Drawing functions](#drawing-functions)
+  * [Function reference](#drawing-functions)
+* [Sprite functions](#sprite-functions)
+  * [Converting images](#converting-images)
+  * [Image sets and masks](#image-sets-and-masks)
+  * [Function reference](#Gfx_Load)
+  * [Moving sprites](#moving-sprites)
+* [Advanced topics](#advanced-topics)
+  * [Memory problems](#memory-problems)
+* [Reference](#reference)
+  * [Color palette](#color-palette)
+
 ## Using the library
 
 To use the library, include the `graphics.h` header:
@@ -204,6 +223,30 @@ Drawing text in 16-color mode is currently slower than in 4-color mode. Drawing 
 
 A description of the font format can be found in the SymbOS Developer Documentation; fonts can be created using the SymbOS Font Editor application.
 
+### Gfx_ScrollX()
+
+*Currently only available in development builds of SCC.*
+
+```c
+void Gfx_ScrollX(int pixels);
+```
+
+Scrolls the entirety of the currently active canvas `pixels` pixels right (when `pixels` > 0) or left (when `pixels` < 0). `pixels` will be rounded down to the nearest 4 pixels in 4-color mode or to the nearest 2 pixels in 16-color mode; this limitation enables scrolling to be a very fast byte-copy operation (even faster than a window refresh).
+
+The margin of the canvas that was just "scrolled onscreen" (e.g., the rightmost 4 columns of pixels when scrolling by -4) will be initially filled with garbage; we are responsible for overdrawing it with any content that should become visible as a result of the scroll.
+
+### Gfx_ScrollY()
+
+*Currently only available in development builds of SCC.*
+
+```c
+void Gfx_ScrollY(int pixels);
+```
+
+Scrolls the entirety of the currently active canvas `pixels` pixels down (when `pixels` > 0) or up (when `pixels` < 0). Unlike `Gfx_ScrollX()`, scrolling will be pixel-perfect, without rounding down. This is a very fast byte-copy operation (even faster than a window refresh).
+
+The margin of the canvas that was just "scrolled onscreen" (e.g., the bottom 4 rows of pixels when scrolling by -4) will be initially filled with garbage; we are responsible for overdrawing it with any content that should become visible as a result of the scroll.
+
 ### Gfx_Clear()
 
 ```c
@@ -369,6 +412,39 @@ Because `graphics.h` implements a raw canvas, it does not have any built-in feat
 * Before plotting a sprite, use `Gfx_Get()` to copy the background behind it into a temporary buffer. Then, when the sprite needs to be moved, erase it by plotting the old background on top of it with `Gfx_Put()`.
 * For graphics based on multiple layers of regularly-spaced tiles (like an RPG), simply replot any affected tiles from the bottom up with `Gfx_Put()`, redrawing the background over the sprite.
 * A flexible (but memory-hungry) solution is to maintain two canvases: a "background" canvas containing the background, and a "visible" canvas actually shown in the window. To move a sprite, use `Gfx_Select()`, `Gfx_Get()`, and `Gfx_Put()` to copy the relevant parts of the "background" canvas over the sprite's location on the "visible" canvas.
+
+## Advanced topics
+
+### Memory problems
+
+In practice, the biggest challenge when developing graphics-heavy programs (like games) is running out of memory. For speed, the graphics library requires that all canvases and graphics assets be located in the application's main 64KB address space (the **code**, **data**, and **transfer** segments). This is fine if we are only using the graphics library for small accents like icons or toolbars, but imagine an RPG that wants to keep a 230x140 canvas, a set of 100 16x16 tiles, and a set of 32 16x16 masked sprites in memory at the same time. That leaves only 19KB for the game code itself, assuming a byte-perfect memory map---not much to work with!
+
+Further problems arise from the need to keep canvases within a single 16KB memory segment. (This is necessary to prevent graphics corruption on some platforms, like the MSX.) A common (if confusing) way to get into trouble is to have a large **code** segment, a large canvas in the **data** segment, and a comparatively empty **transfer** segment. SymbOS may then have trouble arranging the segments in a legal order even if the total file size is <64KB.
+
+To understand what is going on, imagine a game with a 40KB **code** segment, a 16KB **data** segment, and a 3KB **transfer** segment. The **code** segment is loaded first, while the **transfer** segment must be in the uppermost 16KB of memory:
+
+| `0x0000` | `0x4000` | `0x8000` | `0xC000` |
+| -------- | -------- | -------- | -------- |
+| `CCCCCC` | `CCCCCC` | `CCC`    | `TT`     |
+
+Where does the **data** segment (`DDDDDD`) go? In theory it could go between the **code** and **transfer** segments, but this would result in it crossing a 16KB segment boundary, which is not allowed:
+
+| `0x0000` | `0x4000` | `0x8000` | `0xC000` |
+| -------- | -------- | -------- | -------- |
+| `CCCCCC` | `CCCCCC` | `CCCDDD` | `DDDTT`  |
+
+So, SymbOS throws an "out of memory" error even though the total file size is <64KB. The easiest solution to this problem is usually to move some data from the **code** segment to the **transfer** segment:
+
+| `0x0000` | `0x4000` | `0x8000` | `0xC000` |
+| -------- | -------- | -------- | -------- |
+| `CCCCCC` | `CCCCCC` | `DDDDDD` | `TTTTT`  |
+
+But what if we're just hitting the 64KB limit? Some suggestions, from least to most complicated:
+
+* Eliminate all unnecessary canvas and buffer space. For example, in games, it is often unnecessary to actually draw the entire play field using a single large canvas. If there is a significant amount of whitespace, consider breaking the canvas up into several smaller canvases and drawing the whitespace using a `C_AREA` control instead (which takes almost no memory).
+* Store graphics assets in [banked memory](syscall1.md#memory-management) and only load them into the application's main 64KB address space when needed. (This works best when draw-time is not critical, or when we only need a portion of all available graphics assets at one time.)
+* For repeating elements, instead of using one large `C_IMAGE_EXT` control pointing to one large canvas, use several small `C_IMAGE_EXT` controls pointing to the same small canvas. Overlapping [`C_IMAGE_TRANS`](symbos.md#c_image_trans) controls could also be used to create transparent sprites without requiring a separate mask image.
+* Most complicated, but theoretically useful for game engines: perform all graphics rendering in a dedicated [process](syscall2.md#process-management) with its own 64KB address space, telling the rendering process what to do using [inter-process messaging](syscall1.md#messaging) or a shared memory space in banked memory.
 
 ## Reference
 
