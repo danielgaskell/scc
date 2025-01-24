@@ -922,7 +922,7 @@ typedef struct {
     void* coldata;            // address of the column data (see below)
     unsigned short clicked;   // index of last clicked row
     unsigned char flags;      // flags (see below)
-    unsigned char unused2;    // (set to 0)
+    unsigned char resorted;   // (in SymbOS 4.0 and up, will be set to 1 if the user re-sorts the list)
     unsigned short treelines; // (only used by tree views, see C_TREE)
     unsigned short treefirst; // (only used by tree views, see C_TREE)
 } List;
@@ -940,7 +940,7 @@ typedef struct {
 ```c
 typedef struct {
     unsigned char flags;     // flags (see below)
-    unsigned char unused1;
+    unsigned char sortskip;  // number of characters to skip when sorting (normally 0)
     unsigned short width;    // width in pixels
     char* text;              // address of title text
     unsigned short unused2;
@@ -948,6 +948,8 @@ typedef struct {
 ```
 
 `flags` for `List_Column` controls how the column is aligned and sorted, as well as what is displayed on each row. It consists of one of `ALIGN_LEFT`, `ALIGN_RIGHT`, or `ALIGN_CENTER`; OR'd with one of `LTYPE_TEXT` (for text data), `LTYPE_IMAGE` (for image data), `LTYPE_16` (for a 16-bit number), or `LTYPE_32` (for a 32-bit number). Alternatively, on SymbOS 4.0 and up, `flags` may just be set to `LTYPE_CTRL`, with no other flags (indicating text with control codes---see [`C_TEXT_CTRL`](C_TEXT_CTRL) for what codes are available).
+
+`sortskip` (only available in SymbOS 4.0 and up) indicates the index of the first character to compare when sorting text rows. Normally this should be 0 (i.e., "sort from the first character"), but we can set it >0 to skip leading characters (like control characters).
 
 The format of row definitions is a bit trickier. Internally, each row consists of a 16-bit flags word, followed by as many 16-bit value words as there are columns; these store either the value of the row in that column (for `LTYPE_16`) or the address of the data shown in that column. For a 1-column list, we can represent this structure with a series of `List_Row` structs, directly after one another:
 
@@ -1000,7 +1002,7 @@ Displays the column titles of a listbox or tree view, in isolation. Control heig
 
 ### C_DROPDOWN
 
-Equivalent to `C_LISTBOX`, but displays a dropdown list selector instead of a full list box. The control width must be at least 10, and the control height must be 11. The `LIST_SCROLL` flag should be used whenever the list is longer than 10 entries, and the `LIST_MULTI` flag should never be used.
+Equivalent to `C_LISTBOX`, but displays a dropdown list selector instead of a full list box. The control width must be at least 11, and the control height must be 10. The `LIST_SCROLL` flag should be used whenever the list is longer than 10 entries, and the `LIST_MULTI` flag should never be used. The `.clicked` property indicates the currently selected row.
 
 Note that, even though dropdown lists generally only have one column and do not display a column title, we must still define a valid column struct as described under `C_LISTBOX`.
 
@@ -1195,12 +1197,11 @@ typedef struct {
 
 `flags` is an OR'd bitmask that may consist of one or more of the following flags:
 
-* `MENU_ACTIVE`: entry is active and can be clicked (we usually want this)
-* `MENU_CHECKED`: entry has a checkmark
-* `MENU_SUBMENU`: entry opens a submenu
-* `MENU_SEPARATOR`: entry is a separator line
-
-If `MENU_SUBMENU` is set, `value` points to the `Menu` struct defining the submenu to open. Note that `MENU_CHECKED` will not be updated automatically---it is our responsibility to receive menu events and take the necessary action, such as toggling the `MENU_CHECKED` flag for a given entry.
+* `MENU_ACTIVE`: entry is active and can be clicked (we usually want this).
+* `MENU_CHECKED`: entry has a checkmark. Note that `MENU_CHECKED` will not be updated automatically---it is our responsibility to receive menu events and take the necessary action, such as toggling the `MENU_CHECKED` flag for a given entry.
+* `MENU_SUBMENU`: entry opens a submenu. If `MENU_SUBMENU` is set, `value` points to the `Menu` struct defining the submenu to open. Submenus can be nested up to 5 levels deep.
+* `MENU_SEPARATOR`: entry is a separator line.
+* `MENU_ICON`: entry begins with an icon (SymbOS 4.0 and up only, and only allowed in drop-down menus, not a window's top-level menu bar.) If `MENU_ICON` is set, the entry's `text` string must begin with a five-byte inline image [control code](#C_TEXT_CTRL) representing an 8x8 icon that will be plotted before the entry. (i.e., `0x06` `0x80` `banknum` `[canvas](graphics.md) address - 1`).
 
 Windows can have main menus if their `WIN_MENU` flag is set and their `menu` property points to a `Menu` struct similar to the above. Menus can also be opened independently (see the [Menu_Context()](syscall1.md#menu_context) system call).
 

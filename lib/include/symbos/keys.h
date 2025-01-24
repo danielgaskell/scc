@@ -84,6 +84,18 @@
 #define KEY_ALT_7 185
 #define KEY_ALT_8 186
 #define KEY_ALT_9 187
+#define KEY_CTRL_1 192
+#define KEY_CTRL_2 193
+#define KEY_CTRL_3 194
+#define KEY_CTRL_4 195
+#define KEY_CTRL_5 196
+#define KEY_CTRL_6 197
+#define KEY_CTRL_7 198
+#define KEY_CTRL_8 199
+#define KEY_INS 208
+#define KEY_PRINT 240
+#define KEY_HOME 254
+#define KEY_END 255
 
 #define SCAN_0 32
 #define SCAN_1 64

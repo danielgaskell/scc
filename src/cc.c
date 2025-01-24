@@ -831,7 +831,7 @@ void unused_files(void)
 
 void usage(void)
 {
-	printf("SCC v1.1, (C)2024 Daniel E. Gaskell, Alan Cox, and others\n");
+	printf("SCC v1.2, (C)2024 Daniel E. Gaskell, Alan Cox, and others\n");
 	printf("cc [option and file list]\n\n");
 	printf("options:\n\n");
 	printf("-c      compile to object modules only\n");

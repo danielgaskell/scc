@@ -112,6 +112,7 @@
 #define MENU_CHECKED 2
 #define MENU_SUBMENU 4
 #define MENU_SEPARATOR 8
+#define MENU_ICON 16
 #define GRID_HORIZONTAL 0
 #define GRID_VERTICAL 1
 #define GRID_FIXED 1
@@ -417,14 +418,14 @@ typedef struct {
     void* coldata;
     unsigned short clicked;
     unsigned char flags;
-    unsigned char unused2;
+    unsigned char resorted;
 	unsigned short treelines;
 	unsigned short treefirst;
 } List;
 
 typedef struct {
     unsigned char flags;
-    unsigned char unused1;
+    unsigned char sortskip;
     unsigned short width;
     char* text;
     unsigned short unused2;

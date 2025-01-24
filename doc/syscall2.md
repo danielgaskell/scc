@@ -1452,23 +1452,34 @@ In addition to `symbos.h`, these definitions can be found in `symbos/keys.h`.
 
 In addition to `symbos.h`, these definitions can be found in `symbos/keys.h`.
 
-| Code        | Code         | Code        | Code        |
-| ----------- | ------------ | ----------- | ----------- |
-| `KEY_UP`    | `KEY_TAB`    | `KEY_ALT_M` | `KEY_ALT_0` |
-| `KEY_DOWN`  | `KEY_ALT_AT` | `KEY_ALT_N` | `KEY_ALT_1` |
-| `KEY_LEFT`  | `KEY_ALT_A`  | `KEY_ALT_O` | `KEY_ALT_2` |
-| `KEY_RIGHT` | `KEY_ALT_B`  | `KEY_ALT_P` | `KEY_ALT_3` |
-| `KEY_F0`    | `KEY_ALT_C`  | `KEY_ALT_Q` | `KEY_ALT_4` |
-| `KEY_F1`    | `KEY_ALT_D`  | `KEY_ALT_R` | `KEY_ALT_5` |
-| `KEY_F2`    | `KEY_ALT_E`  | `KEY_ALT_S` | `KEY_ALT_6` |
-| `KEY_F3`    | `KEY_ALT_F`  | `KEY_ALT_T` | `KEY_ALT_7` |
-| `KEY_F4`    | `KEY_ALT_G`  | `KEY_ALT_U` | `KEY_ALT_8` |
-| `KEY_F5`    | `KEY_ALT_H`  | `KEY_ALT_V` | `KEY_ALT_9` |
-| `KEY_F6`    | `KEY_ALT_I`  | `KEY_ALT_W` | `KEY_BACK`  |
-| `KEY_F7`    | `KEY_ALT_J`  | `KEY_ALT_X` | `KEY_DEL`   |
-| `KEY_F8`    | `KEY_ALT_K`  | `KEY_ALT_Y` | `KEY_ENTER` |
-| `KEY_F9`    | `KEY_ALT_L`  | `KEY_ALT_Z` | `KEY_ESC`   |
-| `KEY_FDOT`  |              |             |             |
+| Code         | Code        | Code         | Code         |
+| ------------ | ----------- | ------------ | ------------ |
+| `KEY_CTRL_A` | `KEY_ALT_A` | `KEY_ALT_0`  | `KEY_TAB`    |
+| `KEY_CTRL_B` | `KEY_ALT_B` | `KEY_ALT_1`  | `KEY_BACK`   |
+| `KEY_CTRL_C` | `KEY_ALT_C` | `KEY_ALT_2`  | `KEY_DEL`    |
+| `KEY_CTRL_D` | `KEY_ALT_D` | `KEY_ALT_3`  | `KEY_ENTER`  |
+| `KEY_CTRL_E` | `KEY_ALT_E` | `KEY_ALT_4`  | `KEY_ESC`    |
+| `KEY_CTRL_F` | `KEY_ALT_F` | `KEY_ALT_5`  | `KEY_INS`    |
+| `KEY_CTRL_G` | `KEY_ALT_G` | `KEY_ALT_6`  | `KEY_PRINT`  |
+| `KEY_CTRL_H` | `KEY_ALT_H` | `KEY_ALT_7`  | `KEY_HOME`   |
+| `KEY_CTRL_I` | `KEY_ALT_I` | `KEY_ALT_8`  | `KEY_END`    |
+| `KEY_CTRL_J` | `KEY_ALT_J` | `KEY_ALT_9`  | `KEY_CTRL_1` |
+| `KEY_CTRL_K` | `KEY_ALT_K` | `KEY_ALT_AT` | `KEY_CTRL_2` |
+| `KEY_CTRL_L` | `KEY_ALT_L` | `KEY_F0`     | `KEY_CTRL_3` |
+| `KEY_CTRL_M` | `KEY_ALT_M` | `KEY_F1`     | `KEY_CTRL_4` |
+| `KEY_CTRL_N` | `KEY_ALT_N` | `KEY_F2`     | `KEY_CTRL_5` |
+| `KEY_CTRL_O` | `KEY_ALT_O` | `KEY_F3`     | `KEY_CTRL_6` |
+| `KEY_CTRL_P` | `KEY_ALT_P` | `KEY_F4`     | `KEY_CTRL_7` |
+| `KEY_CTRL_Q` | `KEY_ALT_Q` | `KEY_F5`     | `KEY_CTRL_8` |
+| `KEY_CTRL_R` | `KEY_ALT_R` | `KEY_F6`     |              |
+| `KEY_CTRL_S` | `KEY_ALT_S` | `KEY_F7`     |              |
+| `KEY_CTRL_T` | `KEY_ALT_T` | `KEY_F8`     |              |
+| `KEY_CTRL_U` | `KEY_ALT_U` | `KEY_F9`     |              |
+| `KEY_CTRL_V` | `KEY_ALT_V` | `KEY_FDOT`   |              |
+| `KEY_CTRL_W` | `KEY_ALT_W` | `KEY_UP`     |              |
+| `KEY_CTRL_X` | `KEY_ALT_X` | `KEY_DOWN`   |              |
+| `KEY_CTRL_Y` | `KEY_ALT_Y` | `KEY_LEFT`   |              |
+| `KEY_CTRL_Z` | `KEY_ALT_Z` | `KEY_RIGHT`  |              |
 
 ### Colors
 

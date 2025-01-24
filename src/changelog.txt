@@ -1,3 +1,11 @@
+v1.2
++ Added Gfx_ScrollX() and Gfx_ScrollY()
++ Added Sys_GetConfig()
++ Added Sys_Path()
++ Added support for menu icons
+@ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
+@ Various structs tweaked to better support SymbOS 4.0 features
+
 v1.1
 + Added libgfx
 + Added gfx2sgx
