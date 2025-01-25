@@ -6,7 +6,7 @@ __gfx_vline4:
 	push bc
 	push ix
 	push iy
-	ld ix,#0x04
+	ld ix,#0x06
 	add ix,sp
 	call __gfx_xy4
 	call __gfx_coff4
