@@ -448,7 +448,7 @@ Displays a rectangular frame.
 * 4-color mode: `(area_color << 4) | (lower_right_color << 2) | upper_left_color`; OR with `AREA_FILL` to fill interior.
 * 16-color mode: `(lower_right_color << 12) | (upper_right_color << 8) | area_color | AREA_16COLOR`; OR with `AREA_FILL` to fill interior.
 
-An optional XOR mode inverts the colors underneath the control, like a rubber-band selection. In XOR mode, the parameter is `FRAME_XOR | AREA_16COLOR`.
+An optional XOR mode inverts the colors underneath the control, like a rubber-band selection. In XOR mode, the parameter is just `FRAME_XOR`.
 
 ```c
 // example

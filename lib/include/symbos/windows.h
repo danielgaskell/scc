@@ -72,7 +72,7 @@
 #define AREA_FILL 64
 #define AREA_XOR 64
 #define AREA_16COLOR 128
-#define FRAME_XOR 32
+#define FRAME_XOR 0xFFAF
 #define ICON_STD 0
 #define ICON_EXT 16
 #define ICON_4COLOR 0
