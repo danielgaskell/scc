@@ -4,6 +4,7 @@ v1.2
 + Added Sys_Path()
 + Added support for menu icons
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
+@ Fixed Gfx_VLine() overwriting IY
 @ Various structs tweaked to better support SymbOS 4.0 features
 
 v1.1

@@ -5,6 +5,7 @@
 __gfx_vline4:
 	push bc
 	push ix
+	push iy
 	ld ix,#0x04
 	add ix,sp
 	call __gfx_xy4
@@ -33,6 +34,7 @@ vline4loop:
 	add hl,de
 	dec b
 	jr nz,vline4loop
+	pop iy
 	pop ix
 	pop bc
 	ret
