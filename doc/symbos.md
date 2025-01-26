@@ -1131,12 +1131,10 @@ Sent when the focus status of a control has changed.
     
 ### MSR_DSK_WRESIZ
 
-A window has been resized by the user (including maximizing or restoring a maximized or minimized window). The new window size can be read from the window's `w` and `h` properties, although we must also check whether the window's `state` property is `WIN_MAXIMIZED`; in this case the `w` and `h` properties will reflect the restored size of the window, not its maximized size.
+A window has been resized by the user (including maximizing or restoring a maximized or minimized window). The new window size can be determined using [`Win_Width()`](syscalls1.md#win_width) and [`Win_Height()`](syscalls1.md#win_height). (We can also read the `h` and `w` properties of the window directly, but these may not match the actual window size in all cases, e.g., when the window is maximized.)
 
 * `msg[0]`: `MSR_DSK_WRESIZ`
 * `msg[1]`: Window ID
-
-The maximized size of a window's main content area will depend on the window layout (i.e., toolbar height and whether it has a menu or statusbar), but can be calculated from the screen size (`Screen_Width()` and `Screen_Height()`).
 
 ### MSR_DSK_WSCROLL
 
