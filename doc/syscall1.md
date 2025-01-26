@@ -797,6 +797,8 @@ When determining the visible size of a resizable window, this function should be
 
 ### Win_X()
 
+*Currently only available in development builds of SCC.*
+
 ```c
 int Win_X(Window* win);
 ```
@@ -806,6 +808,8 @@ A utility function that returns the absolute screen X position of the visible co
 This is mainly useful for translating between absolute and relative screen position when using functions such as [`Select_Pos()`](#select_pos). This function is more reliable than simply reading the `Window.x` record because it accounts for how SymbOS handles maximized windows.
 
 ### Win_Y()
+
+*Currently only available in development builds of SCC.*
 
 ```c
 int Win_Y(Window* win);
