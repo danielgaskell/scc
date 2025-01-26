@@ -502,5 +502,7 @@ typedef struct {
 
 extern unsigned short Win_Width(Window* win);
 extern unsigned short Win_Height(Window* win);
+extern int Win_X(Window* win);
+extern int Win_Y(Window* win);
 
 #endif

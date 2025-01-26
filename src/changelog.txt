@@ -2,6 +2,7 @@ v1.2
 + Added Gfx_ScrollX() and Gfx_ScrollY()
 + Added Sys_GetConfig()
 + Added Sys_Path()
++ Added Win_X() and Win_Y()
 + Added support for menu icons
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
 @ Fixed Gfx_VLine() overwriting IY

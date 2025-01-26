@@ -795,6 +795,26 @@ A utility function that returns the height of the visible content area of the wi
 
 When determining the visible size of a resizable window, this function should be used instead of directly reading the `Window.h` record. This is because the `Window.h` record contains the height the window *wants* to be, not necessarily its true current size; for example, when a window is maximized, `Window.h` will contain the original "restored" height rather than the true "maximized" height. This function handles all the necessary calculations for determining the true height automatically.
 
+### Win_X()
+
+```c
+int Win_X(Window* win);
+```
+
+A utility function that returns the absolute screen X position of the visible content area of the window `win`, in pixels. (Note that the window is passed as the address of the relevant `Window` record, *not* as the window ID!)
+
+This is mainly useful for translating between absolute and relative screen position when using functions such as [`Select_Pos()`](#select_pos). This function is more reliable than simply reading the `Window.x` record because it accounts for how SymbOS handles maximized windows.
+
+### Win_Y()
+
+```c
+int Win_Y(Window* win);
+```
+
+A utility function that returns the absolute screen Y position of the visible content area of the window `win`, in pixels. (Note that the window is passed as the address of the relevant `Window` record, *not* as the window ID!)
+
+This is mainly useful for translating between absolute and relative screen position when using functions such as [`Select_Pos()`](#select_pos). This function is more reliable than simply reading the `Window.y` record because it accounts for how SymbOS lays out the titlebar, menubar, and toolbar, as well as maximized windows.
+
 ### TextBox_Pos()
 
 ```c
@@ -918,7 +938,9 @@ Opens a context menu at the specified `x` and `y` coordinates on the screen (in 
 char Select_Pos(unsigned short* x, unsigned short* y, unsigned short w, unsigned short h);
 ```
 
-Opens a "rubber band" selector (dotted rectangle) at the specified `*x` and `*y` position on the screen (in pixels), with width `w` and height `h` (in pixels). The user will be able to change the position (but not the size) of this selector by moving the mouse, until they either confirm their selection by releasing the left mouse button or cancel it by pressing ESC. (This is usually used for drag-and-drop operations triggered by first pressing the left mouse button.) The final position of the selector will be written back to the variables passed by reference in `x` and `y`.
+Opens a "rubber band" selector (dotted rectangle) at the specified absolute `*x` and `*y` position on the screen (in pixels), with width `w` and height `h` (in pixels). The user will be able to change the position (but not the size) of this selector by moving the mouse, until they either confirm their selection by releasing the left mouse button or cancel it by pressing ESC. (This is usually used for drag-and-drop operations triggered by first pressing the left mouse button.) The final position of the selector will be written back to the variables passed by reference in `x` and `y`.
+
+Note that absolute screen coordinates are used, not coordinates relative to window content. To translate between the two, see [`Win_X()`](#win_x) and [`Win_Y()`](#win_y).
 
 *Return value*: On successful completion, returns 1. If the user cancelled the operation by pressing ESC, returns 0.
 
@@ -930,7 +952,9 @@ Opens a "rubber band" selector (dotted rectangle) at the specified `*x` and `*y`
 char Select_Size(unsigned short x, unsigned short y, unsigned short* w, unsigned short* h);
 ```
 
-Opens a "rubber band" selector (dotted rectangle) at the specified `x` and `y` position on the screen (in pixels), with width `*w` and height `*h` (in pixels). The user will be able to change the size (but not the position) of this selector by moving the mouse, until they either confirm their selection by releasing the left mouse button or cancel it by pressing ESC. (This is usually used for drag-and-drop operations triggered by first pressing the left mouse button.) The final size of the selector will be written back to the variables passed by reference in `w` and `h`.
+Opens a "rubber band" selector (dotted rectangle) at the specified absolute `x` and `y` position on the screen (in pixels), with width `*w` and height `*h` (in pixels). The user will be able to change the size (but not the position) of this selector by moving the mouse, until they either confirm their selection by releasing the left mouse button or cancel it by pressing ESC. (This is usually used for drag-and-drop operations triggered by first pressing the left mouse button.) The final size of the selector will be written back to the variables passed by reference in `w` and `h`.
+
+Note that absolute screen coordinates are used, not coordinates relative to window content. To translate between the two, see [`Win_X()`](#win_x) and [`Win_Y()`](#win_y).
 
 *Return value*: On successful completion, returns 1. If the user cancelled the operation by pressing ESC, returns 0.
 

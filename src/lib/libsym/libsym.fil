@@ -17,6 +17,7 @@ textbox.o
 wincore.o
 winxtra.o
 winsize.o
+winpos.o
 deskmode.o
 desksvc.o
 deskmsg.o
