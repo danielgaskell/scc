@@ -467,7 +467,7 @@ typedef struct {
     unsigned char color;  // 4-color mode:  (foreground << 2) | background
                           // 16-color mode: line color
                           //   OR with AREA_16COLOR for 16-color mode
-    unsigned char color2; // 16-color mode only: (foreground << 2) | background
+    unsigned char color2; // 16-color mode only: (foreground << 4) | background
 } Ctrl_TFrame;
 ```
 
