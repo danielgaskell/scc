@@ -892,10 +892,10 @@ _transfer Ctrl_TextBox cd_textbox1 = {
     0, 0, 0, 0,      // unused1, cursor, selection, len
     4095, 0, 0, 0,   // maxlen, flags, textcolor, unused2
     0, 0, 0, -1,     // font, unused3, lines, wrapwidth
-    1000, 0, 0,      // maxlines, xvisible, yvisible
+    1000, -8, 0,     // maxlines, xvisible, yvisible
     0,               // self
-    -8, 0, 0, 0,     // xtotal, ytotal, xoffset, yoffset
-    WRAP_WIDTH, 50}; // wrapmode, tabwidth
+    200, 100, 0, 0,  // xtotal, ytotal, xoffset, yoffset
+    WRAP_WIDTH, 20}; // wrapping, tabwidth
 _transfer unsigned short textbox1_lines[1000] = {0}; // line-length buffer
 _transfer Ctrl c_textbox1 = {1, C_TEXTBOX, -1, (unsigned short)&cd_textbox1, 0, 0, 200, 100};
 
