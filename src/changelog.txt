@@ -6,6 +6,7 @@ v1.2
 + Added support for menu icons
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
 @ Fixed Gfx_VLine() overwriting IY
+@ Fixed itoa() for negative numbers
 @ Simplified FRAME_XOR property
 @ Various structs tweaked to better support SymbOS 4.0 features
 

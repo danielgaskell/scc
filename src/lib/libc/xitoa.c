@@ -54,7 +54,7 @@ char *itoa(int __value, char *__strP, int __radix)
     char *p;
 	if (__value >= 0)
 		return uitoa(__value, __strP, __radix);
-	p = uitoa(__value, __strP + 1, __radix);
+	p = -uitoa(__value, __strP + 1, __radix);
 	*--p = '-';
 	return __strP;
 }
