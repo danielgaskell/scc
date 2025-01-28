@@ -9,6 +9,7 @@ v1.2
 @ Fixed itoa() for negative numbers
 @ Simplified FRAME_XOR property
 @ Various structs tweaked to better support SymbOS 4.0 features
+@ Minor typo corrections etc.
 
 v1.1
 + Added libgfx

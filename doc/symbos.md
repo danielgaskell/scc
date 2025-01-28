@@ -724,8 +724,8 @@ typedef struct {
     unsigned char unused;
     unsigned short value;    // current value/position
     unsigned short maxvalue; // maximum value/position (minimum is 0)
-    unsigned char increment; // value to increase by when clicking button
-    unsigned char decrement; // value to decrease by when clicking button
+    signed char increment;   // value change when clicking up/right button
+    signed char decrement;   // value change when clicking down/left button
 } Ctrl_Slider;
 ```
 
@@ -741,7 +741,7 @@ For a horizontal slider, the control height must be 8 and the control width must
 ```c
 // example
 _transfer Ctrl_Slider cd_slider1 = {SLIDER_H | SLIDER_SCROLL, 0, 15, 30, 1, 1};
-_transfer Ctrl c_tabs = {1, C_SLIDER, -1, (unsigned short)&cd_slider1, 10, 10, 100, 8};
+_transfer Ctrl c_tabs = {1, C_SLIDER, -1, (unsigned short)&cd_slider1, 10, -10, 100, 8};
 ```
 
 ### C_COLLECTION

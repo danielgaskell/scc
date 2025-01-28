@@ -354,8 +354,8 @@ typedef struct {
     unsigned char unused;
     unsigned short value;
     unsigned short maxvalue;
-    unsigned char increment;
-    unsigned char decrement;
+    signed char increment;
+    signed char decrement;
 } Ctrl_Slider;
 
 typedef struct {
