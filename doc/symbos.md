@@ -740,8 +740,8 @@ For a horizontal slider, the control height must be 8 and the control width must
 
 ```c
 // example
-_transfer Ctrl_Slider cd_slider1 = {SLIDER_H | SLIDER_SCROLL, 0, 15, 30, 1, 1};
-_transfer Ctrl c_tabs = {1, C_SLIDER, -1, (unsigned short)&cd_slider1, 10, -10, 100, 8};
+_transfer Ctrl_Slider cd_slider1 = {SLIDER_H | SLIDER_SCROLL, 0, 15, 30, 1, -1};
+_transfer Ctrl c_tabs = {1, C_SLIDER, -1, (unsigned short)&cd_slider1, 10, 10, 100, 8};
 ```
 
 ### C_COLLECTION
