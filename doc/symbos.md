@@ -849,7 +849,7 @@ typedef struct {
     unsigned short ytotal;    // (used internally, set to 0)
     unsigned short xoffset;   // (used internally, set to 0)
     unsigned short yoffset;   // (used internally, set to 0)
-    unsigned char wrapmode;   // WRAP_WINDOW or WRAP_WIDTH
+    unsigned char wrapping;   // WRAP_WINDOW or WRAP_WIDTH
     unsigned char tabwidth;   // tab stop width (1-255, or 0 for no tab stop)
     int column;               // TextBox_Pos() returns values here
     int line;                 // TextBox_Pos() returns values here
