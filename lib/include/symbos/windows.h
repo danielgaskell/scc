@@ -114,7 +114,7 @@
 #define MENU_SEPARATOR 8
 #define MENU_ICON 16
 #define GRID_HORIZONTAL 0
-#define GRID_VERTICAL 1
+#define GRID_VERTICAL 128
 #define GRID_FIXED 1
 #define TREE_NODE 1
 #define TREE_EXPANDED 2
