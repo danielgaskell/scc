@@ -512,6 +512,8 @@ lbut = Mouse_Buttons() & BUTTON_LEFT;
 
 ### Mouse_Dragging()
 
+*Currently only available in development builds of SCC.*
+
 ```c
 unsigned char Mouse_Dragging(unsigned char delay);
 ```
