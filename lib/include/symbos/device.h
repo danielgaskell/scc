@@ -23,6 +23,7 @@ extern unsigned short Screen_Height(void);
 extern unsigned short Mouse_X(void);
 extern unsigned short Mouse_Y(void);
 extern unsigned char Mouse_Buttons(void);
+extern unsigned char Mouse_Dragging(unsigned char delay);
 
 extern unsigned char Key_Down(unsigned char scancode);
 extern unsigned short Key_Status(void);

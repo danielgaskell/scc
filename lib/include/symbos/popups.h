@@ -49,7 +49,7 @@ extern unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int 
                             unsigned char type, char* icon, void* modalWin);
 extern unsigned char FileBox(char* path, char* filter, unsigned char flags, unsigned char attribs,
                              unsigned short entries, unsigned short bufsize, void* modalWin);
-extern int Menu_Context(unsigned char bank, char* addr, int x, int y);
+extern void Menu_Context(unsigned char bank, void* addr, int x, int y);
 extern char Select_Pos(unsigned short* x, unsigned short* y, unsigned short w, unsigned short h);
 extern char Select_Size(unsigned short x, unsigned short y, unsigned short* w, unsigned short* h);
 

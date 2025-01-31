@@ -3,10 +3,12 @@ v1.2
 + Added Sys_GetConfig()
 + Added Sys_Path()
 + Added Win_X() and Win_Y()
++ Added Mouse_Dragging()
 + Added support for menu icons
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
 @ Fixed Gfx_VLine() overwriting IY
 @ Fixed vertical C_GRID controls
+@ Fixed Menu_Context() return values
 @ Simplified FRAME_XOR property
 @ Various structs tweaked to better support SymbOS 4.0 features
 

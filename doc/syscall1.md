@@ -510,6 +510,16 @@ lbut = Mouse_Buttons() & BUTTON_LEFT;
 
 *SymbOS name*: `Device_MouseKeyStatus` (`MOSKEY`).
 
+### Mouse_Dragging()
+
+```c
+unsigned char Mouse_Dragging(unsigned char delay);
+```
+
+A utility function for determining whether a mouse click is the start of a drag-and-drop operation (or just a normal click). After detecting a click, call `Mouse_Dragging()` with the `delay` parameter indicating a short length of time to wait (in 1/50ths of a second, e.g., 25 = half a second). If the user releases the mouse within this time limit, this function immediately returns 0, indicating a single click. If time expires with the button still down, or the user moves the mouse without releasing the button, it immediately returns a nonzero bitmask (equivalent to [`Mouse_Buttons()`](#mouse_buttons)) indicating which buttons are being held down for a drag-and-drop operation.
+
+*Return value*: 0 for a click, nonzero bitmask for a drag.
+
 ## Keyboard status
 
 In addition to `symbos.h`, these functions can be found in `symbos/device.h`.
@@ -929,10 +939,16 @@ Note that SymbOS implements the file selector as a single window shared by all p
 ### Menu_Context()
 
 ```c
-int Menu_Context(unsigned char bank, char* addr, int x, int y);
+void Menu_Context(unsigned char bank, void* addr, int x, int y);
 ```
 
 Opens a context menu at the specified `x` and `y` coordinates on the screen (in pixels). The menu data is a `Menu` struct (and associated `Menu_Entry` structs) located at bank `bank`, address `addr` in the **transfer** segment. If `x` = -1, the context menu will be opened at the current mouse position.
+
+This function just opens the menu. Any user interactions with the menu will be passed back as a `MSR_DSK_MENCTX` message, which we should handle in our app's main event loop:
+
+* `msg[1]` = 1 if entry clicked, 0 if menu cancelled
+* `*(int*)&msg[2]` = value of clicked entry
+* `msg[4]` = 1 if entry had a checkmark, 0 otherwise
 
 *SymbOS name*: `Menu_Context_Command` (`MSC_DSK_MENCTX`).
 
