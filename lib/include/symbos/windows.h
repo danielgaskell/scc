@@ -75,7 +75,6 @@
 #define FRAME_XOR 0xFFAF
 #define ICON_STD 0
 #define ICON_EXT 16
-#define ICON_4COLOR 0
 #define ICON_16COLOR 32
 #define ICON_EXTOPTS 64
 #define ICON_MOVEABLE 128

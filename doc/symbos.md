@@ -578,8 +578,7 @@ The following flags can be OR'd with `.flags`:
 
 * `ICON_STD`: `.icon`. points to standard graphics data (4-color SGX)
 * `ICON_EXT`: `.icon` points to extended graphics header (see `C_IMAGE_EXT`)
-* `ICON_4COLOR`: icon is 4-color
-* `ICON_16COLOR`: icon is 16-color (requires `ICON_EXT`)
+* `ICON_16COLOR`: use 16-color mode for text colors (this does **not** mean the icon itself is 16-color, which is determined by the image header).
 * `ICON_MOVEABLE`: icon can be moved by the user
 * `ICON_EXTOPTS`: icon has extended options
 
