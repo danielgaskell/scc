@@ -2,10 +2,6 @@ argv.o
 filebox.o
 memsize.o
 msgbox.o
-tcp.o
-udp.o
-dns.o
-network.o
 music.o
 effects.o
 sound.o

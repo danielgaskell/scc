@@ -32,7 +32,6 @@ These headers are not 100% comprehensive; SymbOS provides some additional system
 * [System tray](syscall2.md#system-tray)
 * [Sound](syscall2.md#sound)
 * [Printers](syscall2.md#printers)
-* [Network interface](syscall2.md#network-interface)
 * [Multithreading](syscall2.md#multithreading)
 * [Reference tables](syscall2.md#reference-tables)
 

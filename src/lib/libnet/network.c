@@ -1,16 +1,26 @@
 #include <symbos.h>
+#include <network.h>
+#include "network.h"
 
 unsigned char _netpid;
 unsigned char _neterr;
+unsigned short _nettimeout = 1500;
+
+char* _useragent = "User-Agent: NetSCC/1.0 (SymbOS 4.0; CPC)\r\nCache-Control: no-cache\r\n";
 
 /* ========================================================================== */
 /* SymbOS Network Daemon calls (common)                                       */
 /* ========================================================================== */
 
 signed char Net_Init(void) {
+    unsigned short symver;
     _netpid = (App_Search(_symbank, "Network Daem") >> 8);
-    if (_netpid)
+    if (_netpid) {
+        symver = Sys_Version();
+        _useragent[31] = '0' + (symver / 10);
+        _useragent[33] = '0' + (symver % 10);
         return 0;
+    }
     _neterr = ERR_OFFLINE;
     return -1;
 }

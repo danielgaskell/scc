@@ -1,4 +1,6 @@
 #include <symbos.h>
+#include <network.h>
+#include "network.h"
 
 extern unsigned char _netpid;
 extern unsigned char _neterr;

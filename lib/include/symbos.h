@@ -8,7 +8,6 @@
 #include <symbos/header.h>
 #include <symbos/keys.h>
 #include <symbos/memory.h>
-#include <symbos/network.h>
 #include <symbos/popups.h>
 #include <symbos/proc.h>
 #include <symbos/shell.h>

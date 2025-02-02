@@ -1,4 +1,5 @@
 #include <symbos.h>
+#include <network.h>
 #include "network.h"
 
 /* ========================================================================== */
@@ -97,22 +98,28 @@ signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, un
     return 0;
 }
 
-signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len, TCP_Trans* obj) {
+signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len) {
     unsigned char result;
+    unsigned short transferred;
+    unsigned short remaining;
     _msemaon();
-    _symmsg[0] = 20;
-    _symmsg[3] = handle;
-    *((unsigned short*)(_symmsg + 4)) = len;
-    _symmsg[6] = bank;
-    *((unsigned short*)(_symmsg + 8)) = (unsigned short)addr;
-    result = Net_Command();
-    if (result) {
-        _msemaoff();
-        return -1;
-    }
-    if (obj != 0) {
-        obj->transferred = *((unsigned short*)(_symmsg + 4));
-        obj->remaining = *((unsigned short*)(_symmsg + 8));
+    for (;;) {
+        _symmsg[0] = 20;
+        _symmsg[3] = handle;
+        *((unsigned short*)(_symmsg + 4)) = len;
+        _symmsg[6] = bank;
+        *((unsigned short*)(_symmsg + 8)) = (unsigned short)addr;
+        result = Net_Command();
+        if (result) {
+            _msemaoff();
+            return -1;
+        }
+        transferred = *((unsigned short*)(_symmsg + 4));
+        remaining = *((unsigned short*)(_symmsg + 8));
+        if (remaining == 0)
+            break;
+        addr += transferred;
+        len -= transferred;
     }
     _msemaoff();
     return 0;
