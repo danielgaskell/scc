@@ -8,28 +8,28 @@
 
 signed char UDP_Open(unsigned char type, unsigned short lport, unsigned char bank) {
     unsigned char result;
-    _msemaon();
-    _symmsg[0] = 32;
-    _symmsg[3] = type;
-    _symmsg[6] = bank;
-    *((unsigned short*)(_symmsg + 8)) = lport;
+    _nsemaon();
+    _netmsg[0] = 32;
+    _netmsg[3] = type;
+    _netmsg[6] = bank;
+    *((unsigned short*)(_netmsg + 8)) = lport;
     result = Net_Command();
     if (result) {
-        _msemaoff();
+        _nsemaoff();
         return -1;
     }
-    result = _symmsg[3];
-    _msemaoff();
+    result = _netmsg[3];
+    _nsemaoff();
     return result;
 }
 
 signed char UDP_Close(unsigned char handle) {
     unsigned char result;
-    _msemaon();
-    _symmsg[0] = 33;
-    _symmsg[3] = handle;
+    _nsemaon();
+    _netmsg[0] = 33;
+    _netmsg[3] = handle;
     result = Net_Command();
-    _msemaoff();
+    _nsemaoff();
     if (result)
         return -1;
     return 0;
@@ -37,53 +37,53 @@ signed char UDP_Close(unsigned char handle) {
 
 signed char UDP_Status(unsigned char handle, NetStat* obj) {
     unsigned char result;
-    _msemaon();
-    _symmsg[0] = 34;
-    _symmsg[3] = handle;
+    _nsemaon();
+    _netmsg[0] = 34;
+    _netmsg[3] = handle;
     result = Net_Command();
     if (result) {
-        _msemaoff();
+        _nsemaoff();
         return -1;
     }
-    obj->bytesrec = *((unsigned short*)(_symmsg + 4));
-    obj->rport = *((unsigned short*)(_symmsg + 6));
-    obj->status = _symmsg[8];
-    obj->ip = *((unsigned long*)(_symmsg + 10));
-    _msemaoff();
+    obj->bytesrec = *((unsigned short*)(_netmsg + 4));
+    obj->rport = *((unsigned short*)(_netmsg + 6));
+    obj->status = _netmsg[8];
+    obj->ip = *((unsigned long*)(_netmsg + 10));
+    _nsemaoff();
     return 0;
 }
 
 signed char UDP_Receive(unsigned char handle, char* addr) {
     signed char result;
-    _msemaon();
-    _symmsg[0] = 35;
-    _symmsg[3] = handle;
-    *((unsigned short*)(_symmsg + 8)) = (unsigned short)addr;
+    _nsemaon();
+    _netmsg[0] = 35;
+    _netmsg[3] = handle;
+    *((unsigned short*)(_netmsg + 8)) = (unsigned short)addr;
     result = Net_SCommand();
-    _msemaoff();
+    _nsemaoff();
     return result;
 }
 
 signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, unsigned long ip, unsigned short rport) {
     signed char result;
-    _msemaon();
-    _symmsg[0] = 36;
-    _symmsg[3] = handle;
-    *((unsigned short*)(_symmsg + 4)) = len;
-    *((unsigned short*)(_symmsg + 6)) = rport;
-    *((unsigned short*)(_symmsg + 8)) = (unsigned short)addr;
-    *((unsigned long*)(_symmsg + 10)) = ip;
+    _nsemaon();
+    _netmsg[0] = 36;
+    _netmsg[3] = handle;
+    *((unsigned short*)(_netmsg + 4)) = len;
+    *((unsigned short*)(_netmsg + 6)) = rport;
+    *((unsigned short*)(_netmsg + 8)) = (unsigned short)addr;
+    *((unsigned long*)(_netmsg + 10)) = ip;
     result = Net_SCommand();
-    _msemaoff();
+    _nsemaoff();
     return result;
 }
 
 signed char UDP_Skip(unsigned char handle) {
     signed char result;
-    _msemaon();
-    _symmsg[0] = 37;
-    _symmsg[3] = handle;
+    _nsemaon();
+    _netmsg[0] = 37;
+    _netmsg[3] = handle;
     result = Net_SCommand();
-    _msemaoff();
+    _nsemaoff();
     return result;
 }

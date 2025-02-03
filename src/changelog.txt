@@ -5,11 +5,15 @@ v1.2
 + Added Win_X() and Win_Y()
 + Added Mouse_Dragging()
 + Added support for menu icons
++ Added _msgpid()
+@ Improved thread safety for system calls and various others
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
+@ Fixed thread_quit() semaphore conflict that could cause freezes
 @ Fixed Gfx_VLine() overwriting IY
 @ Fixed vertical C_GRID controls
 @ Fixed Menu_Context() return values
 @ Simplified FRAME_XOR property
+@ Changed Sys_Version() to _sysversion global (now used by crt0)
 @ Various structs tweaked to better support SymbOS 4.0 features
 
 v1.1

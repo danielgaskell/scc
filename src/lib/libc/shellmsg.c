@@ -5,10 +5,10 @@ unsigned char _shellexit;
 void _Shell_MsgWait(void) {
     unsigned char response = _symmsg[0] + 128;
     unsigned char recpid;
-    while (Msg_Send(_sympid, _shellpid, _symmsg) == 0);
+    while (Msg_Send(_msgpid(), _shellpid, _symmsg) == 0);
     while (_symmsg[0] != response) {
         Idle();
-        recpid = Msg_Receive(_sympid, _shellpid, _symmsg) >> 8;
+        recpid = Msg_Receive(_msgpid(), _shellpid, _symmsg) >> 8;
         if (recpid == _shellpid && _symmsg[0] == 0) {
             if (_shellexit == 0)
                 exit(0);

@@ -1174,10 +1174,6 @@ if (fid <= 7) {
 
 Yes, **SCC supports multithreading** (!), thanks to SymbOS's elegant system for spawning subprocesses. Internally, threads are implemented as subprocesses of the main application (see [`Proc_Add()`](#proc_add) and [`Proc_Delete()`](#proc_delete), but the convenience functions `thread_start()` and `thread_quit()` are provided to reduce the amount of setup required.
 
-**Warning**: When multithreading, we have to worry about all the problems that come with multithreading---race conditions, deadlocks, concurrent access, reentrancy, etc. The current implementation of libc is also not generally designed with thread-safety in mind, so while most small utility functions (`memcpy()`, `strcat()`, etc.) are thread-safe, others are not---in particular, much of `stdio.h`. Any function that relies on temporarily storing data in a static buffer (rather than local variables) is not thread-safe and may misbehave if two threads call it at the same time. When in doubt, check the library source code to verify that a function does not rely on any static/global variables, or write your own reentrant substitute (e.g., using only local variables, or with a semaphore system that sets a global variable when the shared resource is being used and, if it is already set, loops until it is unset by whatever other thread is using the resource). Any use of 32-bit data types (**long**, **float**, **double**) is also currently not thread-safe, as these internally rely on static "extended" registers, meaning that only one thread at a time can safely use 32-bit data types.
-
-Standard SymbOS system calls that do not use 32-bit data types (`File_Open()`, etc.) should all be thread-safe, as these use a semaphore system to ensure that only one message is passed in `_symmsg` at the same time.
-
 In addition to `symbos.h`, these functions can be found in `symbos/threads.h`.
 
 ### thread_start()
@@ -1214,6 +1210,24 @@ void thread_quit(char* env);
 ```
 
 Quits the running thread associated with the environment buffer `env`. (This function will not return, so it should only be used inside the thread in question, to quit itself. To forcibly end a running thread from inside a different thread, use [`Proc_Delete()`](#proc_delete).)
+
+### Thread safety
+
+**Warning**: When multithreading, we have to worry about all the problems that come with multithreading---race conditions, deadlocks, concurrent access, reentrancy, etc. The current implementation of libc is also not generally designed with thread-safety in mind, so while most small utility functions (`memcpy()`, `strcat()`, etc.) are thread-safe, others are not---in particular, much of `stdio.h`. Any function that relies on temporarily storing data in a static buffer (rather than local variables) is not thread-safe and may misbehave if two threads call it at the same time. When in doubt, check the library source code to verify that a function does not rely on any static/global variables, or write your own reentrant substitute (e.g., using only local variables, or with a semaphore system that sets a global variable when the shared resource is being used and, if it is already set, loops until it is unset by whatever other thread is using the resource). Any use of 32-bit data types (**long**, **float**, **double**) is also currently not thread-safe, as these internally rely on static "extended" registers, meaning that only one thread at a time can safely use 32-bit data types.
+
+Standard SymbOS system calls that do not use 32-bit data types (`File_Open()`, etc.) should all be thread-safe, as these use a semaphore system to ensure that only one message is passed in `_symmsg` at the same time.
+
+### Thread-safe messaging
+
+When using inter-process messaging functions (`Msg_Send()`, `Msg_Sleep()`, etc.) within a secondary thread, it is strongly recommended to use the utility function `_msgpid()` for the return process ID instead of `_sympid`. E.g.:
+
+```c
+Msg_Sleep(_msgpid(), -1, _symmsg);
+```
+
+If we used `_sympid`, all messages would be addressed to the application's main process. This queue can technically be read by any process, but using one queue for all messages makes it easy to end up in situations where one thread accidentally receives and discards a message intended for another thread, causing all sorts of strange bugs. It's safer to keep each thread's messages completely separate using `_msgpid()`.
+
+(Note that the value of `_msgpid()` is *not* simply the current process ID; its behavior will depend on SymbOS version.)
 
 ## Reference tables
 

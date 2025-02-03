@@ -35,11 +35,11 @@ int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsign
     socket = TCP_OpenClient(ip, -1, 80);
     if (socket == -1)
         return -1;
-    _symmsg[0] = 0;
+    _netmsg[0] = 0;
     counter = Sys_Counter() + _nettimeout;
     for (;;) {
-        Msg_Receive(_sympid, _netpid, _symmsg);
-        if (_symmsg[0] == 159) {
+        Msg_Receive(_msgpid(), _netpid, _netmsg);
+        if (_netmsg[0] == 159) {
             TCP_Event(&net_stat);
             if (net_stat.status == TCP_OPENED)
                 break;
@@ -53,29 +53,29 @@ int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsign
     }
 
     // send message
-    strcpy(_netmsg, "GET /");
+    strcpy(_netpacket, "GET /");
     if (path)
-        strcat(_netmsg, path);
-    strcat(_netmsg, " HTTP/1.1\r\n");
-    strcat(_netmsg, "Host: ");
-    strcat(_netmsg, url);
-    strcat(_netmsg, "\r\n");
-    strcat(_netmsg, _useragent);
+        strcat(_netpacket, path);
+    strcat(_netpacket, " HTTP/1.1\r\n");
+    strcat(_netpacket, "Host: ");
+    strcat(_netpacket, url);
+    strcat(_netpacket, "\r\n");
+    strcat(_netpacket, _useragent);
     if (headers)
-        strcat(_netmsg, headers);
-    strcat(_netmsg, "Connection: close\r\n\r\n");
-    result = TCP_Send(socket, _symbank, _netmsg, strlen(_netmsg));
+        strcat(_netpacket, headers);
+    strcat(_netpacket, "Connection: close\r\n\r\n");
+    result = TCP_Send(socket, _symbank, _netpacket, strlen(_netpacket));
     if (result == -1)
         goto _fail;
 
     // wait for response and copy to buffer
-    _symmsg[0] = 0;
+    _netmsg[0] = 0;
     ptr = dest;
     ptrend = dest + maxlen;
     counter = Sys_Counter() + _nettimeout;
     for (;;) {
-        Msg_Receive(_sympid, _netpid, _symmsg);
-        if (_symmsg[0] == 159) {
+        Msg_Receive(_msgpid(), _netpid, _netmsg);
+        if (_netmsg[0] == 159) {
             TCP_Event(&net_stat);
             if (net_stat.datarec) {
                 result = TCP_Receive(socket, _symbank, ptr, ptrend - ptr, &trans_obj);

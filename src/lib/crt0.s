@@ -90,6 +90,21 @@ start2:
 	ld (__malloc_heap),hl
 	ld (__malloc_top),hl
 	
+	; initialize __symversion
+	ld e,8
+	ld hl,#0x8103
+	rst #0x28
+	ld d,0
+	ld e,(iy+0)
+	ld hl,0
+	ld b,10
+mult10:
+	add hl,de				; major version = tens digit
+	djnz mult10
+	ld e,(iy+1)
+	add hl,de				; minor version = ones digit
+	ld (__symversion),hl
+	
 	; load argv and call main
 	call __load_argv
 	ld hl,__argv
@@ -233,6 +248,49 @@ _Idle:
 	rst #0x30
 	ret
 	
+; _msgpid() - returns the process ID that represents "current thread" to
+; Msg_Send(), etc. For SymbOS >4.0, this is -1. For SymbOS <=4.0, the actual
+; current process ID is (HL' - 0x40) / 6. (This relies on knowing the legacy
+; structure of the kernel process table, which may change in future versions,
+; so for >4.0 the new -1 method is preferred.)
+.export __msgpid
+__msgpid:
+	or a
+	ld hl,(__symversion)
+	ld de,41
+	sbc hl,de
+	jr nc,_msgpidneg
+	; SymbOS <=4.0 case: actual process ID
+	push bc
+	di
+	exx
+	push hl
+	exx
+	ei
+	pop hl
+	ld de,#0x40
+	or a
+	sbc hl,de
+	ld d,6
+    ; HL = HL/6
+	xor a
+	ld b,16
+_div8loop:
+	add hl,hl
+	rla
+	cp d
+	jp c,_div8next
+	sub d
+	inc l
+_div8next:
+	djnz _div8loop
+	pop bc
+	ret
+_msgpidneg:
+	; SymbOS >4.0 case: -1
+	ld l,-1
+	ret
+
 ; _msemaon(): _symmsg semaphore on
 .export __msemaon
 __msemaon:
@@ -265,6 +323,9 @@ __exit_hooks:
 	.ds 16
 _exit_hook:
 	.word __exit_hooks
+.export __symversion
+__symversion:
+	.word 40
 
 ; start of SymbOS data area
 	.symdata

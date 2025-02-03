@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-char* iptostr(unsigned long ip, char* dest) {
+char* iptoa(unsigned long ip, char* dest) {
     char buf[4];
     itoa(*(((unsigned char*)&ip) + 0), buf, 10);
     strcpy(dest, buf);

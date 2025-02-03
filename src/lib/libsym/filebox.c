@@ -18,10 +18,10 @@ unsigned char FileBox(char* path, char* filter, unsigned char flags, unsigned ch
     *((char**)(_symmsg + 8)) = FileBoxExt;
     *((unsigned short*)(_symmsg + 10)) = entries;
     *((unsigned short*)(_symmsg + 12)) = bufsize;
-    while (Msg_Send(_sympid, 3, _symmsg) == 0);
+    while (Msg_Send(_msgpid(), 3, _symmsg) == 0);
     while (_symmsg[0] != 159) {
         Idle();
-        Msg_Receive(_sympid, 3, _symmsg);
+        Msg_Receive(_msgpid(), 3, _symmsg);
     }
     if (_symmsg[1] != 255) {     // initial open failed
         result = _symmsg[1];
@@ -33,7 +33,7 @@ unsigned char FileBox(char* path, char* filter, unsigned char flags, unsigned ch
     _symmsg[0] = 0;
     while (_symmsg[0] != 159) {  // wait for result
         Idle();
-        Msg_Receive(_sympid, 3, _symmsg);
+        Msg_Receive(_msgpid(), 3, _symmsg);
     }
     if (modalWin)
         ((Window*)modalWin)->modal = 0;

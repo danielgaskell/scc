@@ -2,6 +2,7 @@
 #include <network.h>
 #include "network.h"
 
+_transfer char _netmsg[14];
 unsigned char _netpid;
 unsigned char _neterr;
 unsigned short _nettimeout = 1500;
@@ -13,12 +14,10 @@ char* _useragent = "User-Agent: NetSCC/1.0 (SymbOS 4.0; CPC)\r\nCache-Control: n
 /* ========================================================================== */
 
 signed char Net_Init(void) {
-    unsigned short symver;
     _netpid = (App_Search(_symbank, "Network Daem") >> 8);
     if (_netpid) {
-        symver = Sys_Version();
-        _useragent[31] = '0' + (symver / 10);
-        _useragent[33] = '0' + (symver % 10);
+        _useragent[31] = '0' + (_symversion / 10);
+        _useragent[33] = '0' + (_symversion % 10);
         return 0;
     }
     _neterr = ERR_OFFLINE;
@@ -26,20 +25,20 @@ signed char Net_Init(void) {
 }
 
 unsigned char Net_Command(void) {
-    unsigned char id = _symmsg[0] + 128;
+    unsigned char id = _netmsg[0] + 128;
     if (_netpid == 0) {
         _neterr = ERR_OFFLINE;
         return ERR_OFFLINE;
     }
-    while (Msg_Send(_sympid, _netpid, _symmsg) == 0);
+    while (Msg_Send(_msgpid(), _netpid, _netmsg) == 0);
     for (;;) {
-        Msg_Sleep(_sympid, _netpid, _symmsg);
-        if (_symmsg[0] == id)
+        Msg_Sleep(_msgpid(), _netpid, _netmsg);
+        if (_netmsg[0] == id)
             break;
-        Msg_Send(_netpid, _sympid, _symmsg); // put message back on queue
+        Msg_Send(_netpid, _msgpid(), _netmsg); // put message back on queue
     }
-    if (_symmsg[2] & 0x01) {
-        _neterr = _symmsg[3];
+    if (_netmsg[2] & 0x01) {
+        _neterr = _netmsg[3];
         return _neterr;
     } else {
         _neterr = 0;

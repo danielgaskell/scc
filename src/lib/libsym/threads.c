@@ -10,7 +10,12 @@ signed char thread_start(void* routine, char* env, unsigned short envlen) {
 
 void thread_quit(char* env) {
     unsigned char pid = env[*(unsigned short*)env];
-    if (pid)
-        Proc_Delete(pid);
-    while (1); // wait to be terminated
+    if (pid) {
+        // send MSC_KRL_MTDELP directly, rather than going through Proc_Delete(),
+        // because deleting ourselves can leave the _symmsg semaphore hanging.
+        env[0] = 2;
+        env[1] = pid;
+        while (Msg_Send(pid, 1, env) == 0);
+    }
+    for (;;) Idle(); // wait to be terminated
 }

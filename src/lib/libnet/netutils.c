@@ -3,7 +3,7 @@
 
 #define PROTOCOLS 9
 
-char _netmsg[1024];
+char _netpacket[1024];
 char* _netproto[PROTOCOLS] = {"HTTPS", "HTTP", "FTP", "IRC", "SFTP", "FILE", "IMAP", "POP", "NNTP"};
 int _netprotoport[PROTOCOLS+1] = {0, 443, 80, 21, 6667, 22, 445, 143, 110, 119};
 char _nethost[128];
@@ -15,6 +15,7 @@ signed char Net_SplitURL(char* url, char* host, char** path, int* port) {
     char* dot;
     char* colon;
     char* slash;
+    unsigned short len;
 
     // extract scheme
     dot = strchr(url, '.');
@@ -22,8 +23,11 @@ signed char Net_SplitURL(char* url, char* host, char** path, int* port) {
         return -1;
     colon = strstr(url, "://");
     if (colon != 0 && colon < dot) {
-        memcpy(host, url, colon - url);
-        host[colon - url] = 0;
+        len = colon - url;
+        if (len > 64)
+            len = 64;
+        memcpy(host, url, len);
+        host[len] = 0;
         for (i = 0; i < PROTOCOLS; ++i) {
             if (stricmp(host, _netproto[i]) == 0) {
                 protocol = i + 1;
@@ -37,17 +41,30 @@ signed char Net_SplitURL(char* url, char* host, char** path, int* port) {
     slash = strchr(dot, '/'); // search for first slash after first dot
     if (colon < url)
         colon = strchr(url, ':');
-    if (colon != 0 && colon < slash) {
-        memcpy(host, colon + 1, slash - colon - 1);
-        host[slash - colon - 1] = 0;
+    if (colon != 0) {
+        if (slash)
+            len = slash - colon - 1;
+        else
+            len = strlen(colon + 1);
+        if (len > 8)
+            len = 8;
+        memcpy(host, colon + 1, len);
+        host[len] = 0;
         *port = atoi(host);
-        memcpy(host, url, colon - url - 1);
-        host[slash - url] = 0;
+        len = colon - url;
+        if (len > 64)
+            len = 64;
+        memcpy(host, url, len);
+        host[len] = 0;
     } else {
-        if (!slash)
-            slash = url + strlen(url);
-        memcpy(host, url, slash - url - 1);
-        host[slash - url - 1] = 0;
+        if (slash)
+            len = slash - url;
+        else
+            len = strlen(url);
+        if (len > 64)
+            len = 64;
+        memcpy(host, url, len);
+        host[len] = 0;
         *port = _netprotoport[protocol];
     }
 

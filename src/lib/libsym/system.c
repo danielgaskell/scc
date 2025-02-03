@@ -3,8 +3,8 @@
 /* ========================================================================== */
 /* System Manager                                                             */
 /* ========================================================================== */
-void _Sys_Msg(void)  { while(Msg_Send(_sympid, 3, _symmsg) == 0); }
-void _Sys_Wait(void) { Idle(); Msg_Receive(_sympid, 3, _symmsg); }
+void _Sys_Msg(void)  { while(Msg_Send(_msgpid(), 3, _symmsg) == 0); }
+void _Sys_Wait(void) { Idle(); Msg_Receive(_msgpid(), 3, _symmsg); }
 
 unsigned short App_Run(char bank, char* path, char suppress) {
     unsigned short result;

@@ -42,7 +42,7 @@ extern void Screen_Redraw(void);
 extern unsigned short Text_Width(unsigned char bank, char* addr, int maxlen);
 extern unsigned char Text_Height(unsigned char bank, char* addr, int maxlen);
 
-extern unsigned short Sys_Version(void);
+#define Sys_Version() _sysversion
 extern void Sys_GetConfig(char* dest, unsigned short offset, unsigned char len);
 extern char* Sys_Path(void);
 

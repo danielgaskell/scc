@@ -25,13 +25,13 @@ unsigned char Sound_Command(unsigned char wait) {
         _sounderr = ERR_NOSOUND;
         return ERR_NOSOUND;
     }
-    while (Msg_Send(_sympid, _soundpid, _symmsg) == 0);
+    while (Msg_Send(_msgpid(), _soundpid, _symmsg) == 0);
     if (wait) {
         for (;;) {
-            Msg_Sleep(_sympid, _soundpid, _symmsg);
+            Msg_Sleep(_msgpid(), _soundpid, _symmsg);
             if (_symmsg[0] == id)
                 break;
-            Msg_Send(_soundpid, _sympid, _symmsg); // put message back on queue
+            Msg_Send(_soundpid, _msgpid(), _symmsg); // put message back on queue
         }
         if (_symmsg[2] & 0x01) {
             _sounderr = _symmsg[3];

@@ -46,6 +46,7 @@ A 14-byte buffer for sending messages. This is used internally by most system ca
 unsigned char _sympid;	     // process ID of the current app
 unsigned char _symappid;     // application ID of the current app
 unsigned char _symbank;      // main bank number of the current app
+unsigned short _symversion;  // SymbOS version, as major/minor decimal (i.e., SymbOS 3.1 = 31)
 char* _segcode;              // start address of the code segment + 0x100
 char* _segdata;              // start address of the data segment
 char* _segtrans;             // start address of the transfer segment
@@ -437,16 +438,6 @@ unsigned short Text_Height(unsigned char bank, char* addr, int maxlen);
 Returns the height (in pixels) of the text string at bank `bank`, address `address` if it were plotted with the current system font. `maxlen` contains the maximum number of characters to measure; if the text is terminated by character 0 or 13 (`\r`), use -1. (This function effectively just returns the pixel height of the system font, so we can just run it once with a dummy string like "A" and cache the result.)
 
 *SymbOS name*: `Screen_TextLength` (`TXTLEN`).
-
-### Sys_Version()
-
-```c
-unsigned short Sys_Version(void);
-```
-
-Returns the current SymbOS version, with the major version number in the tens digit and the minor version number in the ones digit (i.e., SymbOS 3.1 = `31`).
-
-*SymbOS name*: `System_Information` (`SYSINF`).
 
 ### Sys_Path()
 

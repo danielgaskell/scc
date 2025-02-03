@@ -147,6 +147,7 @@ sysfile.o
 sysdir.o
 isupper.o
 islower.o
+_itoa.o
 xitoa.o
 iobuf.o
 pathadd.o

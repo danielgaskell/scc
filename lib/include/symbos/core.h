@@ -8,6 +8,7 @@ extern char* _symmsg;
 extern unsigned char _sympid;
 extern unsigned char _symappid;
 extern unsigned char _symbank;
+extern unsigned short _symversion;
 extern char* _segcode;
 extern char* _segdata;
 extern char* _segtrans;
@@ -28,6 +29,7 @@ extern void Idle(void);
 extern unsigned long Sys_Counter(void);
 extern unsigned short Sys_IdleCount(void);
 
+extern signed char _msgpid(void);
 extern void _msemaon(void);
 extern void _msemaoff(void);
 

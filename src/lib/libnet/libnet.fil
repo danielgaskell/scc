@@ -6,4 +6,6 @@ tcp.o
 udp.o
 dns.o
 iptostr.o
+error.o
 network.o
+semaphor.o

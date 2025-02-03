@@ -5,6 +5,7 @@
 	* **Start here** for a quickstart guide to writing your first SymbOS app (both console apps to run in SymShell and windowed apps to run on the desktop).
 * [System call reference](syscall1.md)
 * [Graphics library](graphics.md)
+* [Network library](network.md)
 * [Special considerations](special.md) (compiler quirks, etc.)
 * [Porting tips](porting.md)
 

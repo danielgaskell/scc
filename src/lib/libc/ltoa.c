@@ -3,10 +3,10 @@
  * under the GNU Library General Public License.
  */
 
-char _ltoabuf[12];
-
 const char *_ultoa(unsigned long val) {
+    char _ltoabuf[12];
     char *p;
+
     p = _ltoabuf + sizeof(_ltoabuf);
     *--p = '\0';
     do {

@@ -6,10 +6,10 @@
 void _Kern_MsgWait(void) {
     unsigned char response;
     response = _symmsg[0] + 128;
-    while (Msg_Send(_sympid, 1, _symmsg) == 0);
+    while (Msg_Send(_msgpid(), 1, _symmsg) == 0);
     while (_symmsg[0] != response) {
         Idle();
-        Msg_Receive(_sympid, 1, _symmsg);
+        Msg_Receive(_msgpid(), 1, _symmsg);
     }
 }
 

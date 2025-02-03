@@ -7,12 +7,9 @@
 
 #include <string.h>
 
-
-
-char * __ultostr_r(char *buf, unsigned long val, int radix)
-{
-   register char *p;
-   register int c;
+char * __ultostr_r(char *buf, unsigned long val, int radix) {
+   char *p;
+   int c;
 
    if( radix > 36 || radix < 2 ) return 0;
 
@@ -29,8 +26,7 @@ char * __ultostr_r(char *buf, unsigned long val, int radix)
    return p;
 }
 
-char * __ltostr_r(char *buf, long val, int radix)
-{
+char * __ltostr_r(char *buf, long val, int radix) {
    char *p;
    int flg = 0;
    if( val < 0 ) { flg++; val= -val; }
@@ -42,14 +38,12 @@ char * __ltostr_r(char *buf, long val, int radix)
 /* sadly we do not know the size of the user-provided buffer so we cannot write
    it backwards, so just copy the result from our own buffer whose size we know */
 
-char *ultoa (unsigned long value, char *strP, int radix)
-{
+char *ultoa (unsigned long value, char *strP, int radix) {
     char buf[34];
     return strcpy(strP, __ultostr_r(buf, value, radix));
 }
 
-char *ltoa (long value, char *strP, int radix)
-{
+char *ltoa (long value, char *strP, int radix) {
     char buf[34];
     return strcpy(strP, __ltostr_r(buf, value, radix));
 }

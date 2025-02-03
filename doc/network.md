@@ -49,7 +49,7 @@ Executes a complete HTTP GET request, downloading whatever content is at the URL
 status = HTTP_GET("http://numbersapi.com", buffer, sizeof(buffer), "Accept: text/plain\r\nAccept-Language: en-US\r\n", 1);
 ```
 
-*Return value*: On success, writes the response to `buffer` and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1.
+*Return value*: On success, writes the response to `buffer` and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
 
 ## TCP functions
 
@@ -298,13 +298,21 @@ Verifies whether the IP/URL stored in the string at bank `bank`, address `addr` 
 
 ## Helper functions
 
+### Net_ErrMsg()
+
+```c
+void Net_ErrMsg(void* modalWin);
+```
+
+Displays a message box with the current error in `_neterr`, if any. `modalWin` specifies the address of a `Window` data record that should be declared modal, if any; this window will not be able to be focused until the message box is closed. If `modalWin` = 0, no window will be declared modal.
+
 ### Net_SplitURL()
 
 ```c
 signed char Net_SplitURL(char* url, char* host, char** path, int* port);
 ```
 
-A utility function that splits the string `url` into its constituent components, writing the hostname to the buffer at `host`, the address of the path/query string to the variable passed by reference as `path`, and the port number to the variable passed by reference as `port`.
+A utility function that splits the string `url` into its constituent components, writing the hostname to the buffer at `host`, the address of the path/query string to the variable passed by reference as `path`, and the port number to the variable passed by reference as `port`. The buffer `host` should be at least 65 bytes long.
 
 *Return value*: On success, returns the identified protocol (one of `PROTO_OTHER`, `PROTO_HTTPS`, `PROTO_HTTP`, `PROTO_FTP`, `PROTO_IRC`, `PROTO_SFTP`, `PROTO_FILE`, `PROTO_IMAP`, `PROTO_POP`, or `PROTO_NNTP`). On failure, sets `_neterr` = `ERR_BADDOMAIN` and returns -1.
 
@@ -318,6 +326,16 @@ A utility function that attempts to determine the computer's public-facing IP ad
 
 *Return value*: On success, returns an IP address. On failure, sets `_neterr` and returns 0.
 
+### iptoa()
+
+```c
+char* iptoa(unsigned long ip, char* dest);
+```
+
+Converts the numeric IPv4 address `ip` into a readable string representation in the buffer `dest` (e.g., `192.168.0.1`). `dest` must be at least 16 bytes long.
+
+*Return value*: `dest`.
+
 ## Reference
 
 ### Error codes
@@ -327,6 +345,7 @@ The following errors are primarily issued by the network interface (stored in `_
 * `ERR_OFFLINE`: Offline/not connected/no network daemon
 * `ERR_NOHW`: No hardware setup
 * `ERR_NOIP`: No IP configuration
+* `ERR_NOFUNC`: Function not supported
 * `ERR_HARDWARE`: Unknown hardware error
 * `ERR_WIFI`: WiFi error (SymbiFace 3)
 * `ERR_NOSOCKET`: No more free sockets

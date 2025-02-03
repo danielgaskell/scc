@@ -202,36 +202,3 @@ _Text_Height:
 	pop ix
 	pop bc
 	ret
-
-; Sys_Version
-.export _Sys_Version
-_Sys_Version:
-	ld a,(cached_version+1)
-	or a
-	jr z,cachever
-	ld hl,(cached_version)	; version already cached, just return it
-	ret
-cachever:					; don't know the version yet, retrieve it
-	push bc
-	push ix
-	push iy
-	ld e,8
-	ld hl,#0x8103
-	rst #0x28
-	ld d,0
-	ld e,(iy+0)
-	ld hl,0
-	ld b,10
-mult10:
-	add hl,de				; major version = tens digit
-	djnz mult10
-	ld d,0
-	ld e,(iy+1)
-	add hl,de				; minor version = ones digit
-	ld (cached_version),hl
-	pop iy
-	pop ix
-	pop bc
-	ret
-
-cached_version: .word 0
