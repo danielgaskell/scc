@@ -1114,7 +1114,7 @@ Stops playing all instances of effect number `id` from the loaded effect collect
 
 ## Printers
 
-Cross-platform printer support is provided (in SymbOS 4.0 and up) by the system print daemon. There are two standard ways of sending a print job to the printer: directly via the print daemon, or via the PrintIt helper program.
+Cross-platform printer support is provided (in SymbOS 4.0 and up) by the system print daemon. There are two standard ways of sending a print job to the printer: directly via the print daemon, or via the PrintIt helper program. On CPC and MSX machines only, it is also possible to directly send data to the printer port, using functions found in `symbos/device.h`.
 
 ### Printing via the daemon
 
@@ -1169,6 +1169,44 @@ if (fid <= 7) {
 	App_Run(_symbank, printcmd, 0);
 }
 ```
+
+### Print_Busy()
+
+*Currently only available in development builds of SCC.*
+
+```c
+signed char Print_Busy(void);
+```
+
+On CPC and MSX machines only, checks the status of the connected parallel printer. (This function interfaces directly with the printer hardware rather than going through the daemon, so it should only be used when direct hardware control is required. For normal printing, use PrintIt or the printer daemon.)
+
+*Return value*: 0 = printer is ready to receive data; -1 = printer is busy; 1 = platform unsupported.
+
+### Print_Char()
+
+*Currently only available in development builds of SCC.*
+
+```c
+signed char Print_Char(unsigned char ch);
+```
+
+On CPC and MSX machines only, sends the single character `ch` to the connected parallel printer. (This function interfaces directly with the printer hardware rather than going through the daemon, so it should only be used when direct hardware control is required. For normal printing, use PrintIt or the printer daemon.)
+
+Note that, on the Amstrad CPC, the high bit of `ch` will be ignored because the CPC printer port only connects 7 of the 8 data lines. Normal ASCII (<128) should work, but extended ASCII (>127) or 8-bit binary data may require workarounds.
+
+*Return value*: 0 = printed successfully; 1 = platform unsupported; 2 = timeout.
+
+### Print_String()
+
+*Currently only available in development builds of SCC.*
+
+```c
+signed char Print_String(char* str);
+```
+
+On CPC and MSX machines only, sends the ASCII string `str` the connected parallel printer. (This function interfaces directly with the printer hardware rather than going through the daemon, so it should only be used when direct hardware control is required. For normal printing, use PrintIt or the printer daemon.)
+
+*Return value*: 0 = printed successfully; 1 = platform unsupported; 2 = timeout.
 
 ## Multithreading
 

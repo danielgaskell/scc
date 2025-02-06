@@ -6,9 +6,12 @@ music.o
 effects.o
 sound.o
 popups.o
+printstr.o
+printer.o
 system.o
 systray.o
 syspath.o
+systype.o
 textbox.o
 wincore.o
 winxtra.o

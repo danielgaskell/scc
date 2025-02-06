@@ -95,6 +95,7 @@ void _serv_thread(void) {
 _thread_done:
     if (_serv_socket != -1)
         UDP_Close(_serv_socket);
+    _serv_socket = -1;
     _set_but2("Open Server");
     _servpid = 0;
     thread_quit(_servenv);
@@ -118,6 +119,7 @@ void _disconnect(void) {
         _symmsg[0] = 255; // shut yourself down
         Msg_Send(_msgpid(), _servpid, _symmsg);
         _msemaoff();
+        _servpid = 0;
     }
 }
 
@@ -147,11 +149,7 @@ unsigned char Net_ServerWin(void* modalWin, unsigned char clients, unsigned shor
     _serv_form.x = Screen_Width() / 2 - (_serv_form.w / 2);
     _serv_form.y = Screen_Height() / 2 - (_serv_form.h / 2) - 12;
     if (port) {
-        // ltoa() is not thread-safe by definition, so we do nasty stuff with itoa()
-        itoa(port / 10, _port_buf, 10);
-        i = strlen(_port_buf);
-        _port_buf[i++] = '0' + (port % 10);
-        _port_buf[i] = 0;
+        uitoa(port, _port_buf, 10);
         _serv_cd_port.cursor = i;
         _serv_cd_port.len = i;
     }

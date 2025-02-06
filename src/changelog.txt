@@ -1,7 +1,8 @@
 v1.2
 + Added Gfx_ScrollX() and Gfx_ScrollY()
 + Added Sys_GetConfig()
-+ Added Sys_Path()
++ Added Sys_Path() and Sys_Type()
++ Added Print_Busy(), Print_Char(), Print_String()
 + Added Win_X() and Win_Y()
 + Added Mouse_Dragging()
 + Added support for menu icons

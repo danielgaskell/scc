@@ -451,6 +451,20 @@ Returns the system path (e.g., `C:\SYMBOS\`) as a string, which will always end 
 
 *SymbOS name*: `System_Information` (`SYSINF`).
 
+### Sys_Type()
+
+*Currently only available in development builds of SCC.*
+
+```c
+unsigned short Sys_Type(void);
+```
+
+Returns the type of machine on which SymbOS is running, one of: `TYPE_CPC`, `TYPE_ENTERPRISE`, `TYPE_MSX`, `TYPE_PCW`, `TYPE_NC`, `TYPE_SVM`, `TYPE_CPC464`, `TYPE_CPC664`, `TYPE_CPC6128`, `TYPE_CPC464PLUS`, `TYPE_CPC6128PLUS`, `TYPE_MSX1`, `TYPE_MSX2`, `TYPE_MSX2PLUS`, `TYPE_MSXTURBOR`, `TYPE_PCW8`, `TYPE_PCW9`, `TYPE_PCW16`, `TYPE_NC100`, `TYPE_NC150`, `TYPE_NC200`, `TYPE_SVM` (SymbOSVM), or `TYPE_OTHER` (anything undefined, included for forward-compatibility with potential future ports).
+
+The general class of machine can be obtained by AND'ing this value with one of `TYPE_CPC`, `TYPE_MSX`, `TYPE_ENTERPRISE`, `TYPE_PCW`, `TYPE_NC`, or `TYPE_SVM`.
+
+*SymbOS name*: `System_Information` (`SYSINF`).
+
 ### Sys_GetConfig()
 
 *Currently only available in development builds of SCC.*
