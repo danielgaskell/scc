@@ -79,11 +79,11 @@ start2:
 	ld de,(__segcodelen)
 	add hl,de
 	ld de,256 ; for EXE header
-	or a ; reset carry
+	or a
 	sbc hl,de
 	ld (__malloc_max),hl
 	ld de,(__heapsize)
-	or a ; reset carry
+	or a
 	sbc hl,de
 	ld de,256 ; for path, which overwrites codeextra for some reason (?)
 	add hl,de
@@ -91,17 +91,28 @@ start2:
 	ld (__malloc_top),hl
 	
 	; initialize __symversion
-	ld e,8
+	ld e,7					; first get bank of version string -> IYL
 	ld hl,#0x8103
 	rst #0x28
-	ld d,0
-	ld e,(iy+0)
+	push iy
+	ld e,8					; then get version string address -> IY
+	ld hl,#0x8103
+	rst #0x28
+	push iy
+	pop hl
+	pop de
+	ld a,e
+	rst #0x20				; Banking_ReadWord
+	.word #0x8124
 	ld hl,0
+	ld d,0
+	ld e,c
+	ld a,b
 	ld b,10
 mult10:
 	add hl,de				; major version = tens digit
 	djnz mult10
-	ld e,(iy+1)
+	ld e,a
 	add hl,de				; minor version = ones digit
 	ld (__symversion),hl
 	
