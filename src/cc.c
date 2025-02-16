@@ -57,9 +57,21 @@
 #ifdef SYMBUILD
 #include <symbos.h>
 #include <iobuf.h>
+#define CPATHSIZE	256
 char* shell_append;
 #else
+#ifdef LINUXBUILD
+#include "linux.h"
+#include <sys/wait.h>
+#define MAX_PATH 4096
+#define CPATHSIZE (MAX_PATH+16)
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+#else
 #include <windows.h>
+#define CPATHSIZE (MAX_PATH+16)
+#endif
 #endif
 #include <malloc.h>
 
@@ -271,9 +283,27 @@ int _spawnvp(int mode, char* file, char* arglist[]) {
         return 1;
     }
 }
+#else
+#ifdef LINUXBUILD
+#define _P_WAIT 0
+int _spawnvp(int mode, const char* file, const char* arglist[]) {
+    pid_t pid = fork();
+    if (pid == -1) {
+        return -1;
+    } else if (pid == 0) {
+        // child process
+        execvp(file, (char* const*)arglist);
+        _exit(EXIT_FAILURE);
+    } else {
+        // parent process
+        int status;
+        if (waitpid(pid, &status, 0) == -1)
+            return -1;
+        return status;
+    }
+}
+#endif
 #endif // SYMBUILD
-
-#define CPATHSIZE	256
 
 static char pathbuf[CPATHSIZE];
 static char namebuf[27];
@@ -554,7 +584,11 @@ static void build_arglist(char *p)
 void convert_s_to_o(char *path)
 {
 	char *origpath= strdup(path);
+	#ifdef LINUXBUILD
+	build_arglist(make_bin_name("as", ""));
+	#else
 	build_arglist(make_bin_name("as.exe", ""));
+	#endif
 	add_argument("-o");
 	add_argument(pathmod(path, ".s", ".o", 5, 3));
 	add_argument(origpath);
@@ -572,20 +606,32 @@ void convert_c_to_s(char *path)
 	snprintf(featstr, 16, "%lu", features);
 	*rmptr++ = xstrdup("$symtab", 0);
 
+	#ifdef LINUXBUILD
+	build_arglist(make_bin_name("cc0", ""));
+	#else
 	build_arglist(make_bin_name("cc0.exe", ""));
+    #endif
 	//add_argument(path);
 	add_argument("$stream0.c");
 	*rmptr++ = xstrdup("$stream0.c", 0);
 	run_command();
 
+	#ifdef LINUXBUILD
+	build_arglist(make_bin_name("cc1", ""));
+	#else
 	build_arglist(make_bin_name("cc1.exe", ""));
+	#endif
 	add_argument(featstr);
 	*rmptr++ = xstrdup("$stream1", 0);
 	*rmptr++ = xstrdup("$stream2", 0);
 	run_command();
 
     pathmod(path, ".c", ".s", 2, 2);
+	#ifdef LINUXBUILD
+	build_arglist(make_bin_name("cc2", ""));
+	#else
 	build_arglist(make_bin_name("cc2.exe", ""));
+	#endif
 	/* FIXME: need to change backend.c parsing for above and also
 	   add another arg when we do the new subcpu bits like -banked */
     optstr[0] = optimize;
@@ -613,8 +659,11 @@ void convert_c_to_s(char *path)
 #else
     if (optimize != '0') {
 #endif
-        // TODO: with the new copt we may end up with a copt per cpu
+        #ifdef LINUXBUILD
+        p = xstrdup(make_bin_name("copt", ""), 0);
+        #else
         p = xstrdup(make_bin_name("copt.exe", ""), 0);
+        #endif
         build_arglist(p);
         add_argument(path);
         add_argument(make_bin_name("rules.z80", ""));
@@ -629,7 +678,11 @@ void convert_S_to_s(char *path)
 	char *tmp;
 	printf("FIXME: broken\n");
 	return;
+	#ifdef LINUXBUILD
+	build_arglist("cpp");
+	#else
 	build_arglist(make_bin_name("cpp.exe", ""));
+	#endif
 	add_argument("-E");
 	add_argument(path);
 	tmp = xstrdup(path, 0);
@@ -642,7 +695,11 @@ void preprocess_c(char *path)
 {
 	char *tmp;
 
+	#ifdef LINUXBUILD
+	build_arglist("cpp");
+	#else
 	build_arglist(make_bin_name("cpp.exe", ""));
+	#endif
 
 	tmp = xstrdup("-D HEAP_SIZE=", strlen(heapsize) + 1);
 	strcat(tmp, heapsize);
@@ -662,8 +719,11 @@ void link_phase(void)
 {
 	char *relocs = NULL;
 	char *p, *l, *c;
-	/* TODO: ld should be general if we get it right, but might not be able to */
+	#ifdef LINUXBUILD
+	p = xstrdup(make_bin_name("ld", ""), 0);
+	#else
 	p = xstrdup(make_bin_name("ld.exe", ""), 0);
+	#endif
 
 	/* Set the target as infile.exe if there is no target */
 	if (target==NULL) {
@@ -763,7 +823,11 @@ void link_phase(void)
 	if (relocs) {
 		/* The unlink will free it not us */
 		*rmptr++ = relocs;
+		#ifdef LINUXBUILD
+		build_arglist(make_bin_name("reloc", ""));
+		#else
 		build_arglist(make_bin_name("reloc.exe", ""));
+		#endif
 		add_argument(target);
 		add_argument(relocs);
 		run_command();
@@ -981,21 +1045,45 @@ int main(int argc, char *argv[]) {
 	char *o;
 	char o2;
 
-	//signal(SIGCHLD, SIG_DFL);
-
+	// get absolute path of executable
 #ifdef SYMBUILD
+    // SymbOS
     Dir_PathAdd(0, "", BINPATH);
 #else
+#ifdef LINUXBUILD
+#ifdef __APPLE__
+    // MacOS
+    int size = MAX_PATH;
+    _NSGetExecutablePath(BINPATH, &size);
+#else
+    // Linux
+    readlink("/proc/self/exe", BINPATH, MAX_PATH-1);
+    BINPATH[MAX_PATH-1] = 0; // ensure termination even if it overflows
+#endif
+#else
+    // Windows
     GetModuleFileName(NULL, BINPATH, MAX_PATH);
 #endif
+#endif
+#ifdef LINUXBUILD
+    *strrchr(BINPATH, '/') = 0;
+#else
     *(strrchr(BINPATH, '.') - 3) = 0;
+#endif
+
+    // get absolute path of libraries
     strcpy(LIBPATH, BINPATH);
 #ifdef SYMBUILD
     strcat(LIBPATH, "\\lib");
 #else
+#ifdef LINUXBUILD
+    strcat(LIBPATH, "/../lib");
+#else
     strcat(LIBPATH, "\\..\\lib");
 #endif
+#endif
 
+    // parse command-line
 	while (*++p) {
 #ifdef SYMBUILD
         if (**p == '%' && (*p)[1] == 's' && (*p)[2] == 'p') { // SymShell end parameter
@@ -1177,6 +1265,11 @@ int main(int argc, char *argv[]) {
 
 	if (only_one_input && c_files > 1)
 		one_input();
+
+    if (!objlist.head) {
+        usage();
+        exit(1);
+    }
 
 	symtab = xstrdup(".symtmp", 6);
 	//snprintf(symtab + 7, 6, "%x", getpid());

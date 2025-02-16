@@ -16,6 +16,7 @@
 int fdi = -1;
 FILE* fdo = NULL;
 
+#include "linux.h"
 #include "symtab.h"
 #include "compiler.h"
 #include "cc2.h"

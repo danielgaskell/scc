@@ -54,6 +54,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
+#include "linux.h"
 #include "symhead.h"
 #include "obj.h"
 #include "ld.h"
@@ -1159,7 +1160,7 @@ static void relocate_stream(struct object *o, int segment)
 				r = io_read16();
 				/* r is the symbol number */
 				if (r >= o->nsym) {
-                    printf("%i, %s: %s: %i, %i at %i (%i %i)\n", code, o->path, s->name, r, o->nsym, ioptr - iobuf, *(ioptr - 2), *(ioptr - 1));
+                    printf("%i, %s: %s: %i, %i at %i (%i %i)\n", code, o->path, s->name, r, o->nsym, (int)(ioptr - iobuf), *(ioptr - 2), *(ioptr - 1));
                     error("invalid reloc sym");
 				}
 				s = o->syment[r];

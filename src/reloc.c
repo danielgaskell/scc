@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include "linux.h"
 #include "symhead.h"
 
 /* 16 byte header for current style binary. We try to reflect the general

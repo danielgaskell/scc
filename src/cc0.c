@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 
+#include "linux.h"
 #include "symtab.h"
 #include "token.h"
 #include "target.h"

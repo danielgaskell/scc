@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
+#include "linux.h"
 #include "compiler.h"
 
 int fdi = -1;

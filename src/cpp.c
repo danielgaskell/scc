@@ -15,10 +15,12 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "linux.h"
 
 #define TOKLEN 64
 #define VALLEN 256
@@ -642,7 +644,7 @@ unsigned char pp_line(void) {
             fatal("#elif not supported");
 
         } else {
-            printf("-- '%'\n", tokstr);
+            printf("-- '%s'\n", tokstr);
             fatal("unknown directive");
         }
         put_char('\n');
@@ -819,7 +821,7 @@ int main(int argc, char* argv[]) {
 				} else {
 					ar++;
 					if (ar >= argc) {
-						printf(usage);
+						printf("%s", usage);
 						exit(1);
 					}
                     paths[pathcount] = argv[ar];
@@ -832,7 +834,7 @@ int main(int argc, char* argv[]) {
 				} else {
 					ar++;
 					if (ar >= argc) {
-						printf(usage);
+						printf("%s", usage);
 						exit(1);
 					}
                     add_symbol_long(argv[ar]);
@@ -844,7 +846,7 @@ int main(int argc, char* argv[]) {
 				} else {
 					ar++;
 					if (ar >= argc) {
-						printf(usage);
+						printf("%s", usage);
 						exit(1);
 					}
                     remove_symbol(argv[ar]);
@@ -852,7 +854,7 @@ int main(int argc, char* argv[]) {
 				break;
 			case 'o':
 			    if (outfile) {
-			        printf(usage);
+			        printf("%s", usage);
                     exit(1);
 			    }
 				if (argv[ar][2]) {
@@ -860,7 +862,7 @@ int main(int argc, char* argv[]) {
 				} else {
 					ar++;
 					if (ar >= argc) {
-						printf(usage);
+						printf("%s", usage);
 						exit(1);
 					}
 					outfile = argv[ar];
@@ -873,13 +875,13 @@ int main(int argc, char* argv[]) {
 		} else if (!infile) {
 			infile = argv[ar];
 		} else {
-			printf(usage);
+			printf("%s", usage);
 			exit(1);
 		}
 	}
 
 	if (!infile) {
-		printf(usage);
+		printf("%s", usage);
 		exit(1);
 	}
 	if (!outfile)

@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <fcntl.h>
+#include "linux.h"
 #include "obj.h"
 #include "as.h"
 

@@ -1,4 +1,5 @@
 v1.2
++ Added Linux/POSIX build script
 + Added Gfx_ScrollX() and Gfx_ScrollY()
 + Added Sys_GetConfig()
 + Added Sys_Path() and Sys_Type()
