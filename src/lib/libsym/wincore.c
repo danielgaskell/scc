@@ -1,13 +1,17 @@
 #include <symbos.h>
 #include "deskmsg.h"
 
+void _setpid(unsigned char bank, void* addr) {
+    char* ptr = (char*)Bank_ReadWord(bank, (char*)addr);
+    if (ptr)
+        Bank_WriteByte(bank, &((Ctrl_Group*)ptr)->pid, _msgpid());
+}
+
 signed char Win_Open(unsigned char bank, void* addr) {
     signed char result;
-    ((Window*)addr)->pid = _sympid;
-    if (((Window*)addr)->controls != 0)
-        ((Ctrl_Group*)(((Window*)addr)->controls))->pid = _sympid;
-    if (((Window*)addr)->toolbar != 0)
-        ((Ctrl_Group*)(((Window*)addr)->toolbar))->pid = _sympid;
+    Bank_WriteByte(bank, &((Window*)addr)->pid, _msgpid());
+    _setpid(bank, &((Window*)addr)->controls);
+    _setpid(bank, &((Window*)addr)->toolbar);
     _msemaon();
     _symmsg[0] = 32;
     _symmsg[1] = bank;
