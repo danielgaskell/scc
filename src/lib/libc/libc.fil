@@ -78,7 +78,6 @@ vprintf.o
 vscanf.o
 vsscanf.o
 strtod.o
-memmove.o
 localtim.o
 asctime.o
 rewind.o
@@ -155,5 +154,6 @@ strcat.o
 strcpy.o
 memcpy.o
 memset.o
+memmove.o
 time.o
 systime.o

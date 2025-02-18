@@ -14,6 +14,7 @@ v1.2
 @ Fixed Gfx_VLine() overwriting IY
 @ Fixed vertical C_GRID controls
 @ Fixed Menu_Context() return values
+@ Fixed bad forward references to memmove()
 @ Simplified FRAME_XOR property
 @ Changed Sys_Version() to _sysversion global (now used by crt0)
 @ Win_Open() PID now set correctly for other banks/threads
