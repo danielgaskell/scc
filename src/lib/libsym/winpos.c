@@ -1,14 +1,14 @@
 #include <symbos.h>
 
 int Win_X(Window* win) {
-    if (win->flags & WIN_MAXIMIZED)
+    if (win->state & WIN_MAXIMIZED)
         return 0;
     return win->x + 1;
 }
 
 int Win_Y(Window* win) {
     int y;
-    if (win->flags & WIN_MAXIMIZED)
+    if (win->state & WIN_MAXIMIZED)
         y = 9;
     else
         y = win->y + 10;
