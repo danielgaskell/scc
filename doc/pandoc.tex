@@ -1,0 +1,19 @@
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead[LE,RO]{\leftmark}
+\fancyfoot[C]{\thepage}
+
+% Keep TOC entries together
+\usepackage{etoolbox}
+\usepackage{needspace}
+\pretocmd{\section}{\clearpage\needspace{4\baselineskip}}{}{}  % Page break before each level 1 header
+\pretocmd{\subsection}{\needspace{3\baselineskip}}{}{}
+
+% Prevent widows and orphans
+\widowpenalty=10000
+\clubpenalty=10000
+\raggedbottom
+
+% Slightly decrease monospaced text spacing
+\usepackage{fontspec}
+\setmonofont{SauceCodePro Nerd Font}[Scale=0.8, LetterSpace=-1.5]

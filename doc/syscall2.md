@@ -5,7 +5,7 @@
 * [System variables](syscall1.md#system-variables)
 * [Messaging](syscall1.md#messaging)
 * [Memory management](syscall1.md#memory-management)
-* [Memory read/write](syscall1.md#memory-read-write)
+* [Memory read/write](syscall1.md#memory-readwrite)
 * [System status](syscall1.md#system-status)
 * [Screen status](syscall1.md#screen-status)
 * [Mouse status](syscall1.md#mouse-status)
@@ -31,7 +31,7 @@ File functions in SymbOS work using numerical file handles. Due to system limits
 
 SymbOS does not make a distinction between opening a file for reading or writing.
 
-**All file paths given to system calls must be absolute**, e.g., `A:\DIR\FILE.TXT`, not `FILE.TXT`. For a convenient way to convert relative paths into absolute paths, see [Dir_PathAdd()](#dir-pathadd).
+**All file paths given to system calls must be absolute**, e.g., `A:\DIR\FILE.TXT`, not `FILE.TXT`. For a convenient way to convert relative paths into absolute paths, see [Dir_PathAdd()](#dir_pathadd).
 
 A quirk to know: Due to a limitation of the AMSDOS filesystem used by, e.g., CPC floppy disks, files on this filesystem only report their length to the nearest 128-byte block. The convention is to terminate the actual file with the AMSDOS EOF character (0x1A) and then pad out the file to the nearest 128-byte boundary with garbage.
 
@@ -345,7 +345,7 @@ Sets the system timestamp of the file at the absolute path stored in bank `bank`
 char* Dir_PathAdd(char* path, char* addition, char* dest);
 ```
 
-An SCC convenience function that constructs an absolute file path from a base path (at address `path`) and a relative path addition (at address `addition`), storing the result in address `dest`. This is mainly used to turn relative paths into absolute paths for the file manager functions. (This function is similar to the system function [`Shell_PathAdd()`](#shell-pathadd), but is available even in windowed applications that do not use SymShell.)
+An SCC convenience function that constructs an absolute file path from a base path (at address `path`) and a relative path addition (at address `addition`), storing the result in address `dest`. This is mainly used to turn relative paths into absolute paths for the file manager functions. (This function is similar to the system function [`Shell_PathAdd()`](#shell_pathadd), but is available even in windowed applications that do not use SymShell.)
 
 Any relative path elements in the addition (`..\`, etc.) will be resolved. If `path` = 0, the absolute path will be relative to the absolute path in which the current application's `.exe` or `.com` file is located; this is useful for loading accompanying data files that should always be in the same directory as the `.exe`.
 
@@ -660,7 +660,7 @@ signed char Proc_Add(unsigned char bank, void* header, unsigned char priority);
 
 Launches a new process based on the information given in bank `bank`, address `header`. The process will be started with the priority `priority`, from 1 (highest) to 7 (lowest). The standard priority for application is 4.
 
-Usually if we just want to run an executable file from disk, we should use [`App_Run()`](#app-run), not `Proc_Add()`. This function is for a lower-level operation, starting a new process running code we have already defined in memory. This may be code we have loaded from a file, or even part of our application's own main code; see [`thread_start()`](#multithreading) for a wrapper function that uses this to implement multithreading.
+Usually if we just want to run an executable file from disk, we should use [`App_Run()`](#app_run), not `Proc_Add()`. This function is for a lower-level operation, starting a new process running code we have already defined in memory. This may be code we have loaded from a file, or even part of our application's own main code; see [`thread_start()`](#multithreading) for a wrapper function that uses this to implement multithreading.
 
 `header` must point to a data structure in the **transfer** segment with the struct type `ProcHeader`:
 
@@ -709,7 +709,7 @@ int main(int argc, char* argv[]) {
 void Proc_Delete(unsigned char pid);
 ```
 
-Forcibly stops execution of the process with the process ID `pid`. (This is most useful for processes we have launched ourselves with `Proc_Add()`; for stopping an entire application and freeing its resources, see [`App_End()`](#app-end).)
+Forcibly stops execution of the process with the process ID `pid`. (This is most useful for processes we have launched ourselves with `Proc_Add()`; for stopping an entire application and freeing its resources, see [`App_End()`](#app_end).)
 
 *SymbOS name*: `Multitasking_Delete_Process_Command` (`MSC_KRL_MTDELP`).
 
@@ -756,7 +756,8 @@ In addition to `symbos.h`, these functions can be found in `symbos/proc.h`.
 ### Counter_Add()
 
 ```c
-unsigned char Counter_Add(unsigned char bank, char* addr, unsigned char pid, unsigned char speed);
+unsigned char Counter_Add(unsigned char bank, char* addr, unsigned char pid,
+                          unsigned char speed);
 ```
 
 Registers a new **counter** byte at bank `bank`, address `addr`, incrementing every `speed`/50 seconds. (For example, to increment the counter twice per second, set `speed` = 25, because 25/50 = 0.5 seconds) The process ID `pid` is the process to register this counter with (usually our own, `_sympid`).
@@ -791,7 +792,7 @@ Unregisters all **counter** bytes associated with the process ID *pid*.
 signed char Timer_Add(unsigned char bank, void* header);
 ```
 
-Behaves identically to `Proc_Add()`, but launches the new process as a **timer**. (See [`Proc_Add()`](#proc-add) for details on how a new process is implemented.) The timer code should ideally be short to ensure that it can fully complete in the allotted time, even under higher CPU load. Typically, we want to implement the timer code as a short loop that ends by calling `Idle()`; the timer process will then execute the loop contents, finish, go to sleep, and be woken up 1/50th of a second later for another pass through the loop:
+Behaves identically to `Proc_Add()`, but launches the new process as a **timer**. (See [`Proc_Add()`](#proc_add) for details on how a new process is implemented.) The timer code should ideally be short to ensure that it can fully complete in the allotted time, even under higher CPU load. Typically, we want to implement the timer code as a short loop that ends by calling `Idle()`; the timer process will then execute the loop contents, finish, go to sleep, and be woken up 1/50th of a second later for another pass through the loop:
 
 ```c
 void timer_loop(void) {
@@ -823,7 +824,8 @@ In addition to `symbos.h`, these functions can be found in `symbos/clip.h`.
 ### Clip_Put()
 
 ```c
-unsigned char Clip_Put(unsigned char bank, char* addr, unsigned short len, unsigned char type);
+unsigned char Clip_Put(unsigned char bank, char* addr, unsigned short len,
+                       unsigned char type);
 ```
 
 Stores `len` bytes of data from bank `bank`, address `addr` into the system clipboard. `type` may be one of: 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut.
@@ -835,7 +837,8 @@ Stores `len` bytes of data from bank `bank`, address `addr` into the system clip
 ### Clip_Get()
 
 ```c
-unsigned short Clip_Get(unsigned char bank, char* addr, unsigned short len, unsigned char type);
+unsigned short Clip_Get(unsigned char bank, char* addr, unsigned short len,
+                        unsigned char type);
 ```
 
 Retrieves up to `len` bytes of data from the system clipboard and stores it in bank `bank`, address `addr`. `type` may be one of: 1 = text, 2 = extended graphic, 3 = item list, 4 = desktop icon shortcut. Data will only be retrieved if (1) the type of the data in the clipboard matches the requested type, and (2) the data length is not greater than `len`.

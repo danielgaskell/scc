@@ -1,13 +1,13 @@
 # Documentation contents
 
 * [Introduction](#introduction) (this page)
-* [SymbOS programming guide](symbos.md)
+* [SymbOS programming guide](symbos.md#symbos-programming)
 	* **Start here** for a quickstart guide to writing your first SymbOS app (both console apps to run in SymShell and windowed apps to run on the desktop).
-* [System call reference](syscall1.md)
-* [Graphics library](graphics.md)
-* [Network library](network.md)
-* [Special considerations](special.md) (compiler quirks, etc.)
-* [Porting tips](porting.md)
+* [System call reference](syscall1.md#system-call-reference)
+* [Graphics library](graphics.md#graphics-library)
+* [Network library](network.md#network-library)
+* [Special considerations](special.md#special-considerations) (compiler quirks, etc.)
+* [Porting tips](porting.md#porting-tips)
 
 # Introduction
 
@@ -139,7 +139,7 @@ Images can be converted to SGX format using software such as [MSX Viewer 5](http
 * The libc implementation is not very fast and favors portability over speed.
 * For the usual Z80 reasons, 8-bit arithmetic (`char`) will always be much faster than 16-bit (`int`) and particularly floating-point (`float`, `double`) arithmetic. Declaring variables `unsigned` may also improve efficiency where applicable.
 * `double` is currently treated as synonymous with `float` (32-bit IEEE 754 floating-point).
-* The usual SymbOS limits apply, such as 64KB and 16KB limits on particular segments (see the [SymbOS programming guide](symbos.md)).
+* The usual SymbOS limits apply, such as 64KB and 16KB limits on particular segments (see the [SymbOS programming guide](symbos.md#symbos-programming)).
 * No named static struct initializers like `{.x = 1, .y = 2}`---use `{1, 2}` instead and just be careful about member order.
 * No K&R-style function declarations.
 * Not all C99 and C11 additions are supported.

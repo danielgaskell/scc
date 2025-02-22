@@ -7,7 +7,7 @@
 ## Contents
 
 * [Using the library](#using-the-library)
-* [Function reference](#function-reference)
+* [Function reference](#http-functions)
 	* [HTTP functions](#http-functions)
 	* [TCP functions](#tcp-functions)
 	* [UDP functions](#udp-functions)
@@ -17,11 +17,21 @@
 
 ## Using the library
 
+To use the library, include the `network.h` header:
+
+```c
+#include <network.h>
+```
+
+Additionally, use the `-lnet` option when compiling to specify that the executable should be linked with the network library `libnet.a`:
+
+```bash
+cc source.c -net
+```
+
 Network capabilities are only available if an appropriate network daemon is running. Use `Net_Init()` to initialize the network and connect to the daemon.
 
 Network errors are recorded in the global variable `_neterr`, documented [below](#error-codes).
-
-These functions can be found in `network.h`.
 
 ### Net_Init()
 
@@ -38,7 +48,8 @@ Initializes the network interface, if present. This should be called before usin
 ### HTTP_GET()
 
 ```c
-int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char bodyonly);
+int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers,
+             unsigned char bodyonly);
 ```
 
 Executes a complete HTTP GET request, downloading whatever content is at the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `bodyonly` is nonzero, the HTTP headers will be stripped from the response, leaving only the response data. (Note that `maxlen` initially includes the space required to retrieve the headers, so when `bodyonly` is nonzero, the final length of the retrieved response may be less than `maxlen`.)
@@ -46,7 +57,8 @@ Executes a complete HTTP GET request, downloading whatever content is at the URL
 `headers` can be optionally used to specify additional HTTP header requests in the outgoing request (use 0 for no custom headers). Each custom header line should be followed by the HTTP-standard line break `\r\n` (even the last one):
 
 ```c
-status = HTTP_GET("http://numbersapi.com", buffer, sizeof(buffer), "Accept: text/plain\r\nAccept-Language: en-US\r\n", 1);
+status = HTTP_GET("http://numbersapi.com", buffer, sizeof(buffer),
+                  "Accept: text/plain\r\nAccept-Language: en-US\r\n", 1);
 ```
 
 *Return value*: On success, writes the response to `buffer` and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
@@ -116,7 +128,8 @@ typedef struct {
 ### TCP_Receive()
 
 ```c
-signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, unsigned short len, TCP_Trans* obj);
+signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr,
+                        unsigned short len, TCP_Trans* obj);
 ```
 
 Moves data which has been received from the remote host associated with socket `handle` to the memory at bank `bank`, address `addr`. Up to `len` bytes will be moved (or the actual amount in the buffer, whichever is less).
@@ -247,7 +260,8 @@ Moves data which has been received from the remote host associated with socket `
 ### UDP_Send()
 
 ```c
-signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, unsigned long ip, unsigned short rport)
+signed char UDP_Send(unsigned char handle, char* addr, unsigned short len,
+                     unsigned long ip, unsigned short rport)
 ```
 
 Sends a data packet from the memory address `addr` (in the bank specified to `UDP_Open()`) to the host associated with the socket `handle`. If sending fails becaus the buffer is full, the application should idle briefly and try again.

@@ -2,6 +2,7 @@
 call make.bat
 call makesym.bat
 
+echo Converting docs to .HLP...
 python ..\doc\md2hlp.py ..\doc\index.md
 python ..\doc\md2hlp.py ..\doc\symbos.md
 python ..\doc\md2hlp.py ..\doc\syscall1.md
@@ -9,6 +10,10 @@ python ..\doc\md2hlp.py ..\doc\syscall2.md
 python ..\doc\md2hlp.py ..\doc\graphics.md
 python ..\doc\md2hlp.py ..\doc\porting.md
 python ..\doc\md2hlp.py ..\doc\special.md
+echo Converting docs to .PDF...
+cd ..\doc
+python md2pdf.py
+cd ..\src
 
 mkdir ..\release\win32
 mkdir ..\release\win32\bin

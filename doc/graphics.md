@@ -16,7 +16,7 @@ While SymbOS provides features (primarily the `C_IMAGE` and `C_IMAGE_EXT` contro
 * [Sprite functions](#sprite-functions)
   * [Converting images](#converting-images)
   * [Image sets and masks](#image-sets-and-masks)
-  * [Function reference](#Gfx_Load)
+  * [Function reference](#gfx_load)
   * [Moving sprites](#moving-sprites)
 * [Advanced topics](#advanced-topics)
   * [Memory problems](#memory-problems)
@@ -114,7 +114,8 @@ Win_Redraw(winID, 1, 0); // redraw control ID 1 (the canvas's C_IMAGE_EXT contro
 However, redrawing a full canvas can visibly take a fraction of a second on a 4 MHz processor, which is nonideal for games with fluid animation. An alternative is to use the `Win_Redraw_Area()` system call to redraw only the part of the canvas that has changed. This is much faster, but requires us to keep track of the coordinates that have changed and issue the correct call:
 
 ```c
-Win_Redraw_Area(winID, 1, 0, 10, 10, 16, 16); // redraw only the 16x16 pixel region starting at x=10, y=10 in control ID 1
+Win_Redraw_Area(winID, 1, 0, 10, 10, 16, 16); // redraw only the 16x16 pixel region
+                                              // starting at x=10, y=10 in control ID 1
 ```
 
 **Important**: The coordinates for `Win_Redraw_Area` are relative to the *window content*, not the canvas! This means that, if the canvas is not at position `x` = 0, `y` = 0 in the window, the coordinates passed to `Win_Redraw_Area` must have the canvas position added in.

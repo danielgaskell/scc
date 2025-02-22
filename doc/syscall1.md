@@ -15,7 +15,7 @@ These headers are not 100% comprehensive; SymbOS provides some additional system
 * [System variables](#system-variables)
 * [Messaging](#messaging)
 * [Memory management](#memory-management)
-* [Memory read/write](#memory-read-write)
+* [Memory read/write](#memory-readwrite)
 * [System status](#system-status)
 * [Screen status](#screen-status)
 * [Mouse status](#mouse-status)
@@ -133,7 +133,8 @@ In addition to `symbos.h`, these functions can be found in `symbos/memory.h`.
 ### Mem_Reserve()
 
 ```c
-unsigned char Mem_Reserve(unsigned char bank, unsigned char type, unsigned short len, unsigned char* bankVar, char** addrVar);
+unsigned char Mem_Reserve(unsigned char bank, unsigned char type, unsigned short len,
+                          unsigned char* bankVar, char** addrVar);
 ```
 
 Reserve a block of banked memory in bank `bank` of length `len`, in bytes. `bank` may be from 0 to 15; 0 means "any bank can be used." `type` may be one of: 0 = located anywhere; 1 = reserve within a 16KB address block (like the **data** segment); 2 = reserve within the last 16KB address block (like the **transfer** segment).
@@ -249,7 +250,8 @@ Writes the byte `val` to memory at bank `bank`, address `addr`. `bank` must be f
 ### Bank_Copy()
 
 ```c
-void Bank_Copy(unsigned char bankDst, char* addrDst, unsigned char bankSrc, char* addrSrc, unsigned short len);
+void Bank_Copy(unsigned char bankDst, char* addrDst,
+               unsigned char bankSrc, char* addrSrc, unsigned short len);
 ```
 
 Copies `len` bytes of memory from bank `bankSrc`, address `addrSrc` to bank `bankDst`, address `addrDst`.

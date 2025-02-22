@@ -17,7 +17,7 @@
     * [Resizing calculations](#resizing-calculations)
     * [Modal windows](#modal-windows)
     
-See also: [System call reference](syscall1.md).
+See also: [System call reference](syscall1.md#system-call-reference).
 
 ## Console applications
 
@@ -401,8 +401,10 @@ The control height should be equal to the height of the font, and the font data 
 ```c
 // example
 _data char fontbuf[1538]; // a font would be loaded into this buffer
-_transfer Ctrl_Text_Font cd_text_font1 = {"Text", (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_LEFT, fontbuf};
-_transfer Ctrl c_text_font1 = {1, C_TEXT_FONT, -1, (unsigned short)&cd_text_font1, 10, 10, 80, 8};
+_transfer Ctrl_Text_Font cd_text_font1 =
+    {"Text", (COLOR_BLACK << 2) | COLOR_ORANGE, ALIGN_LEFT, fontbuf};
+_transfer Ctrl c_text_font1 =
+    {1, C_TEXT_FONT, -1, (unsigned short)&cd_text_font1, 10, 10, 80, 8};
 ```
 
 ### C_TEXT_CTRL
@@ -429,14 +431,16 @@ The following control bytes can be included in the text string:
 * 0x03 = switch underlining on
 * 0x04 = switch underlining off
 * 0x05 0xNN = insert NN pixels of extra space before the next character
-* 0x06 0xNN 0xBB 0xAAAA = plot a [graphics canvas](graphics.md) as an inline image, where NN is the Y position relative to the line (0 = 128 pixels up, 128 = in line with text, 255 = 128 pixels down); BB is the bank number of the canvas, or -1 for "same bank as text"; and AAAA is the address of the canvas + 1. (This feature is only available in SymbOS 4.0 and up.)
+* 0x06 0xNN 0xBB 0xAAAA = plot a [graphics canvas](graphics.md#graphics-library) as an inline image, where NN is the Y position relative to the line (0 = 128 pixels up, 128 = in line with text, 255 = 128 pixels down); BB is the bank number of the canvas, or -1 for "same bank as text"; and AAAA is the address of the canvas + 1. (This feature is only available in SymbOS 4.0 and up.)
 * 0x08 to 0x0B = skip next (code - 8) * 2 + 1 bytes
 * 0x0C to 0x1F = insert (code - 8) pixels of extra space before the next character
 
 ```c
 // example
-_transfer Ctrl_Text_Ctrl cd_text_ctrl1 = {"Text \x03underlined\x04 and not", 100, -1, (COLOR_BLACK << 2) | COLOR_ORANGE, 0};
-_transfer Ctrl c_text_ctrl1 = {1, C_TEXT_CTRL, -1, (unsigned short)&cd_text_ctrl1, 10, 10, 80, 8};
+_transfer Ctrl_Text_Ctrl cd_text_ctrl1 =
+    {"Text \x03underlined\x04 and not", 100, -1, (COLOR_BLACK << 2) | COLOR_ORANGE, 0};
+_transfer Ctrl c_text_ctrl1 =
+    {1, C_TEXT_CTRL, -1, (unsigned short)&cd_text_ctrl1, 10, 10, 80, 8};
 ```
 
 ### C_FRAME
@@ -452,7 +456,9 @@ An optional XOR mode inverts the colors underneath the control, like a rubber-ba
 
 ```c
 // example
-_transfer Ctrl c_frame1 = {1, C_FRAME, -1, (COLOR_ORANGE << 4) | (COLOR_RED << 2) | COLOR_BLACK | AREA_FILL, 10, 10, 64, 64};
+_transfer Ctrl c_frame1 =
+    {1, C_FRAME, -1, (COLOR_ORANGE << 4) | (COLOR_RED << 2) | COLOR_BLACK | AREA_FILL,
+	 10, 10, 64, 64};
 ```
 
 ### C_TFRAME
@@ -473,8 +479,10 @@ typedef struct {
 
 ```c
 // example
-_transfer Ctrl_TFrame cd_tframe1 = {"Title", COLOR_BLACK | AREA_16COLOR, (COLOR_BLACK << 2) | COLOR_LBLUE};
-_transfer Ctrl c_tframe1 = {1, C_TFRAME, -1, (unsigned short)&cd_tframe1, 10, 10, 64, 64};
+_transfer Ctrl_TFrame cd_tframe1 =
+    {"Title", COLOR_BLACK | AREA_16COLOR, (COLOR_BLACK << 2) | COLOR_LBLUE};
+_transfer Ctrl c_tframe1 =
+    {1, C_TFRAME, -1, (unsigned short)&cd_tframe1, 10, 10, 64, 64};
 ```
 
 ### C_GRID
@@ -511,7 +519,10 @@ Displays a progress bar.
 
 ```c
 // example
-_transfer Ctrl c_progress1 = {1, C_PROGRESS, -1, (119 << 8) | (COLOR_ORANGE << 6) | (COLOR_RED << 4) | (COLOR_BLACK << 2) | COLOR_BLACK, 10, 10, 64, 8};
+_transfer Ctrl c_progress1 =
+    {1, C_PROGRESS, -1,
+	 (119 << 8) | (COLOR_ORANGE << 6) | (COLOR_RED << 4) | (COLOR_BLACK << 2) | COLOR_BLACK,
+	 10, 10, 64, 8};
 ```
 
 ### C_IMAGE
@@ -530,9 +541,9 @@ _transfer Ctrl c_image1 = {1, C_IMAGE, -1, (unsigned short)imgbuf, 10, 10, 24, 2
 
 ### C_IMAGE_EXT
 
-Displays an image with an extended graphics header. (See the [graphics library](graphics.md) for how to use this in practice.)
+Displays an image with an extended graphics header. (See the [graphics library](graphics.md#graphics-library) for how to use this in practice.)
 
-*Parameter*: Address of the extended graphics header. Extended graphics are complicated, but allow plotting 16-color images and breaking up an image that is larger than 256 pixels wide/tall into multiple blocks that can be displayed side by side. The details of the graphics format are described in the SymbOS Developer Documentation. In practice, it is usually easier to use the [graphics library](graphics.md) rather than trying to deal with extended graphics headers directly. However, if needed, SCC provides a struct type (`Img_Header`) to implement the header itself:
+*Parameter*: Address of the extended graphics header. Extended graphics are complicated, but allow plotting 16-color images and breaking up an image that is larger than 256 pixels wide/tall into multiple blocks that can be displayed side by side. The details of the graphics format are described in the SymbOS Developer Documentation. In practice, it is usually easier to use the [graphics library](graphics.md#graphics-library) rather than trying to deal with extended graphics headers directly. However, if needed, SCC provides a struct type (`Img_Header`) to implement the header itself:
 
 ```
 typedef struct {
@@ -565,7 +576,7 @@ Displays a 24x24 icon with up to two lines of text below it.
 
 ```c
 typedef struct {
-    char* icon;             // address of standard graphic or extended graphic header (e.g., a canvas)
+    char* icon;             // address of graphic or graphic header (e.g., a canvas)
     char* line1;            // address of first line of text
     char* line2;            // address of second line of text
     unsigned char flags;    // 4-color mode:  (foreground_color << 2) | background_color
@@ -577,7 +588,7 @@ typedef struct {
 The following flags can be OR'd with `.flags`:
 
 * `ICON_STD`: `.icon`. points to standard graphics data (4-color SGX)
-* `ICON_EXT`: `.icon` points to extended graphics header (see `C_IMAGE_EXT`)
+* `ICON_EXT`: `.icon` points to extended graphics header, e.g., a (canvas)[graphics.md#using-canvases] (see `C_IMAGE_EXT`)
 * `ICON_16COLOR`: use 16-color mode for text colors (this does **not** mean the icon itself is 16-color, which is determined by the image header).
 * `ICON_MOVEABLE`: icon can be moved by the user
 * `ICON_EXTOPTS`: icon has extended options
@@ -592,7 +603,8 @@ The width of the control must be 48 and the height 40.
 ```c
 // example
 _data char imgdata[198]; // store an icon image here
-_transfer Ctrl_Icon cd_icon1 = {imgdata, "Line 1", "Line 2", (COLOR_BLACK << 2) | COLOR_YELLOW | ICON_STD | ICON_4COLOR};
+_transfer Ctrl_Icon cd_icon1 =
+    {imgdata, "Line 1", "Line 2", (COLOR_BLACK << 2) | COLOR_YELLOW | ICON_STD | ICON_4COLOR};
 _transfer Ctrl c_icon1 = {1, C_ICON, -1, (unsigned short)&cd_icon1, 10, 10, 48, 40};
 ```
 
@@ -659,9 +671,12 @@ The control height should always be 8.
 _transfer char radio = 0;
 _transfer char radiocoord[4] = {-1, -1, -1, -1};
 
-_transfer Ctrl_Radio cd_radio1 = {&radio, "First button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 1, &radiocoord};
-_transfer Ctrl_Radio cd_radio2 = {&radio, "Second button", (COLOR_BLACK << 2) | COLOR_ORANGE, 2, &radiocoord};
-_transfer Ctrl_Radio cd_radio3 = {&radio, "Third button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 3, &radiocoord};
+_transfer Ctrl_Radio cd_radio1 =
+    {&radio, "First button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 1, &radiocoord};
+_transfer Ctrl_Radio cd_radio2 =
+    {&radio, "Second button", (COLOR_BLACK << 2) | COLOR_ORANGE, 2, &radiocoord};
+_transfer Ctrl_Radio cd_radio3 =
+    {&radio, "Third button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 3, &radiocoord};
 
 _transfer Ctrl c_radio1 = {1, C_RADIO, -1, (unsigned short)&cd_radio1, 10, 10, 32, 8};
 _transfer Ctrl c_radio2 = {2, C_RADIO, -1, (unsigned short)&cd_radio2, 10, 20, 32, 8};
@@ -686,7 +701,7 @@ Displays a row of tabs.
 ```c
 typedef struct {
     unsigned char tabs;      // number of tabs
-    unsigned char color;     // (lower_right_color << 6) | (upper_left_color << 4) | (foreground << 2) | background
+    unsigned char color;     // (lower_right << 6) | (upper_left << 4) | (fore << 2) | back
     unsigned char selected;  // number of selected tab
 } Ctrl_Tabs;
 ```
@@ -704,7 +719,8 @@ The control height must be 11. SymbOS will keep track of the selected tab for us
 
 ```c
 // example
-_transfer Ctrl_Tabs cd_tabs = {2, (COLOR_BLACK << 6) | (COLOR_RED << 4) | (COLOR_BLACK << 2) | COLOR_ORANGE, 1};
+_transfer Ctrl_Tabs cd_tabs =
+    {2, (COLOR_BLACK << 6) | (COLOR_RED << 4) | (COLOR_BLACK << 2) | COLOR_ORANGE, 1};
 _transfer Ctrl_Tab cd_tab1 = {"Tab 1", -1};
 _transfer Ctrl_Tab cd_tab2 = {"Tab 2", -1};
 
@@ -775,8 +791,8 @@ _transfer Ctrl_Collection cd_collect = {&cg_collect, 200, 100, 0, 0, CSCROLL_H};
 _transfer Ctrl c_collect = {1, C_COLLECTION, -1, (unsigned short)&cd_collect, 10, 10, 100, 100};
 
 int main(int argc, char* argv[]) {
-    cg_collect.pid = _sympid; // ensure collection's Ctrl_Group has the correct process ID for sending back events
-    
+    cg_collect.pid = _sympid; // ensure collection's Ctrl_Group has the correct
+	                          // process ID for sending back events
     /* ... */
 }
 ```
@@ -815,7 +831,9 @@ The control height should always be 12. Note that, if we wish the input box to b
 ```c
 // example
 _data char cd_input_buf[25];
-_transfer Ctrl_Input cd_input1 = {cd_input1_buf, 0, 0, 0, 0, 24, INPUT_ALTCOLS, (COLOR_RED << 4) | COLOR_YELLOW, (COLOR_RED << 4) | COLOR_BLACK};
+_transfer Ctrl_Input cd_input1 =
+    {cd_input1_buf, 0, 0, 0, 0, 24, INPUT_ALTCOLS,
+     (COLOR_RED << 4) | COLOR_YELLOW, (COLOR_RED << 4) | COLOR_BLACK};
 _transfer Ctrl c_input1 = {1, C_INPUT, -1, (unsigned short)&cd_input1, 10, 10, 100, 12};
 ```
 
@@ -879,7 +897,7 @@ cd_textbox1.self = &cd_textbox1;
 
 `selection` = 0 when no characters are selected, greater than 0 when the cursor marks the start of the selection, and less than 0 when the cursor marks the end of the selection.
 
-To update the contents, cursor, or selection of the textbox, it is recommended to use the special system calls [`TextBox_Redraw()`](syscall1.md#textbox-redraw) and [`TextBox_Select()`](syscall1.md#textbox-select) rather than trying to update all the relevant properties manually.
+To update the contents, cursor, or selection of the textbox, it is recommended to use the special system calls [`TextBox_Redraw()`](syscall1.md#textbox_redraw) and [`TextBox_Select()`](syscall1.md#textbox_select) rather than trying to update all the relevant properties manually.
 
 Note that, because the buffer must be stored in a continuous 16KB segment (usually the **data** segment), this control is effectively limited to no more than 16KB of text. Note also that, if we wish the textbox to be prefilled, we must be sure to set the properties (`cursor`, `len`, etc.) correctly. (For input by the user, SymbOS will update these properties automatically.)
 
@@ -921,7 +939,7 @@ typedef struct {
     void* coldata;            // address of the column data (see below)
     unsigned short clicked;   // index of last clicked row
     unsigned char flags;      // flags (see below)
-    unsigned char resorted;   // (in SymbOS 4.0 and up, will be set to 1 if the user re-sorts the list)
+    unsigned char resorted;   // (SymbOS 4.0+ sets this to 1 when the user re-sorts the list)
     unsigned short treelines; // (only used by tree views, see C_TREE)
     unsigned short treefirst; // (only used by tree views, see C_TREE)
 } List;
@@ -946,7 +964,7 @@ typedef struct {
 } List_Column;
 ```
 
-`flags` for `List_Column` controls how the column is aligned and sorted, as well as what is displayed on each row. It consists of one of `ALIGN_LEFT`, `ALIGN_RIGHT`, or `ALIGN_CENTER`; OR'd with one of `LTYPE_TEXT` (for text data), `LTYPE_IMAGE` (for image data), `LTYPE_16` (for a 16-bit number), or `LTYPE_32` (for a 32-bit number). Alternatively, on SymbOS 4.0 and up, `flags` may just be set to `LTYPE_CTRL`, with no other flags (indicating text with control codes---see [`C_TEXT_CTRL`](C_TEXT_CTRL) for what codes are available).
+`flags` for `List_Column` controls how the column is aligned and sorted, as well as what is displayed on each row. It consists of one of `ALIGN_LEFT`, `ALIGN_RIGHT`, or `ALIGN_CENTER`; OR'd with one of `LTYPE_TEXT` (for text data), `LTYPE_IMAGE` (for image data), `LTYPE_16` (for a 16-bit number), or `LTYPE_32` (for a 32-bit number). Alternatively, on SymbOS 4.0 and up, `flags` may just be set to `LTYPE_CTRL`, with no other flags (indicating text with control codes---see [`C_TEXT_CTRL`](#c_text_ctrl) for what codes are available).
 
 `sortskip` (only available in SymbOS 4.0 and up) indicates the index of the first character to compare when sorting text rows. Normally this should be 0 (i.e., "sort from the first character"), but we can set it >0 to skip leading characters (like control characters).
 
@@ -954,8 +972,8 @@ The format of row definitions is a bit trickier. Internally, each row consists o
 
 ```c
 typedef struct {
-    unsigned short flags;    // flags (see below)
-    char* value;             // address of row content (or value for LTYPE_16 - cast to char*)
+    unsigned short flags; // flags (see below)
+    char* value;          // address of row content (or value for LTYPE_16 - cast to char*)
 } List_Row;
 ```
 
@@ -982,7 +1000,8 @@ _transfer List_Row2Col cd_list1_r1 = {1, "Row 1", "Value 1"};
 _transfer List_Row2Col cd_list1_r2 = {2, "Row 2", "Value 2"};
 _transfer List_Row2Col cd_list1_r3 = {3, "Row 3", "Value 3"};
 
-_transfer List cd_list1 = {3, 0, &cd_list1_r1, 0, 2, 1 | SORT_AUTO, &cd_list1_col1, 0, LIST_MULTI};
+_transfer List cd_list1 =
+    {3, 0, &cd_list1_r1, 0, 2, 1 | SORT_AUTO, &cd_list1_col1, 0, LIST_MULTI};
 
 _transfer Ctrl c_list1 = {1, C_LISTBOX, -1, (unsigned short)&cd_list1, 0, 0, 160, 100};
 ```
@@ -1016,14 +1035,14 @@ Equivalent to `C_LISTBOX`, but displays a tree view listbox where the user can f
 * `.sorting` should be set to `SORT_TREE`.
 * `.flags` should never have `LIST_MULTI` set.
 
-The format for columns and rows is also slightly different. Columns are defined in the usual way, except that `flags` for the first `List_Column` record should either be `LTYPE_TREE` (for normal text) or `LTYPE_TREE | LTYPE_CTRL` (for [text with control codes](#C_TEXT_CTRL)). Rows are defined slightly differently, using `Tree_Row` structs instead of `List_Row` structs:
+The format for columns and rows is also slightly different. Columns are defined in the usual way, except that `flags` for the first `List_Column` record should either be `LTYPE_TREE` (for normal text) or `LTYPE_TREE | LTYPE_CTRL` (for [text with control codes](#c_text_ctrl)). Rows are defined slightly differently, using `Tree_Row` structs instead of `List_Row` structs:
 
 ```c
 typedef struct {
-    unsigned char indent;    // indentation level (see below)
-    unsigned char flags;     // flags (see below)
-    char* value;             // address of row content (or value for LTYPE_16 - cast to char*)
-    unsigned short id;       // numerical ID of row
+    unsigned char indent; // indentation level (see below)
+    unsigned char flags;  // flags (see below)
+    char* value;          // address of row content (or value for LTYPE_16 - cast to char*)
+    unsigned short id;    // numerical ID of row
 } Tree_Row;
 ```
 
@@ -1061,7 +1080,7 @@ In addition to being dispatched as a normal `DSK_ACT_CONTENT` event, any user ev
 
 Control width must be at least 11, and control height must be at least 16. Note that column titles will not be displayed automatically; to show them, use a separate `C_LISTTITLE` control, as in the example below.
 
-Tip: By using the `LTYPE_TREE | LTYPE_CTRL` setting and using [control codes](#C_TEXT_CTRL) to draw inline images, it is possible to include icons in the tree view.
+Tip: By using the `LTYPE_TREE | LTYPE_CTRL` setting and using [control codes](#c_text_ctrl) to draw inline images, it is possible to include icons in the tree view.
 
 ```c
 // example
@@ -1198,7 +1217,7 @@ typedef struct {
 * `MENU_CHECKED`: entry has a checkmark. Note that `MENU_CHECKED` will not be updated automatically---it is our responsibility to receive menu events and take the necessary action, such as toggling the `MENU_CHECKED` flag for a given entry.
 * `MENU_SUBMENU`: entry opens a submenu. If `MENU_SUBMENU` is set, `value` points to the `Menu` struct defining the submenu to open. Submenus can be nested up to 5 levels deep.
 * `MENU_SEPARATOR`: entry is a separator line.
-* `MENU_ICON`: entry begins with an icon (SymbOS 4.0 and up only, and only allowed in drop-down menus, not a window's top-level menu bar.) If `MENU_ICON` is set, the entry's `text` string must begin with a five-byte inline image [control code](#C_TEXT_CTRL) representing an 8x8 icon that will be plotted before the entry. (i.e., `0x06` `0x80` `banknum` `[canvas](graphics.md) address - 1`).
+* `MENU_ICON`: entry begins with an icon (SymbOS 4.0 and up only, and only allowed in drop-down menus, not a window's top-level menu bar.) If `MENU_ICON` is set, the entry's `text` string must begin with a five-byte inline image [control code](#c_text_ctrl) representing an 8x8 icon that will be plotted before the entry. (i.e., `0x06` `0x80` `banknum` `[canvas](graphics.md#graphics-library) address - 1`).
 
 Windows can have main menus if their `WIN_MENU` flag is set and their `menu` property points to a `Menu` struct similar to the above. Menus can also be opened independently (see the [Menu_Context()](syscall1.md#menu_context) system call).
 
