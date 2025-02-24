@@ -4,8 +4,8 @@ boxf.o
 circle.o
 get.o
 set.o
-load.o
 raw.o
+load.o
 line.o
 lineb.o
 save.o
