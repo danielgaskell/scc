@@ -5,8 +5,8 @@
 void Gfx_Prep_Raw(unsigned char bank, char* buffer) {
     // connect pointers in 16-color extended header, if present
     if (Bank_ReadByte(bank, buffer) == (Bank_ReadByte(bank, buffer + 1) >> 1)) {
-        Bank_WriteWord(bank, buffer + 3, (unsigned short)(buffer + 9));
-        Bank_WriteWord(bank, buffer + 5, (unsigned short)(buffer + 8));
+        Bank_WriteWord(bank, buffer + 3, (unsigned short)(buffer + 10));
+        Bank_WriteWord(bank, buffer + 5, (unsigned short)(buffer + 9));
     }
 }
 
