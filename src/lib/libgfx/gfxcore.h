@@ -1,4 +1,4 @@
-extern unsigned char _Gfx_Load(char* filename, char* buffer);
+extern unsigned char _Gfx_Load(char* filename, unsigned char bank, char* buffer);
 
 extern char* _gfx_pixtab;
 extern char* _gfx_active;

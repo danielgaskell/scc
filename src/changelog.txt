@@ -2,6 +2,7 @@ v1.2
 + Added Linux/POSIX build script
 + Added md2pdf.py and .PDF documentation
 + Added Gfx_ScrollX() and Gfx_ScrollY()
++ Added raw image support to libgfx
 + Added Sys_GetConfig()
 + Added Sys_Path() and Sys_Type()
 + Added Print_Busy(), Print_Char(), Print_String()

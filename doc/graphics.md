@@ -1,6 +1,6 @@
 # Graphics Library
 
-While SymbOS provides features (primarily the `C_IMAGE` and `C_IMAGE_EXT` controls) for directly plotting images, the graphics format is internally complicated and depends on the exact platform and screen mode in which the application is running. The SCC graphics library simplifies this process by implementing a set of standard functions for loading and plotting images and sprites and directly manipulating pixels on a canvas.
+While SymbOS provides features (primarily the `C_IMAGE` and `C_IMAGE_EXT` controls) for directly plotting images, the graphics format is internally complicated and depends on the exact platform and screen mode in which the application is running. The SCC graphics library simplifies this process by implementing a set of standard functions for loading and plotting images and sprites, as well as directly manipulating pixels on a canvas.
 
 **Note:** All graphics functions are thread-safe, except that only one canvas may be [active](#initializing-canvases) at a time. However, multiple threads can draw to the same canvas at the same time.
 
@@ -17,8 +17,11 @@ While SymbOS provides features (primarily the `C_IMAGE` and `C_IMAGE_EXT` contro
   * [Converting images](#converting-images)
   * [Image sets and masks](#image-sets-and-masks)
   * [Function reference](#gfx_load)
-  * [Moving sprites](#moving-sprites)
+* [Raw images](#raw-images)
+  * [Raw image controls](#raw-image-controls)
+  * [Function reference](#gfx_load_raw)
 * [Advanced topics](#advanced-topics)
+  * [Moving sprites](#moving-sprites)
   * [Memory problems](#memory-problems)
 * [Reference](#reference)
   * [Color palette](#color-palette)
@@ -306,9 +309,9 @@ The resulting tiles can be drawn transparently by first plotting the mask tile w
 unsigned char Gfx_Load(char* filename, char* buffer);
 ```
 
-Loads a graphics file (in 4-color or 16-color SGX format) from the path `filename` into the buffer `buffer`. If the path `filename` is relative rather than absolute, it will be treated as relative to the current executable's path. If the current screen mode does not match the format of the file, it will be converted automatically to match using `Gfx_Prep()` (listed below).
+Loads a graphics asset file (in 4-color or 16-color SGX format) from the path `filename` into the buffer `buffer`. If the path `filename` is relative rather than absolute, it will be treated as relative to the current executable's path. If the current screen mode does not match the format of the file, it will be converted automatically to match using `Gfx_Prep()` (listed below).
 
-`buffer` should be a `char` array the size of the file, in bytes, or else `(width * height / 2) + 4` bytes long, whichever is greater.
+`buffer` should be a `char` array the size of the file, in bytes (rounding up to the nearest 128 bytes), or else `(width * height / 2) + 4` bytes long, whichever is greater.
 
 *Return value*: On success, returns 0. On failure, sets `_fileerr` and returns 1.
 
@@ -320,7 +323,7 @@ unsigned char Gfx_Load_Set(char* filename, char* buffer);
 
 Loads an image set file created with `gfx2sgx` (see above) from the path `filename` into the buffer `buffer`. If the path `filename` is relative rather than absolute, it will be treated as relative to the current executable's path. If the current screen mode does not match the format of the tiles, they will be converted automatically to match using `Gfx_Prep()` (listed below).
 
-`buffer` should be a `char` array the size of the file, in bytes.
+`buffer` should be a `char` array the size of the file, in bytes (rounding up to the nearest 128 bytes).
 
 *Return value*: On success, returns 0. On failure, sets `_fileerr` and returns 1.
 
@@ -406,15 +409,114 @@ void Gfx_Prep_Set(char* buffer);
 
 Equivalent to `Gfx_Prep()`, but preps image sets instead of single images.
 
+### Gfx_TileAddr()
+
+*Currently only available in development builds of SCC.*
+
+```c
+char* Gfx_TileAddr(char* image, unsigned char tile);
+```
+
+Returns the address of tile number `tile` within the image set at the address `image`.
+
+## Raw images
+
+*Currently only available in development builds of SCC.*
+
+### Raw image controls
+
+Most of the graphics library deals with canvases, which allow graphics to be edited and redraw on the fly. However, if we just want to display static images as part of a form, we can often achieve this more efficiently by simply creating a [`C_IMAGE`](symbos.md#c_image) or [`C_IMAGE_EXT`](symbos.md#c_image_ext) control and setting the parameter to the address of the static image data.
+
+**Step 1: Generate a compatible image file**
+
+For 16-color images, use [`gfx2sgx`](#converting-images) to convert the desired image into an .SGX file. For 4-color images, use [MSX Viewer 5](https://marmsx.msxall.com/msxvw/msxvw5/index_en.php) (classic version) or use `gfx2sgx` with the `-4` command-line option to force 4-color mode:
+
+```bash
+gfx2sgx image.png -4
+```
+
+**Step 2: Load the image into a buffer**
+
+Load the image data into a suitably sized buffer that does not cross a 16KB boundary, e.g., in the **data** or **transfer** segments. The utility function [`Gfx_Load_Raw()`](#gfx_load_raw) is the recommended way to do this, since this will perform the necessary updates to the the [extended graphics header](symbos.md#C_IMAGE_EXT) automatically.
+
+(Note that, since we will not be manipulating this image after it is loaded, we can technically store it in [banked memory](syscall1.md#memory-management) if needed. For this reason, all raw image functions allow specifying the memory bank. If banked memory is used, remember to set the `.bank` property of the image control correctly and free the reserved memory with [`Mem_Release()`](syscall1.md#mem_release) before exit.)
+
+**Step 3: Create an image control**
+
+For a 4-color image, use a [`C_IMAGE`](symbos.md#c_image) control and set the parameter to the address of the image buffer:
+
+```
+_data char imgbuf[256]; // load the image data into this buffer
+_transfer Ctrl c_image1 = {1, C_IMAGE, -1, (unsigned short)imgbuf, 10, 10, 24, 24};
+```
+
+For a 16-color iamge, use a [`C_IMAGE_EXT`](symbos.md#c_image_ext) control and set the parameter to the address of the image buffer:
+
+```
+_data char imgbuf[384]; // load the image data into this buffer
+_transfer Ctrl c_image1 = {1, C_IMAGE_EXT, -1, (unsigned short)imgbuf, 10, 10, 24, 24};
+```
+
+### Gfx_Load_Raw()
+
+```c
+unsigned char Gfx_Load_Raw(char* filename, unsigned char bank, char* buffer);
+```
+
+Loads a raw image file (in 4-color or 16-color SGX format) from the path `filename` into memory bank `bank`, address `buffer`. If the path `filename` is relative rather than absolute, it will be treated as relative to the current executable's path. `buffer` should be a `char` array the size of the file, in bytes (rounding up to the nearest 128 bytes), which does not cross a 16KB segment boundary
+
+The difference between this function and the regular [`Gfx_Load()`](#gfx_load) is that this function prepares the image file for direct use by a [control](#raw-image-controls), not as a graphics asset that can be plotted on a [canvas](#using-canvases) using `Gfx_Put()`. If the image is meant to be plotted on a canvas, use `Gfx_Load()` instead.
+
+*Return value*: On success, returns 0. On failure, sets `_fileerr` and returns 1.
+
+### Gfx_Load_Set_Raw()
+
+```c
+unsigned char Gfx_Load_Set_Raw(char* filename, unsigned char bank, char* buffer);
+```
+
+Loads an [image set file](#image-sets-and-masks) created with `gfx2sgx` from the path `filename` into memory bank `bank`, address `buffer`. If the path `filename` is relative rather than absolute, it will be treated as relative to the current executable's path. `buffer` should be a `char` array the size of the file, in bytes (rounding up to the nearest 128 bytes).
+
+The difference between this function and the regular [`Gfx_Load_Set()`](#gfx_load_set) is that this function prepares the image tiles for direct use by [controls](#raw-image-controls), not as graphics assets that can be plotted on a [canvas](#using-canvases) using `Gfx_Put_Set()`. If the images are meant to be plotted on a canvas, use `Gfx_Load_Set()` instead.
+
+This function is a convenient way to load a large number of raw images at once. For the purpose of setting image control parameters, the address of each tile in the tileset can be determined using [`Gfx_TileAddr_Raw()`](#gfx_tileaddr_raw).
+
+*Return value*: On success, returns 0. On failure, sets `_fileerr` and returns 1.
+
+### Gfx_Prep_Raw()
+
+```c
+void Gfx_Prep_Raw(unsigned char bank, char* buffer);
+```
+
+If the memory at bank `bank`, address `buffer` contains a raw 16-color image, prepares the image's extended header so that it can be drawn correctly by a `C_IMAGE_EXT` control. (This function is normally called automatically by `Gfx_Load_Raw()`, but we can also invoke it manually to convert image data [embedded in the source as a character array](#gfx_prep).)
+
+### Gfx_Prep_Set_Raw()
+
+```c
+void Gfx_Prep_Set_Raw(unsigned char bank, char* buffer);
+```
+
+Equivalent to `Gfx_Prep_Raw()`, but preps image sets instead of single images.
+
+### Gfx_TileAddr_Raw()
+
+```c
+char* Gfx_TileAddr_Raw(unsigned char bank, char* image, unsigned char tile);
+```
+
+Returns the address of tile number `tile` within the image set located in memory bank `bank`, address `image`. (The only difference between this and `Gfx_TileAddr()` is that the bank may be specified.)
+
+## Advanced topics
+
 ### Moving sprites
 
-Because `graphics.h` implements a raw canvas, it does not have any built-in features for redrawing the background behind a sprite after it is moved or deleted. Anything drawn to the canvas will simply stay there until overdrawn by something else. However, several simple techniques can be employed to create moveable sprites, depending on the specific needs of the application:
+Because `graphics.h` implement raw canvases and images, it does not have any built-in features for redrawing the background behind a sprite after it is moved or deleted. Anything drawn to a canvas will simply stay there until overdrawn by something else. However, several simple techniques can be employed to create moveable sprites, depending on the specific needs of the application:
 
 * Before plotting a sprite, use `Gfx_Get()` to copy the background behind it into a temporary buffer. Then, when the sprite needs to be moved, erase it by plotting the old background on top of it with `Gfx_Put()`.
 * For graphics based on multiple layers of regularly-spaced tiles (like an RPG), simply replot any affected tiles from the bottom up with `Gfx_Put()`, redrawing the background over the sprite.
 * A flexible (but memory-hungry) solution is to maintain two canvases: a "background" canvas containing the background, and a "visible" canvas actually shown in the window. To move a sprite, use `Gfx_Select()`, `Gfx_Get()`, and `Gfx_Put()` to copy the relevant parts of the "background" canvas over the sprite's location on the "visible" canvas.
-
-## Advanced topics
+* If only a few sprites are needed, consider drawing them using separate [`C_IMAGE_TRANS`](symbos.md#c_image_trans) controls pointing to [raw images](#raw-images).
 
 ### Memory problems
 

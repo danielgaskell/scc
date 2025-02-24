@@ -527,7 +527,7 @@ _transfer Ctrl c_progress1 =
 
 ### C_IMAGE
 
-Displays a standard image (4-color SGX format only).
+Displays a standard image (4-color SGX format only). (See the [graphics library](graphics.md#raw-images) for how to use this in practice.)
 
 *Control type*: `C_IMAGE`.
 
@@ -535,7 +535,7 @@ Displays a standard image (4-color SGX format only).
 
 ```c
 // example
-char imgbuf[198];
+_data char imgbuf[198];
 _transfer Ctrl c_image1 = {1, C_IMAGE, -1, (unsigned short)imgbuf, 10, 10, 24, 24};
 ```
 
@@ -558,7 +558,7 @@ typedef struct {
 
 ```c
 // example
-Img_Header imghead; // fill with the appropriate data
+_data Img_Header imghead; // fill with the appropriate data
 _transfer Ctrl c_image_ext1 = {1, C_IMAGE_EXT, -1, (unsigned short)&imghead, 10, 10, 24, 24};
 ```
 

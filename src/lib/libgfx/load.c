@@ -26,7 +26,7 @@ void Gfx_Prep(char* buffer) {
         buffer[2] = buffer[6];
         ptroff = -2;
     }
-    if ((buffer[1] / buffer[0]) == 4)
+    if (buffer[0] == (buffer[1] >> 2))
         img16 = 0;
 
     if (_gfx_16 && !img16) {
@@ -82,19 +82,19 @@ void Gfx_Prep(char* buffer) {
     }
 }
 
-unsigned char _Gfx_Load(char* filename, char* buffer) {
+unsigned char _Gfx_Load(char* filename, unsigned char bank, char* buffer) {
     unsigned char fd;
     Dir_PathAdd(0, filename, buffer);
     fd = File_Open(_symbank, buffer);
     if (fd > 7)
         return 1;
-    File_Read(fd, _symbank, buffer, 65535U);
+    File_Read(fd, bank, buffer, 65535U);
     File_Close(fd);
     return 0;
 }
 
 unsigned char Gfx_Load(char* filename, char* buffer) {
-    if (_Gfx_Load(filename, buffer))
+    if (_Gfx_Load(filename, _symbank, buffer))
         return 1;
     Gfx_Prep(buffer);
     return 0;

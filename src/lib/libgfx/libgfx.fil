@@ -5,6 +5,7 @@ circle.o
 get.o
 set.o
 load.o
+raw.o
 line.o
 lineb.o
 save.o
