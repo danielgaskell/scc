@@ -72,12 +72,14 @@ void charout(unsigned char ch, FILE* fp) {
 }
 
 unsigned short write_header(FILE* fp, int xsize, int ysize, unsigned char outcolors) {
+    unsigned short len;
     if (outcolors == 4) {
         charout((unsigned char)xsize / 4, fp);
         charout((unsigned char)xsize, fp);
         charout((unsigned char)ysize, fp);
         return 3;
     } else {
+        len = (xsize / 2) * ysize;
         charout((unsigned char)xsize / 2, fp);
         charout((unsigned char)xsize, fp);
         charout((unsigned char)ysize, fp);
@@ -85,8 +87,8 @@ unsigned short write_header(FILE* fp, int xsize, int ysize, unsigned char outcol
         charout(0x00, fp);
         charout(0x00, fp);
         charout(0x00, fp);
-        charout(0x20, fp);
-        charout(0x01, fp);
+        charout(len & 0xFF, fp);
+        charout(len >> 8, fp);
         charout(0x05, fp);
         return 10;
     }
