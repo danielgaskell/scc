@@ -88,6 +88,9 @@ extern signed char Net_SplitURL(char* url, char* host, char** path, int* port);
 extern unsigned long Net_PublicIP(void);
 extern unsigned char Net_ServerWin(void* modalWin, unsigned char clients, unsigned short port, unsigned short bufsize);
 
+extern void Chat_Init(void* box_ctrl);
+extern void Chat_Msg(signed char client, char* msg);
+
 extern char* iptoa(unsigned long ip, char* dest);
 
 #endif

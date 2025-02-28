@@ -1,3 +1,4 @@
+chat.o
 server.o
 publicip.o
 httpget.o

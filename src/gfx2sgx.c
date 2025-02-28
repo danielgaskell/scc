@@ -104,11 +104,11 @@ void usage(void) {
 
     printf("To create an image set, specify -m or tilewidth and tileheight.\n\n");
 
-    printf("   -4       Convert in 4 colors only (default is 16)\n");
     printf("   -m       Convert alpha channel to sprite mask\n");
     printf("            (image sets will be ordered mask-tile-mask-tile...)\n");
     printf("   -o file  Specify output filename\n");
     printf("   -c       Output as .C source file instead of .SGX\n");
+    printf("   -4       Convert in raw 4 colors only (default is 16)\n");
 
     exit(1);
 }
@@ -218,7 +218,10 @@ int main(int argc, char* argv[]) {
         fprintf(fp, "char img[           \n");
 
     // create set header if necessary
-    tilelen = (tilewidth * tileheight / 2) + 10;
+    if (outcolors == 16)
+        tilelen = (tilewidth * tileheight / 2) + 10;
+    else
+        tilelen = (tilewidth * tileheight / 4) + 3;
     if (tiles > 1 || maskmode != 0) {
         charout(tilelen & 0xFF, fp);
         charout((tilelen >> 8) & 0xFF, fp);
@@ -253,13 +256,13 @@ int main(int argc, char* argv[]) {
                             outbyte |= color;
                     } else {
                         if (offset == 0)
-                            outbyte = (((color & 1) << 7) | ((color & 2) >> 1));
+                            outbyte = (((color & 1) << 7) | ((color & 2) << 2));
                         else if (offset == 1)
-                            outbyte = (((color & 1) << 6) | ((color & 2) << 0));
+                            outbyte |= (((color & 1) << 6) | ((color & 2) << 1));
                         else if (offset == 2)
-                            outbyte = (((color & 1) << 5) | ((color & 2) << 1));
+                            outbyte |= (((color & 1) << 5) | ((color & 2) << 0));
                         else
-                            outbyte = (((color & 1) << 4) | ((color & 2) << 2));
+                            outbyte |= (((color & 1) << 4) | ((color & 2) >> 1));
                     }
                     ++offset;
                     if ((outcolors == 16 && offset == 2) || (outcolors == 4 && offset == 4)) {

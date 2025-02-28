@@ -8,6 +8,7 @@ _transfer char _serv_icon[19] = {0x02, 0x08, 0x08, 0xFF, 0xFF, 0xF8, 0xF1, 0xF8,
 _transfer char _servenv[256];
 _transfer char _servmsg[14];
 
+char _clientnames[MAX_CLIENTS][CLIENT_NAME_LEN+1];
 unsigned char _clients = 0;
 unsigned char _serv_winID;
 unsigned long _serv_ip;
@@ -23,7 +24,7 @@ _data char _port_buf[6] = {'5', '3', '0', '0', '0', 0};
 
 _transfer List_Column _serv_col1 = {ALIGN_LEFT | LTYPE_TEXT, 0, 63, "Nickname"};
 _transfer List_Column _serv_col2 = {ALIGN_LEFT | LTYPE_TEXT, 0, 63, "IP Address"};
-_transfer List_Row2Col _serv_cd_lrows[32];
+_transfer List_Row2Col _serv_cd_lrows[MAX_CLIENTS];
 _transfer List _serv_list = {0, 0, &_serv_cd_lrows, 0, 2, 1, &_serv_col1, 0, LIST_MULTI | LIST_SCROLL};
 
 _transfer Ctrl_TFrame _serv_cd_tf1 = {"IP Address", (COLOR_BLACK << 2) | COLOR_ORANGE};
