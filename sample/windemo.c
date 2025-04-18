@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 		if (_symmsg[0] == MSR_DSK_WCLICK) {
 			switch (_symmsg[2]) {
 				case DSK_ACT_CLOSE: // Alt+F4 or click close
-					exit();
+					exit(0);
 				// more event cases go here...
 			}
 		}

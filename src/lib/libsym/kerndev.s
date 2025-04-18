@@ -57,8 +57,8 @@ _Screen_Height:
 _Mouse_X:
 	rst #0x20
 	.word #0x813C
-	ld d,h
-	ld e,l
+	ld h,d
+	ld l,e
 	ret
 
 ; Device_MousePosition (2)
