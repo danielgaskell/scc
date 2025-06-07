@@ -3,7 +3,7 @@
  *
  * 19-OCT-88: Dale Schumacher
  * > John Stanley has again been a great help in debugging, particularly
- * > with the printf/scanf functions which are his creation.  
+ * > with the printf/scanf functions which are his creation.
  *
  *    Dale Schumacher                         399 Beacon Ave.
  *    (alias: Dalnefre')                      St. Paul, MN  55104
@@ -26,7 +26,6 @@
 
 #define	skip()	while(isspace(c)) { if ((c=fgetc(fp))<1) goto done; }
 
-#ifdef BUILD_LIBM
 /* fp scan actions */
 #define F_NADA	0	/* just change state */
 #define F_SIGN	1	/* set sign */
@@ -87,27 +86,25 @@ double fp_scan(int neg, int eneg, int n, int frac, int expo, int fraclen)
   double f;
   f = frac;
   while (fraclen-->0)
-    f /= 10;
+    f /= 10.0;
   f += n;
 
   /* This is not going to be very fast but hopefully nobody does a lot of
-     FP on a 4MHz Z80 anyway */  
+     FP on a 4MHz Z80 anyway */
   if (expo && !eneg) {
      while(expo-->0)
-         f *= 10;
+         f *= 10.0;
   }
-    
+
   if (expo && eneg) {
      while(expo-->0)
-         f /= 10;
+         f /= 10.0;
   }
-        
+
   if (neg)
     f = -f;
   return f;
 }
-
-#endif
 
 int vfscanf(FILE *fp, const char *fmt, va_list ap)
 {
@@ -115,12 +112,10 @@ int vfscanf(FILE *fp, const char *fmt, va_list ap)
    int c, width, lval, cnt = 0;
    int   store, neg, base, wide1, endnull, rngflag, c2;
    unsigned char *p;
-   unsigned char delim[128], digits[17], *q;
-#ifdef BUILD_LIBM
+   unsigned char delim[17], digits[17], *q;
    long  frac, expo;
    int   eneg, fraclen, fstate, trans;
    double fx;
-#endif
 
    if (!*fmt)
       return (0);
@@ -259,7 +254,6 @@ int vfscanf(FILE *fp, const char *fmt, va_list ap)
 	       ++cnt;
 	    }
 	    break;
-#ifdef BUILD_LIBM
 	 case 'e':		/* float */
 	 case 'f':
 	 case 'g':
@@ -327,7 +321,7 @@ int vfscanf(FILE *fp, const char *fmt, va_list ap)
 	       ++cnt;
 	    }
 	    break;
-#endif
+
 	 case 'c':		/* character data */
 	    width = wide1;
 	    lval = endnull = 0;

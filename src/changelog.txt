@@ -10,6 +10,7 @@ v1.2
 + Added Mouse_Dragging()
 + Added support for menu icons
 + Added _msgpid()
++ Enabled %f in scanf()
 @ Improved thread safety for system calls and various others
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
 @ Fixed gfx2sgx generating incorrect 4-color images
@@ -19,6 +20,7 @@ v1.2
 @ Fixed Menu_Context() return values
 @ Fixed bad forward references to memmove()
 @ Fixed Mouse_X() returning Y value
+@ Fixed digit order in atof()
 @ Simplified FRAME_XOR property
 @ Changed Sys_Version() to _sysversion global (now used by crt0)
 @ Win_Open() PID now set correctly for other banks/threads

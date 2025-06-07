@@ -1,7 +1,7 @@
 /*
  * strtod.c - This file is part of the libc-8086 package for ELKS,
  * Copyright (C) 1995, 1996 Nat Friedman <ndf@linux.mit.edu>.
- * 
+ *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Library General Public
  *  License as published by the Free Software Foundation; either
@@ -26,6 +26,7 @@ double strtod(const char *nptr, char **endptr)
 	double number;
 	double fp_part;
 	int exponent;
+	int divisor;
 	unsigned short exp_negative;
 
 	*endptr = NULL;
@@ -44,15 +45,17 @@ double strtod(const char *nptr, char **endptr)
 
 	number = 0;
 	while (isdigit(*nptr)) {
-		number = number * 10 + (*nptr - '0');
+		number = number * 10.0 + (*nptr - '0');
 		nptr++;
 	}
 
 	if (*nptr == '.') {
 		nptr++;
 		fp_part = 0;
+		divisor = 10;
 		while (isdigit(*nptr)) {
-			fp_part = fp_part / 10.0 + (*nptr - '0') / 10.0;
+			fp_part += (*nptr - '0') / (float)divisor;
+			divisor *= 10;
 			nptr++;
 		}
 		number += fp_part;
