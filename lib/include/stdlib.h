@@ -68,9 +68,8 @@ extern unsigned long strtoul(const char *__nptr,
 extern int mkstemp(char *__template);
 extern int mkstemps(char *__template, int __suffix);
 
-#ifndef __HAS_NO_DOUBLES__
 extern double strtod(const char *__nptr, char **__endptr);
-#endif
+#define atof(x) strtod((x), (char**)0)
 
 extern char **environ;
 extern char *getenv(char *__name);

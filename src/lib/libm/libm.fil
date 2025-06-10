@@ -4,7 +4,6 @@ asinf.o
 asinhf.o
 atan2f.o
 atanhf.o
-atof.o
 cbrtf.o
 ceilf.o
 copysignf.o
