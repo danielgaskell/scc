@@ -908,6 +908,23 @@ Note that only pure info messages (BUTTON_OK, not modal) can have multiple insta
 
 *SymbOS name*: `Dialogue_Infobox_Command` (`MSC_SYS_SYSWRN`)
 
+### InputBox()
+
+*Currently only available in development builds of SCC.*
+
+```c
+signed char InputBox(char* title, char* line1, char* line2, char* buffer,
+                     unsigned short buflen, void* modalWin);
+```
+
+Opens a text input box onscreen. `title` is the window title to display, `line1` and `line2` are two lines of text to display as the prompt, `buffer` is the buffer to store the inputted text, and `buflen` is the length of the buffer (including zero terminator, so the maximum length of the input string is `buflen` - 1). If `buffer` already contains text, it will be used as the default value of the text field.
+
+`modalWin` specifies the address of a `Window` data record that should be declared modal, if any; this window will not be able to be focused until the message box is closed. If `modalWin` = 0, no window will be declared modal.
+
+This function is thread-safe, but only one `InputBox` will be visible at a time (a semaphore is used to ensure other threads wait their turn).
+
+*Return value*: 0 if the user clicked "OK" or -1 if the user clicked "Cancel". In either case, the user's text input will be stored in `buffer`.
+
 ### FileBox()
 
 ```c

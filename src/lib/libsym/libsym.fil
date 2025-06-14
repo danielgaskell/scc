@@ -1,5 +1,6 @@
 argv.o
 filebox.o
+inputbox.o
 memsize.o
 msgbox.o
 music.o
