@@ -1,10 +1,10 @@
 chat.o
 server.o
 publicip.o
-httpget.o
-netutils.o
+http.o
 tcp.o
 udp.o
+netutils.o
 dns.o
 iptostr.o
 error.o

@@ -32,10 +32,14 @@ unsigned char Net_Command(void) {
     }
     while (Msg_Send(_msgpid(), _netpid, _netmsg) == 0);
     for (;;) {
+        _netmsg[0] = 0;
         Msg_Sleep(_msgpid(), _netpid, _netmsg);
-        if (_netmsg[0] == id)
-            break;
-        Msg_Send(_netpid, _msgpid(), _netmsg); // put message back on queue
+        if (_netmsg[0]) {
+            if (_netmsg[0] == id)
+                break;
+            Msg_Send(_netpid, _msgpid(), _netmsg); // put message back on queue
+            Idle();
+        }
     }
     if (_netmsg[2] & 0x01) {
         _neterr = _netmsg[3];

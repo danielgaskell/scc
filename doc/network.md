@@ -52,13 +52,33 @@ int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers,
              unsigned char bodyonly);
 ```
 
-Executes a complete HTTP GET request, downloading whatever content is at the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `bodyonly` is nonzero, the HTTP headers will be stripped from the response, leaving only the response data. (Note that `maxlen` initially includes the space required to retrieve the headers, so when `bodyonly` is nonzero, the final length of the retrieved response may be less than `maxlen`.)
+Executes a complete HTTP GET request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`, which should be in the **data** or **transfer** segment. A maximum of `maxlen` characters will be written, discarding any extra. If `bodyonly` is nonzero, the HTTP headers will be stripped from the response, leaving only the response data. (Note that `maxlen` initially includes the space required to retrieve the headers, so when `bodyonly` is nonzero, the final length of the retrieved response may be less than `maxlen`.)
 
 `headers` can be optionally used to specify additional HTTP header requests in the outgoing request (use 0 for no custom headers). Each custom header line should be followed by the HTTP-standard line break `\r\n` (even the last one):
 
 ```c
 status = HTTP_GET("http://numbersapi.com", buffer, sizeof(buffer),
                   "Accept: text/plain\r\nAccept-Language: en-US\r\n", 1);
+```
+
+*Return value*: On success, writes the response to `buffer` and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
+
+### HTTP_POST()
+
+```c
+int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers,
+              char* body, unsigned short bodylen, unsigned char bodyonly);
+```
+
+Executes a complete HTTP POST request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`, which should be in the **data** or **transfer** segment. A maximum of `maxlen` characters will be written, discarding any extra. If `bodyonly` is nonzero, the HTTP headers will be stripped from the response, leaving only the response data. (Note that `maxlen` initially includes the space required to retrieve the headers, so when `bodyonly` is nonzero, the final length of the retrieved response may be less than `maxlen`.)
+
+POST data is passed in the buffer `body`, where `bodylen` is the length of the buffer. (It is necessary to specify the buffer length manually because POST requests may include binary data.)
+
+`headers` can be optionally used to specify additional HTTP header requests in the outgoing request (use 0 for no custom headers). Each custom header line should be followed by the HTTP-standard line break `\r\n` (even the last one).
+
+```c
+status = HTTP_POST("http://example.com", buffer, sizeof(buffer), 0,
+                   "username=test&password=123", 26, 1);
 ```
 
 *Return value*: On success, writes the response to `buffer` and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
@@ -132,7 +152,7 @@ signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr,
                         unsigned short len, TCP_Trans* obj);
 ```
 
-Moves data which has been received from the remote host associated with socket `handle` to the memory at bank `bank`, address `addr`. Up to `len` bytes will be moved (or the actual amount in the buffer, whichever is less).
+Moves data which has been received from the remote host associated with socket `handle` to the memory at bank `bank`, address `addr`, which should be in the **data** or **transfer** segment. Up to `len` bytes will be moved (or the actual amount in the buffer, whichever is less).
 
 `obj` is an optional pointer to a `TCP_Trans` struct, into which additional information about the transfer will be loaded. This parameter may be set to NULL to omit this information. The structure of the struct is:
 
@@ -198,6 +218,8 @@ Sends a disconnect signal to the remote host associated with the socket `handle`
 *SymbOS name*: `TCP_Disconnect` (`TCPDIS`).
 
 ## UDP functions
+
+**Warning**: UDP functions are not available on all devices. In particular, the M4 Board does not provide UDP; `UDP_Open()` will always fail with an error when used on this device.
 
 ### UDP_Open()
 
@@ -292,7 +314,7 @@ Skips and throws away a complete packet which has already been received from the
 unsigned long DNS_Resolve(unsigned char bank, char* addr);
 ```
 
-Performs a DNS lookup and attempts to resolve the host IP/URL stored in the string at bank `bank`, address `addr` into an IPv4 address.
+Performs a DNS lookup and attempts to resolve the host IP/URL stored in the string at bank `bank`, address `addr` into an IPv4 address. (Note that the URL should *not* be prefixed with a protocol like `http://`; the easiest way to guarantee this is to use `Net_SplitURL()` and then run `DNS_Resolve()` only on the extracted hostname.)
 
 *Return value*: On success, returns the IPv4 address (as a 32-bit integer). On failure, sets `_neterr` and returns 0.
 

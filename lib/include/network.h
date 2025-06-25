@@ -82,6 +82,7 @@ extern unsigned long DNS_Resolve(unsigned char bank, char* addr);
 extern unsigned char DNS_Verify(unsigned char bank, char* addr);
 
 extern int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char bodyonly);
+extern int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers, char* body, unsigned short bodylen, unsigned char bodyonly);
 
 extern void Net_ErrMsg(void* modalWin);
 extern signed char Net_SplitURL(char* url, char* host, char** path, int* port);

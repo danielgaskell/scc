@@ -4,9 +4,10 @@
 #include <network.h>
 #include "network.h"
 
-int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char bodyonly) {
+int _http_request(char type, char* url, char* dest, unsigned short maxlen, char* headers, char* body, unsigned short bodylen, unsigned char bodyonly) {
     unsigned long ip;
     unsigned long counter;
+    unsigned short packetlen;
     signed char socket;
     char buf[8];
     int result;
@@ -53,7 +54,7 @@ int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsign
     }
 
     // send message
-    strcpy(_netpacket, "GET /");
+    strcpy(_netpacket, type ? "POST /" : "GET /" );
     if (path)
         strcat(_netpacket, path);
     strcat(_netpacket, " HTTP/1.1\r\n");
@@ -64,9 +65,25 @@ int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsign
     if (headers)
         strcat(_netpacket, headers);
     strcat(_netpacket, "Connection: close\r\n\r\n");
+    if (body) {
+        strcat(_netpacket, "Content-Length: ");
+        uitoa(bodylen, _netpacket + strlen(_netpacket), 10);
+        strcat(_netpacket, "\r\n\r\n");
+    }
     result = TCP_Send(socket, _symbank, _netpacket, strlen(_netpacket));
     if (result == -1)
         goto _fail;
+    if (body) {
+        while (bodylen) {
+            packetlen = bodylen > sizeof(_netpacket) ? sizeof(_netpacket) : bodylen;
+            memcpy(_netpacket, body, packetlen);
+            result = TCP_Send(socket, _symbank, _netpacket, packetlen);
+            if (result == -1)
+                goto _fail;
+            body += packetlen;
+            bodylen -= packetlen;
+        }
+    }
 
     // wait for response and copy to buffer
     _netmsg[0] = 0;
@@ -119,3 +136,6 @@ _fail:
     _neterr = result;
     return -1;
 }
+
+int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char bodyonly) { return _http_request(0, url, dest, maxlen, headers, 0, 0, bodyonly); }
+int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers, char* body, unsigned short bodylen, unsigned char bodyonly) { return _http_request(1, url, dest, maxlen, headers, body, bodylen, bodyonly); }

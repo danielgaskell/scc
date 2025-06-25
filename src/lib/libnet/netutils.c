@@ -3,7 +3,6 @@
 
 #define PROTOCOLS 9
 
-char _netpacket[1024];
 char* _netproto[PROTOCOLS] = {"HTTPS", "HTTP", "FTP", "IRC", "SFTP", "FILE", "IMAP", "POP", "NNTP"};
 int _netprotoport[PROTOCOLS+1] = {0, 443, 80, 21, 6667, 22, 445, 143, 110, 119};
 char _nethost[128];

@@ -6,6 +6,10 @@
 /* SymbOS Network Daemon calls (TCP)                                          */
 /* ========================================================================== */
 
+// note that the RSF3 M4 implementation only accepts at most 1400-byte frames;
+// older versions of the M4 daemon do this wrong, so we impose this limit here.
+_data char _netpacket[1400];
+
 signed char TCP_OpenClient(unsigned long ip, signed short lport, unsigned short rport) {
     unsigned char result;
     _nsemaon();
@@ -99,27 +103,27 @@ signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, un
 }
 
 signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len) {
-    unsigned char result;
     unsigned short transferred;
-    unsigned short remaining;
+    unsigned short packetlen;
     _nsemaon();
     for (;;) {
         _netmsg[0] = 20;
         _netmsg[3] = handle;
-        *((unsigned short*)(_netmsg + 4)) = len;
-        _netmsg[6] = bank;
-        *((unsigned short*)(_netmsg + 8)) = (unsigned short)addr;
-        result = Net_Command();
-        if (result) {
+        packetlen = len > sizeof(_netpacket) ? sizeof(_netpacket) : len;
+        if (bank != _symbank || addr != _netpacket)
+            Bank_Copy(_symbank, _netpacket, bank, addr, packetlen);
+        *((unsigned short*)(_netmsg + 4)) = packetlen;
+        _netmsg[6] = _symbank;
+        *((unsigned short*)(_netmsg + 8)) = (unsigned short)_netpacket;
+        if (Net_Command()) {
             _nsemaoff();
             return -1;
         }
         transferred = *((unsigned short*)(_netmsg + 4));
-        remaining = *((unsigned short*)(_netmsg + 8));
-        if (remaining == 0)
-            break;
         addr += transferred;
         len -= transferred;
+        if (len <= 0)
+            break;
     }
     _nsemaoff();
     return 0;

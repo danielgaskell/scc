@@ -8,7 +8,7 @@ extern unsigned char _netpid;
 extern unsigned char _neterr;
 
 extern char _netmsg[];
-extern char _netpacket[];
+extern char _netpacket[1024];
 extern char* _useragent;
 extern unsigned short _nettimeout;
 extern char _nethost[];

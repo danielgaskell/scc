@@ -672,11 +672,11 @@ _transfer char radio = 0;
 _transfer char radiocoord[4] = {-1, -1, -1, -1};
 
 _transfer Ctrl_Radio cd_radio1 =
-    {&radio, "First button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 1, &radiocoord};
+    {&radio, "First button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 1, radiocoord};
 _transfer Ctrl_Radio cd_radio2 =
-    {&radio, "Second button", (COLOR_BLACK << 2) | COLOR_ORANGE, 2, &radiocoord};
+    {&radio, "Second button", (COLOR_BLACK << 2) | COLOR_ORANGE, 2, radiocoord};
 _transfer Ctrl_Radio cd_radio3 =
-    {&radio, "Third button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 3, &radiocoord};
+    {&radio, "Third button",  (COLOR_BLACK << 2) | COLOR_ORANGE, 3, radiocoord};
 
 _transfer Ctrl c_radio1 = {1, C_RADIO, -1, (unsigned short)&cd_radio1, 10, 10, 32, 8};
 _transfer Ctrl c_radio2 = {2, C_RADIO, -1, (unsigned short)&cd_radio2, 10, 20, 32, 8};
