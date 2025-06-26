@@ -329,6 +329,9 @@ __malloc_top:
 .export __malloc_max
 __malloc_max:
 	.word 0
+.export __symicon
+__symicon:
+	.word __exehead_iconlg
 .export __exit_hooks
 __exit_hooks:
 	.ds 16

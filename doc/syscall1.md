@@ -892,7 +892,7 @@ Opens a message box onscreen. `line1`, `line2`, and `line3` are three text strin
 * `TITLE_CONFIRM`: title the box "Confirmation"
 * `MSGBOX_ICON`: use a custom icon
 
-`icon` is the address of a 24x24 custom icon image, in 4-color SGX format. If `icon` = 0, a default icon will be used.
+`icon` is the address of a 24x24 custom icon image, in 4-color SGX format. If `icon` = 0, a default icon will be used. The variable `_symicon` stores the address of the application's main 4-color icon.
 
 `modalWin` specifies the address of a `Window` data record that should be declared modal, if any; this window will not be able to be focused until the message box is closed. If `modalWin` = 0, no window will be declared modal.
 

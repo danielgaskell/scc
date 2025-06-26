@@ -1,5 +1,6 @@
 v1.2
 + Added Linux/POSIX build script
++ Added libnet
 + Added md2pdf.py and .PDF documentation
 + Added Gfx_ScrollX() and Gfx_ScrollY()
 + Added InputBox()
@@ -26,6 +27,7 @@ v1.2
 @ Moved atof() from libm to stdlib
 @ Changed Sys_Version() to _sysversion global (now used by crt0)
 @ Win_Open() PID now set correctly for other banks/threads
+@ Moved location of 16-color icon so EXEs compress correctly
 @ Various structs tweaked to better support SymbOS 4.0 features
 
 v1.1

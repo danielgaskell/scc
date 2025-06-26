@@ -177,6 +177,8 @@
 #define DSK_SUB_KEY     7
 #define DSK_SUB_MWHEEL  8
 
+extern char* _symicon;
+
 extern signed char Win_Open(unsigned char bank, void* addr);
 extern void Win_Redraw_Menu(unsigned char winID);
 extern void Win_Redraw(unsigned char winID, signed char what, unsigned char first);

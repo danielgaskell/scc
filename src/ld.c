@@ -789,7 +789,7 @@ static void set_segment_bases(void)
 
 	// add extra room for 16-color icon, if applicable
     if (appicon16)
-        size[CODE] += 298;
+        size[BSS] += 298; // initially added to BSS segment, but actually exists at the start of the SYMDATA segment (below)
 
 	if (verbose) {
 		for (i = 1; i < OSEG; i++)
@@ -858,6 +858,12 @@ static void set_segment_bases(void)
 			s = s->next;
 		}
 	}
+
+    if (appicon16) { // move 16-color icon to SYMDATA segment, so it can be compressed correctly
+        size[BSS] -= 298;
+        size[SYMDATA] += 298;
+    }
+
 	/* We now know all the base addresses and all the symbol values are
 	   corrected. Everything needed for relocation is present */
 }
@@ -1400,7 +1406,7 @@ static void write_binary(FILE *mp)
             fclose(ficn);
         }
         if (appicon16) {
-            iconloc16 = size[CODE] - 298;
+            iconloc16 = size[CODE] + size[DATA] + size[BSS];
             out_seek(iconloc16);
             ficn = xfopen(appicon16, "rb");
             if (ficn == NULL)
