@@ -48,7 +48,10 @@ signed char UDP_Status(unsigned char handle, NetStat* obj) {
     obj->bytesrec = *((unsigned short*)(_netmsg + 4));
     obj->rport = *((unsigned short*)(_netmsg + 6));
     obj->status = _netmsg[8];
-    obj->ip = *((unsigned long*)(_netmsg + 10));
+    obj->ip[0] = _netmsg[10];
+    obj->ip[1] = _netmsg[11];
+    obj->ip[2] = _netmsg[12];
+    obj->ip[3] = _netmsg[13];
     _nsemaoff();
     return 0;
 }
@@ -64,7 +67,7 @@ signed char UDP_Receive(unsigned char handle, char* addr) {
     return result;
 }
 
-signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, unsigned long ip, unsigned short rport) {
+signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, char* ip, unsigned short rport) {
     signed char result;
     _nsemaon();
     _netmsg[0] = 36;
@@ -72,7 +75,10 @@ signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, unsig
     *((unsigned short*)(_netmsg + 4)) = len;
     *((unsigned short*)(_netmsg + 6)) = rport;
     *((unsigned short*)(_netmsg + 8)) = (unsigned short)addr;
-    *((unsigned long*)(_netmsg + 10)) = ip;
+    _netmsg[10] = ip[0];
+    _netmsg[11] = ip[1];
+    _netmsg[12] = ip[2];
+    _netmsg[13] = ip[3];
     result = Net_SCommand();
     _nsemaoff();
     return result;

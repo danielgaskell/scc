@@ -44,7 +44,7 @@
 
 typedef struct {
     unsigned char status;
-    unsigned long ip;
+    unsigned char ip[4];
     unsigned short rport;
     unsigned char datarec;
     unsigned short bytesrec;
@@ -60,10 +60,10 @@ extern unsigned char _neterr;
 extern unsigned char _netthread;
 extern signed char Net_Init(void);
 
-extern signed char TCP_OpenClient(unsigned long ip, signed short lport, unsigned short rport);
+extern signed char TCP_OpenClient(char* ip, signed short lport, unsigned short rport);
 extern signed char TCP_OpenServer(unsigned short lport);
 extern signed char TCP_Close(unsigned char handle);
-extern void TCP_Event(NetStat* obj);
+extern void TCP_Event(char* msg, NetStat* obj);
 extern signed char TCP_Status(unsigned char handle, NetStat* obj);
 extern signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, unsigned short len, TCP_Trans* obj);
 extern signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len);
@@ -75,10 +75,10 @@ extern signed char UDP_Open(unsigned char type, unsigned short lport, unsigned c
 extern signed char UDP_Close(unsigned char handle);
 extern signed char UDP_Status(unsigned char handle, NetStat* obj);
 extern signed char UDP_Receive(unsigned char handle, char* addr);
-extern signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, unsigned long ip, unsigned short rport);
+extern signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, char* ip, unsigned short rport);
 extern signed char UDP_Skip(unsigned char handle);
 
-extern unsigned long DNS_Resolve(unsigned char bank, char* addr);
+extern signed char DNS_Resolve(unsigned char bank, char* addr, char* ip);
 extern unsigned char DNS_Verify(unsigned char bank, char* addr);
 
 extern int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char bodyonly);
@@ -86,13 +86,13 @@ extern int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers
 
 extern void Net_ErrMsg(void* modalWin);
 extern signed char Net_SplitURL(char* url, char* host, char** path, int* port);
-extern unsigned long Net_PublicIP(void);
+extern signed char Net_PublicIP(char* ip);
 extern unsigned char Net_ServerWin(void* modalWin, unsigned char clients, unsigned short port, unsigned short bufsize);
 
 extern void Chat_Init(void* box_ctrl);
 extern void Chat_Msg(signed char client, char* msg);
 
-extern char* iptoa(unsigned long ip, char* dest);
+extern char* iptoa(char* ip, char* dest);
 
 #endif
 

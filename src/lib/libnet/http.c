@@ -5,8 +5,8 @@
 #include "network.h"
 
 int _http_request(char type, char* url, char* dest, unsigned short maxlen, char* headers, char* body, unsigned short bodylen, unsigned char bodyonly) {
-    unsigned long ip;
-    unsigned long counter;
+    char ip[4];
+    unsigned short counter;
     unsigned short packetlen;
     signed char socket;
     char buf[8];
@@ -28,30 +28,13 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     }
 
     // resolve IP
-    ip = DNS_Resolve(_symbank, url);
-    if (ip == 0)
+    if (DNS_Resolve(_symbank, url, ip))
         return -1;
 
     // open connection
     socket = TCP_OpenClient(ip, -1, 80);
     if (socket == -1)
         return -1;
-    _netmsg[0] = 0;
-    counter = Sys_Counter() + _nettimeout;
-    for (;;) {
-        Msg_Receive(_msgpid(), _netpid, _netmsg);
-        if (_netmsg[0] == 159) {
-            TCP_Event(&net_stat);
-            if (net_stat.status == TCP_OPENED)
-                break;
-            else if (net_stat.status == TCP_CLOSING || net_stat.status == TCP_CLOSED || Sys_Counter() > counter)
-                goto _fail;
-        }
-        if (Sys_Counter() > counter) {
-            _neterr = ERR_TIMEOUT;
-            goto _fail;
-        }
-    }
 
     // send message
     strcpy(_netpacket, type ? "POST /" : "GET /" );
@@ -89,18 +72,18 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     _netmsg[0] = 0;
     ptr = dest;
     ptrend = dest + maxlen;
-    counter = Sys_Counter() + _nettimeout;
+    counter = Sys_Counter16() + _nettimeout;
     for (;;) {
         Msg_Receive(_msgpid(), _netpid, _netmsg);
         if (_netmsg[0] == 159) {
-            TCP_Event(&net_stat);
+            TCP_Event(_netmsg, &net_stat);
             if (net_stat.datarec) {
                 result = TCP_Receive(socket, _symbank, ptr, ptrend - ptr, &trans_obj);
                 ptr += trans_obj.transferred;
             }
             if (ptr >= ptrend || net_stat.status == TCP_CLOSING || net_stat.status == TCP_CLOSED)
                 break;
-        } else if (Sys_Counter() > counter) {
+        } else if (Sys_Counter16() > counter) {
             _neterr = ERR_TIMEOUT;
             goto _fail;
         }
@@ -125,14 +108,14 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     }
 
     // close connection
-    result = TCP_Close(socket);
+    result = TCP_Disconnect(socket);
     if (result == -1)
         goto _fail;
     return result;
 
 _fail:
     result = _neterr;
-    TCP_Close(socket);
+    TCP_Disconnect(socket);
     _neterr = result;
     return -1;
 }

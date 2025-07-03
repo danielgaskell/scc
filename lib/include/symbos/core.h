@@ -27,6 +27,7 @@ extern unsigned short Msg_Receive(char rec_pid, char send_pid, char* msg);
 extern void Idle(void);
 
 extern unsigned long Sys_Counter(void);
+extern unsigned short Sys_Counter16(void);
 extern unsigned short Sys_IdleCount(void);
 
 extern signed char _msgpid(void);

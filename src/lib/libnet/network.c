@@ -5,7 +5,7 @@
 _transfer char _netmsg[14];
 unsigned char _netpid;
 unsigned char _neterr;
-unsigned short _nettimeout = 1500;
+unsigned short _nettimeout = 750; // 15 seconds by default
 
 char* _useragent = "User-Agent: NetSCC/1.0 (SymbOS 4.0; CPC)\r\nCache-Control: no-cache\r\n";
 
@@ -24,6 +24,27 @@ signed char Net_Init(void) {
     return -1;
 }
 
+unsigned char Net_Wait(unsigned char id) {
+    unsigned short counter = Sys_Counter16() + _nettimeout;
+    for (;;) {
+        _netmsg[0] = 0;
+        Msg_Receive(_msgpid(), _netpid, _netmsg);
+        if (_netmsg[0]) {
+            if (_netmsg[0] == id) {
+                _neterr = 0;
+                if (_netmsg[2] & 0x01)
+                    _neterr = _netmsg[3];
+                return _neterr;
+            }
+            Msg_Send(_netpid, _msgpid(), _netmsg); // put message back on queue
+        }
+        if (Sys_Counter16() > counter) {
+            _neterr = ERR_TIMEOUT;
+            return _neterr;
+        }
+    }
+}
+
 unsigned char Net_Command(void) {
     unsigned char id = _netmsg[0] + 128;
     if (_netpid == 0) {
@@ -31,23 +52,7 @@ unsigned char Net_Command(void) {
         return ERR_OFFLINE;
     }
     while (Msg_Send(_msgpid(), _netpid, _netmsg) == 0);
-    for (;;) {
-        _netmsg[0] = 0;
-        Msg_Sleep(_msgpid(), _netpid, _netmsg);
-        if (_netmsg[0]) {
-            if (_netmsg[0] == id)
-                break;
-            Msg_Send(_netpid, _msgpid(), _netmsg); // put message back on queue
-            Idle();
-        }
-    }
-    if (_netmsg[2] & 0x01) {
-        _neterr = _netmsg[3];
-        return _neterr;
-    } else {
-        _neterr = 0;
-        return 0;
-    }
+    return Net_Wait(id);
 }
 
 signed char Net_SCommand(void) {

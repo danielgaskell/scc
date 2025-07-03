@@ -15,6 +15,19 @@ _Sys_Counter:
 	ret
 
 ; Multitasking_GetCounter (2)
+.export _Sys_Counter16
+_Sys_Counter16:
+	push ix
+	push iy
+	ld hl,#0x8109
+	rst #0x28
+	push ix
+	pop hl
+	pop iy
+	pop ix
+	ret
+
+; Multitasking_GetCounter (3)
 .export _Sys_IdleCount
 _Sys_IdleCount:
 	push ix

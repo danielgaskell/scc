@@ -8,41 +8,7 @@
 
 // note that the RSF3 M4 implementation only accepts at most 1400-byte frames;
 // older versions of the M4 daemon do this wrong, so we impose this limit here.
-_data char _netpacket[1400];
-
-signed char TCP_OpenClient(unsigned long ip, signed short lport, unsigned short rport) {
-    unsigned char result;
-    _nsemaon();
-    _netmsg[0] = 16;
-    _netmsg[3] = 0;
-    *((unsigned short*)(_netmsg + 6)) = rport;
-    *((unsigned short*)(_netmsg + 8)) = lport;
-    *((unsigned long*)(_netmsg + 10)) = ip;
-    result = Net_Command();
-    if (result) {
-        _nsemaoff();
-        return -1;
-    }
-    result = _netmsg[3]; // connection handle
-    _nsemaoff();
-    return result;
-}
-
-signed char TCP_OpenServer(unsigned short lport) {
-    unsigned char result;
-    _nsemaon();
-    _netmsg[0] = 16;
-    _netmsg[3] = 1;
-    *((unsigned short*)(_netmsg + 8)) = lport;
-    result = Net_Command();
-    if (result) {
-        _nsemaoff();
-        return -1;
-    }
-    result = _netmsg[3]; // connection handle
-    _nsemaoff();
-    return result;
-}
+_transfer char _netpacket[1400];
 
 signed char TCP_Close(unsigned char handle) {
     signed char result;
@@ -54,43 +20,85 @@ signed char TCP_Close(unsigned char handle) {
     return result;
 }
 
-extern char _netmsgsema;
+signed char TCP_OpenWait(signed char handle) {
+    unsigned char status;
+    while (!Net_Wait(159)) {
+        status = _netmsg[8] & 0x1F;
+        if (status == TCP_OPENED) {
+            _nsemaoff();
+            return handle;
+        } else if (status == TCP_CLOSING || status == TCP_CLOSED) {
+            break;
+        }
+        Msg_Send(_netpid, _msgpid(), _netmsg); // neither an open nor close message, put back on queue
+    }
+    TCP_Close(handle);
+    _neterr = ERR_CONNECT;
+    return -1;
+}
 
-void TCP_Event(NetStat* obj) {
-    unsigned char result;
-    obj->bytesrec = *((unsigned short*)(_netmsg + 4));
-    obj->rport = *((unsigned short*)(_netmsg + 6));
-    obj->status = _netmsg[8] & 0x1F;
-    obj->datarec = _netmsg[8] >> 7;
-    obj->ip = *((unsigned long*)(_netmsg + 10));
+signed char TCP_OpenClient(char* ip, signed short lport, unsigned short rport) {
+    _nsemaon();
+    _netmsg[0] = 16;
+    _netmsg[3] = 0;
+    *((unsigned short*)(_netmsg + 6)) = rport;
+    *((unsigned short*)(_netmsg + 8)) = lport;
+    _netmsg[10] = ip[0];
+    _netmsg[11] = ip[1];
+    _netmsg[12] = ip[2];
+    _netmsg[13] = ip[3];
+    if (Net_Command()) {
+        _nsemaoff();
+        return -1;
+    }
+    return TCP_OpenWait(_netmsg[3]);
+}
+
+signed char TCP_OpenServer(unsigned short lport) {
+    _nsemaon();
+    _netmsg[0] = 16;
+    _netmsg[3] = 1;
+    *((unsigned short*)(_netmsg + 8)) = lport;
+    if (Net_Command()) {
+        _nsemaoff();
+        return -1;
+    }
+    return TCP_OpenWait(_netmsg[3]);
+}
+
+void TCP_Event(char* msg, NetStat* obj) {
+    obj->bytesrec = *((unsigned short*)(msg + 4));
+    obj->rport = *((unsigned short*)(msg + 6));
+    obj->status = msg[8] & 0x1F;
+    obj->datarec = msg[8] >> 7;
+    obj->ip[0] = msg[10];
+    obj->ip[1] = msg[11];
+    obj->ip[2] = msg[12];
+    obj->ip[3] = msg[13];
     return;
 }
 
 signed char TCP_Status(unsigned char handle, NetStat* obj) {
-    unsigned char result;
     _nsemaon();
     _netmsg[0] = 18;
     _netmsg[3] = handle;
-    result = Net_Command();
-    if (result) {
+    if (Net_Command()) {
         _nsemaoff();
         return -1;
     }
-    TCP_Event(obj);
+    TCP_Event(_netmsg, obj);
     _nsemaoff();
     return 0;
 }
 
 signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, unsigned short len, TCP_Trans* obj) {
-    unsigned char result;
     _nsemaon();
     _netmsg[0] = 19;
     _netmsg[3] = handle;
     *((unsigned short*)(_netmsg + 4)) = len;
     _netmsg[6] = bank;
     *((unsigned short*)(_netmsg + 8)) = (unsigned short)addr;
-    result = Net_Command();
-    if (result) {
+    if (Net_Command()) {
         _nsemaoff();
         return -1;
     }

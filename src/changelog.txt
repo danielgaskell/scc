@@ -7,6 +7,7 @@ v1.2
 + Added raw image support to libgfx
 + Added Sys_GetConfig()
 + Added Sys_Path() and Sys_Type()
++ Added Sys_Counter16()
 + Added Print_Busy(), Print_Char(), Print_String()
 + Added Win_X() and Win_Y()
 + Added Mouse_Dragging()
@@ -27,6 +28,7 @@ v1.2
 @ Moved atof() from libm to stdlib
 @ Changed Sys_Version() to _sysversion global (now used by crt0)
 @ Win_Open() PID now set correctly for other banks/threads
+@ Changed ip to char[4] for thread-safety in libnet
 @ Moved location of 16-color icon so EXEs compress correctly
 @ Various structs tweaked to better support SymbOS 4.0 features
 

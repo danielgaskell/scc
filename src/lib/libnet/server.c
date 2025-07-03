@@ -11,7 +11,7 @@ _transfer char _servmsg[14];
 char _clientnames[MAX_CLIENTS][CLIENT_NAME_LEN+1];
 unsigned char _clients = 0;
 unsigned char _serv_winID;
-unsigned long _serv_ip;
+char _serv_ip[4];
 unsigned short _serv_port;
 signed char _serv_socket = -1;
 unsigned char _servpid = 0;
@@ -166,11 +166,10 @@ unsigned char Net_ServerWin(void* modalWin, unsigned char clients, unsigned shor
     }
 
     // update IP
-    _serv_ip = Net_PublicIP();
-    if (_serv_ip)
-        iptoa(_serv_ip, _ip_buf);
-    else
+    if (Net_PublicIP(_serv_ip))
         strcpy(_ip_buf, "(lookup failed)");
+    else
+        iptoa(_serv_ip, _ip_buf);
     Win_Redraw_Ext(_serv_winID, 2, 0);
 
     // handle events

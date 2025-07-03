@@ -9,9 +9,8 @@ extern unsigned char _neterr;
 /* SymbOS Network Daemon calls (DNS)                                          */
 /* ========================================================================== */
 
-unsigned long DNS_Resolve(unsigned char bank, char* addr) {
+signed char DNS_Resolve(unsigned char bank, char* addr, char* ip) {
     unsigned char result;
-    unsigned long result2;
     _nsemaon();
     _netmsg[0] = 112;
     _netmsg[6] = bank;
@@ -19,11 +18,14 @@ unsigned long DNS_Resolve(unsigned char bank, char* addr) {
     result = Net_Command();
     if (result) {
         _nsemaoff();
-        return 0;
+        return -1;
     }
-    result2 = *((unsigned long*)(_netmsg + 10));
+    ip[0] = _netmsg[10];
+    ip[1] = _netmsg[11];
+    ip[2] = _netmsg[12];
+    ip[3] = _netmsg[13];
     _nsemaoff();
-    return result2;
+    return 0;
 }
 
 unsigned char DNS_Verify(unsigned char bank, char* addr) {

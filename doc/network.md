@@ -1,6 +1,6 @@
 # Network Library
 
-**Note: The enhanced network library as described below is currently only available in development builds of SymbOS, but `Net_Init()` and the raw TCP/UDP/DNS functions can be found in older releases in the header file `symbos/network.h`.**
+**Note: The network library as described below is currently only available in development builds of SymbOS. Slightly different versions of `Net_Init()` and the raw TCP/UDP/DNS functions can be found in older releases in the header file `symbos/network.h`.**
 
 **Note:** All raw TCP/UDP/DNS functions are thread-safe, but HTTP functions are not. Only one thread should make HTTP requests at a time.
 
@@ -88,7 +88,7 @@ status = HTTP_POST("http://example.com", buffer, sizeof(buffer), 0,
 ### TCP_OpenClient()
 
 ```c
-signed char TCP_OpenClient(unsigned long ip, signed short lport, unsigned short rport);
+signed char TCP_OpenClient(char* ip, signed short lport, unsigned short rport);
 ```
 
 Opens a client TCP connection to the IPv4 address `ip` (formatted as a 32-bit number) on local port `lport`, connecting to remote port `rport`. For client connections, `lport` should usually be set to -1 to obtain a dynamic port number.
@@ -132,9 +132,9 @@ Returns the status of the TCP connection associated with the socket `handle` and
 ```c
 typedef struct {
     unsigned char status;    // status (see below)
-    unsigned long ip;        // remote IP address
+    unsigned char ip[4];     // remote IP address
     unsigned short rport;    // remote port
-	unsigned char datarec;   // 1 = data received, 0 = none
+    unsigned char datarec;   // 1 = data received, 0 = none
     unsigned short bytesrec; // received bytes waiting in buffer
 } NetStat;
 ```
@@ -256,9 +256,9 @@ Returns the status of the UDP session associated with the socket `handle` and st
 ```c
 typedef struct {
     unsigned char status;    // status
-    unsigned long ip;        // remote IP address
+    unsigned char ip[4];     // remote IP address
     unsigned short rport;    // remote port
-	unsigned char datarec;   // n/a
+    unsigned char datarec;   // n/a
     unsigned short bytesrec; // received bytes waiting in buffer
 } NetStat;
 ```
@@ -283,7 +283,7 @@ Moves data which has been received from the remote host associated with socket `
 
 ```c
 signed char UDP_Send(unsigned char handle, char* addr, unsigned short len,
-                     unsigned long ip, unsigned short rport)
+                     char* ip, unsigned short rport)
 ```
 
 Sends a data packet from the memory address `addr` (in the bank specified to `UDP_Open()`) to the host associated with the socket `handle`. If sending fails becaus the buffer is full, the application should idle briefly and try again.
@@ -311,12 +311,12 @@ Skips and throws away a complete packet which has already been received from the
 ### DNS_Resolve()
 
 ```c
-unsigned long DNS_Resolve(unsigned char bank, char* addr);
+signed char DNS_Resolve(unsigned char bank, char* addr, char* ip);
 ```
 
-Performs a DNS lookup and attempts to resolve the host IP/URL stored in the string at bank `bank`, address `addr` into an IPv4 address. (Note that the URL should *not* be prefixed with a protocol like `http://`; the easiest way to guarantee this is to use `Net_SplitURL()` and then run `DNS_Resolve()` only on the extracted hostname.)
+Performs a DNS lookup and attempts to resolve the host IP/URL stored in the string at bank `bank`, address `addr` into an IPv4 address, which will be stored in the 4-byte buffer at `ip`. (Note that the URL should *not* be prefixed with a protocol like `http://`; the easiest way to guarantee this is to use `Net_SplitURL()` and then run `DNS_Resolve()` only on the extracted hostname.)
 
-*Return value*: On success, returns the IPv4 address (as a 32-bit integer). On failure, sets `_neterr` and returns 0.
+*Return value*: On success, stores the IP address in the 4-byte buffer pointed to by `ip` and returns 0. On failure, sets `_neterr` and returns -1.
 
 *SymbOS name*: `DNS_Resolve` (`DNSRSV`).
 
@@ -355,20 +355,20 @@ A utility function that splits the string `url` into its constituent components,
 ### Net_PublicIP()
 
 ```c
-unsigned long Net_PublicIP(void);
+signed char Net_PublicIP(char* ip);
 ```
 
 A utility function that attempts to determine the computer's public-facing IP address (by querying the free AWS service `checkip.amazonaws.com`). This is useful for server programs that need to tell the user what IP address remote clients should try to connect to.
 
-*Return value*: On success, returns an IP address. On failure, sets `_neterr` and returns 0.
+*Return value*: On success, stores the IP address in the 4-byte buffer pointed to by `ip` and returns 0. On failure, sets `_neterr` and returns -1.
 
 ### iptoa()
 
 ```c
-char* iptoa(unsigned long ip, char* dest);
+char* iptoa(char* ip, char* dest);
 ```
 
-Converts the numeric IPv4 address `ip` into a readable string representation in the buffer `dest` (e.g., `192.168.0.1`). `dest` must be at least 16 bytes long.
+Converts the numeric IPv4 address stored in the 4-byte buffer `ip` into a readable string representation in the buffer `dest` (e.g., `192.168.0.1`). `dest` must be at least 16 bytes long.
 
 *Return value*: `dest`.
 

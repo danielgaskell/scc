@@ -302,6 +302,16 @@ Returns the system counter, which increments 50 times per second. This can be us
 
 *SymbOS name*: `Multitasking_GetCounter` (`MTGCNT`).
 
+### Sys_Counter16()
+
+```c
+unsigned short Sys_Counter16(void);
+```
+
+Equivalent to `Sys_Counter()`, but returns only the low 16 bits of the system counter. (This wraps around every 22 minutes, but can be useful when [multithreading](syscall2.md#multithreading) because **long** is not thread-safe.)
+
+*SymbOS name*: `Multitasking_GetCounter` (`MTGCNT`).
+
 ### Sys_IdleCount()
 
 ```c
