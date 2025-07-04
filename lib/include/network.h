@@ -42,6 +42,9 @@
 #define PROTO_POP 8
 #define PROTO_NNTP 9
 
+#define NET_TCPEVT 159
+#define NET_UDPEVT 175
+
 typedef struct {
     unsigned char status;
     unsigned char ip[4];
@@ -73,6 +76,7 @@ extern signed char TCP_Disconnect(unsigned char handle);
 
 extern signed char UDP_Open(unsigned char type, unsigned short lport, unsigned char bank);
 extern signed char UDP_Close(unsigned char handle);
+extern void UDP_Event(char* msg, NetStat* obj);
 extern signed char UDP_Status(unsigned char handle, NetStat* obj);
 extern signed char UDP_Receive(unsigned char handle, char* addr);
 extern signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, char* ip, unsigned short rport);

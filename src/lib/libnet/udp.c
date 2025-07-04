@@ -35,6 +35,16 @@ signed char UDP_Close(unsigned char handle) {
     return 0;
 }
 
+void UDP_Event(char* msg, NetStat* obj) {
+    obj->bytesrec = *((unsigned short*)(msg + 4));
+    obj->rport = *((unsigned short*)(msg + 6));
+    obj->status = msg[8];
+    obj->ip[0] = msg[10];
+    obj->ip[1] = msg[11];
+    obj->ip[2] = msg[12];
+    obj->ip[3] = msg[13];
+}
+
 signed char UDP_Status(unsigned char handle, NetStat* obj) {
     unsigned char result;
     _nsemaon();
@@ -45,13 +55,7 @@ signed char UDP_Status(unsigned char handle, NetStat* obj) {
         _nsemaoff();
         return -1;
     }
-    obj->bytesrec = *((unsigned short*)(_netmsg + 4));
-    obj->rport = *((unsigned short*)(_netmsg + 6));
-    obj->status = _netmsg[8];
-    obj->ip[0] = _netmsg[10];
-    obj->ip[1] = _netmsg[11];
-    obj->ip[2] = _netmsg[12];
-    obj->ip[3] = _netmsg[13];
+    UDP_Event(_netmsg, obj);
     _nsemaoff();
     return 0;
 }

@@ -52,7 +52,7 @@ int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers,
              unsigned char bodyonly);
 ```
 
-Executes a complete HTTP GET request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`, which should be in the **data** or **transfer** segment. A maximum of `maxlen` characters will be written, discarding any extra. If `bodyonly` is nonzero, the HTTP headers will be stripped from the response, leaving only the response data. (Note that `maxlen` initially includes the space required to retrieve the headers, so when `bodyonly` is nonzero, the final length of the retrieved response may be less than `maxlen`.)
+Executes a complete HTTP GET request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `bodyonly` is nonzero, the HTTP headers will be stripped from the response, leaving only the response data. (Note that `maxlen` initially includes the space required to retrieve the headers, so when `bodyonly` is nonzero, the final length of the retrieved response may be less than `maxlen`.)
 
 `headers` can be optionally used to specify additional HTTP header requests in the outgoing request (use 0 for no custom headers). Each custom header line should be followed by the HTTP-standard line break `\r\n` (even the last one):
 
@@ -70,9 +70,9 @@ int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers,
               char* body, unsigned short bodylen, unsigned char bodyonly);
 ```
 
-Executes a complete HTTP POST request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`, which should be in the **data** or **transfer** segment. A maximum of `maxlen` characters will be written, discarding any extra. If `bodyonly` is nonzero, the HTTP headers will be stripped from the response, leaving only the response data. (Note that `maxlen` initially includes the space required to retrieve the headers, so when `bodyonly` is nonzero, the final length of the retrieved response may be less than `maxlen`.)
+Executes a complete HTTP POST request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `bodyonly` is nonzero, the HTTP headers will be stripped from the response, leaving only the response data. (Note that `maxlen` initially includes the space required to retrieve the headers, so when `bodyonly` is nonzero, the final length of the retrieved response may be less than `maxlen`.)
 
-POST data is passed in the buffer `body`, where `bodylen` is the length of the buffer. (It is necessary to specify the buffer length manually because POST requests may include binary data.)
+POST data are passed in the buffer `body`, where `bodylen` is the length of the buffer. (It is necessary to specify `bodylen` manually because POST requests may include binary data.)
 
 `headers` can be optionally used to specify additional HTTP header requests in the outgoing request (use 0 for no custom headers). Each custom header line should be followed by the HTTP-standard line break `\r\n` (even the last one).
 
@@ -85,13 +85,22 @@ status = HTTP_POST("http://example.com", buffer, sizeof(buffer), 0,
 
 ## TCP functions
 
+TCP is the primary low-level network protocol supported by SymbOS network hardware and underlies other protocols such as Telnet, HTTP, and FTP. In a TCP connection, a **client** requests to establish a two-way connection with a **server** (located at a specific IPv4 address and port number). Once established, both parties can send and receive streams of data, with the network hardware ensuring that the streams are delivered completely, correctly, and in the right order. The connection remains open until it is closed by one party (e.g., at the end of a Telnet session or HTTP request).
+
+* To open a TCP connection, use `TCP_OpenClient()` or `TCP_OpenServer()`.
+* Once open, data can be sent to the other party at any time with `TCP_Send()`.
+* The network daemon will alert us to the arrival of new data (or a change in connection status) by sending message ID `NET_TCPEVT`. We can watch for this message in our main event loop and use `TCP_Event()` to understand its contents.
+	* When `TCP_Event()` yields `NetStat.datarec` = 1, incoming data bytes are waiting; we can download them into a buffer using `TCP_Receive()`.
+	* When `TCP_Event()` yields `NetStat.status` = `TCP_CLOSED`, the remote server has closed the connection and we can free the socket with `TCP_Close()`.
+* To disconnect from our end, use `TCP_Disconnect()`.
+
 ### TCP_OpenClient()
 
 ```c
 signed char TCP_OpenClient(char* ip, signed short lport, unsigned short rport);
 ```
 
-Opens a client TCP connection to the IPv4 address `ip` (formatted as a 32-bit number) on local port `lport`, connecting to remote port `rport`. For client connections, `lport` should usually be set to -1 to obtain a dynamic port number.
+Opens a client TCP connection to the IPv4 address `ip` (stored in a 4-byte buffer, one byte per octet) on local port `lport`, connecting to remote port `rport`. (For client connections, `lport` should usually be set to -1 to obtain a dynamic port number.) The function will then wait for the socket status to become `TCP_OPENED`, indicating a successful connection. (If the server refuses the connection, this function will fail with `_neterr` = `ERR_CONNECT`.)
 
 *Return value*: On success, returns a socket handle to the new connection. On failure, sets `_neterr` and returns -1.
 
@@ -103,31 +112,19 @@ Opens a client TCP connection to the IPv4 address `ip` (formatted as a 32-bit nu
 signed char TCP_OpenServer(unsigned short lport);
 ```
 
-Opens a server TCP connection on local port `lport`.
+Opens a TCP server listening on local port `lport`.
 
-*Return value*: On success, returns a socket handle to the new connection. On failure, sets `_neterr` and returns -1.
+*Return value*: On success, returns a socket handle to the new server. On failure, sets `_neterr` and returns -1.
 
 *SymbOS name*: `TCP_Open` (`TCPOPN`).
 
-### TCP_Close()
+### TCP_Event()
 
 ```c
-signed char TCP_Close(unsigned char handle);
+void TCP_Event(char* msg, NetStat* obj);
 ```
 
-Closes and releases the TCP connection associated with the socket `handle`, without first sending a disconnect signal. (This is intended for when the remote host has already closed the connection with us; see also `TCP_Disconnect()`.)
-
-*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
-
-*SymbOS name*: `TCP_Close` (`TCPCLO`).
-
-### TCP_Status()
-
-```c
-signed char TCP_Status(unsigned char handle, NetStat* obj);
-```
-
-Returns the status of the TCP connection associated with the socket `handle` and stores the results in the `NetStat` struct `obj`, which has the format:
+A utility function for parsing a `NET_TCPEVT` message into a readable status report. `msg` is the address of the 14-byte message buffer containing the message; `obj` is the address of a `NetStat` struct to store the results, with the format:
 
 ```c
 typedef struct {
@@ -141,33 +138,17 @@ typedef struct {
 
 `status` may be one of `TCP_OPENING`, `TCP_OPENED`, `TCP_CLOSING`, or `TCP_CLOSED`.
 
+### TCP_Status()
+
+```c
+signed char TCP_Status(unsigned char handle, NetStat* obj);
+```
+
+Returns the status of the TCP connection associated with the socket `handle` and stores the results in the `NetStat` struct `obj` (see `TCP_Event()`). This is equivalent to `TCP_Event()` but can be used to query the status of the connection at any time, not just after receiving a `NET_TCPEVT` message.
+
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
 *SymbOS name*: `TCP_Status` (`TCPSTA`).
-
-### TCP_Receive()
-
-```c
-signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr,
-                        unsigned short len, TCP_Trans* obj);
-```
-
-Moves data which has been received from the remote host associated with socket `handle` to the memory at bank `bank`, address `addr`, which should be in the **data** or **transfer** segment. Up to `len` bytes will be moved (or the actual amount in the buffer, whichever is less).
-
-`obj` is an optional pointer to a `TCP_Trans` struct, into which additional information about the transfer will be loaded. This parameter may be set to NULL to omit this information. The structure of the struct is:
-
-```c
-typedef struct {
-    unsigned short transferred;  // bytes transferred to destination
-    unsigned short remaining;    // bytes remaining in the buffer
-} TCP_Trans;
-```
-
-A subtlety: Note that setting `len` to the total number of available bytes and calling `TCP_Receive()` is not guaranteed to leave the buffer empty, because the network daemon can receive additional bytes at any time. The main situation where this matters is when the app wants to empty the buffer and wait for a message from the network daemon alerting it when new data arrives. However, the network daemon will only send such a message when adding data *to an empty buffer*, so if the initial `TCP_Receive()` call does not actually empty the buffer completely, no message will arrive. One way to avoid this is to check the returned `TCP_Trans.remaining` value and keep calling `TCP_Receive()` until this value is actually zero; alternatively, the app can not rely on receiving a message.
-
-*Return value*: On success, returns 0 and loads information into `obj`, if specified. On failure, sets `_neterr` and returns -1.
-
-*SymbOS name*: `TCP_Receive` (`TCPRCV`).
 
 ### TCP_Send()
 
@@ -180,6 +161,36 @@ Sends data from memory bank `bank`, address `addr`, to the host associated with 
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
 *SymbOS name*: `TCP_Send` (`TCPSND`).
+
+### TCP_Receive()
+
+```c
+signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr,
+                        unsigned short len, TCP_Trans* obj);
+```
+
+Moves data which has been received from the remote host associated with socket `handle` to the memory at bank `bank`, address `addr`. Up to `len` bytes will be moved (or the actual amount in the buffer, whichever is less).
+
+`obj` is an optional pointer to a `TCP_Trans` struct, into which additional information about the transfer will be loaded. This parameter may be set to NULL to omit this information. The structure of the struct is:
+
+```c
+typedef struct {
+    unsigned short transferred;  // bytes transferred to destination
+    unsigned short remaining;    // bytes remaining in the buffer
+} TCP_Trans;
+```
+
+A few subtleties:
+
+* Note that setting `len` to the total number of available bytes and calling `TCP_Receive()` is not guaranteed to leave the buffer empty, because the network daemon can receive additional bytes at any time. The main situation where this matters is when the app wants to empty the buffer and wait for a `NET_TCPEVT` message from the network daemon alerting it when new data arrives. However, the network daemon will only send a `NET_TCPEVT` message when adding data *to an empty buffer*, so if the initial `TCP_Receive()` call does not actually empty the buffer completely, no message will arrive. One way to avoid this is to check the returned `TCP_Trans.remaining` value and keep calling `TCP_Receive()` until this value is actually zero; alternatively, the app can not rely on receiving a message.
+
+* Note that, because TCP data are sent as a continuous stream, fully clearing the TCP buffer does *not* necessarily mean that we have processed all the data the other party intends to send! It is the program's responsibility to understand (from the content of the data stream) when a pause in receiving data means "request finished, please process it" versus "more data coming soon, please wait." Likewise, we need to be careful about assuming that any given call of `TCP_Receive()` will yield a "complete" response, as incoming data may arrive discontinuously and split into chunks of any size (most often 1460 or 2048 bytes, but potentially as small as 1 byte each).
+
+* Some older daemon versions contained a bug that implicitly required `addr` to be in the **data** or **transfer** segments. While this has been fixed, if the buffer is small, you may consider putting it in these segments for maximum compatibility.
+
+*Return value*: On success, returns 0 and loads information into `obj`, if specified. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Receive` (`TCPRCV`).
 
 ### TCP_Skip()
 
@@ -217,9 +228,25 @@ Sends a disconnect signal to the remote host associated with the socket `handle`
 
 *SymbOS name*: `TCP_Disconnect` (`TCPDIS`).
 
+### TCP_Close()
+
+```c
+signed char TCP_Close(unsigned char handle);
+```
+
+Closes and releases the TCP connection associated with the socket `handle`, without first sending a disconnect signal. (This is intended for when the remote host has already closed the connection with us; see also `TCP_Disconnect()`.)
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Close` (`TCPCLO`).
+
 ## UDP functions
 
-**Warning**: UDP functions are not available on all devices. In particular, the M4 Board does not provide UDP; `UDP_Open()` will always fail with an error when used on this device.
+UDP is a simple "connectionless" protocol that allows raw packets to be sent and received from arbitrary IP addresses. Unlike TCP, no connection is negotiated, and the network hardware does not verify that sent packets are actually delivered (or delivered in the right order). This makes UDP most suitable for use-cases like a multiplayer game, where we may want to receive status updates from an arbitrary number of other players without it mattering very much if an individual packet gets lost.
+
+We can open a UDP session with `UDP_Open()`. When a UDP packet arrives on an open session, the network daemon will send message ID `NET_UDPEVT`, which we can process using `UDP_Event()`.
+
+**Warning**: UDP functions are not available on all devices. In particular, the M4 Board (the most common network hardware for Amstrad CPC) does not provide UDP; `UDP_Open()` will always fail with an error when used on this device.
 
 ### UDP_Open()
 
@@ -233,25 +260,13 @@ Opens a UDP session on local port `lport`. Data for this session will be stored 
 
 *SymbOS name*: `UDP_Open` (`UDPOPN`).
 
-### UDP_Close()
+### UDP_Event()
 
 ```c
-signed char UDP_Close(unsigned char handle);
+void UDP_Event(char* msg, NetStat* obj);
 ```
 
-Closes and releases the UDP session associated with the socket `handle`.
-
-*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
-
-*SymbOS name*: `UDP_Close` (`UDPCLO`).
-
-### UDP_Status()
-
-```c
-signed char UDP_Status(unsigned char handle, NetStat* obj);
-```
-
-Returns the status of the UDP session associated with the socket `handle` and stores the results in the `NetStat` struct `obj`, which has the same format as for `TCP_Status()`:
+A utility function for parsing a `NET_UDPEVT` message into a readable status report. `msg` is the address of the 14-byte message buffer containing the message; `obj` is the address of a `NetStat` struct to store the results, which has the same format as for `TCP_Status()`:
 
 ```c
 typedef struct {
@@ -263,21 +278,17 @@ typedef struct {
 } NetStat;
 ```
 
+### UDP_Status()
+
+```c
+signed char UDP_Status(unsigned char handle, NetStat* obj);
+```
+
+Returns the status of the UDP connection associated with the socket `handle` and stores the results in the `NetStat` struct `obj` (see `UDP_Event()`). This is equivalent to `UDP_Event()` but can be used to query the status of the connection at any time, not just after receiving a `NET_UDPEVT` message.
+
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
 *SymbOS name*: `UDP_Status` (`UDPSTA`).
-
-### UDP_Receive()
-
-```c
-signed char UDP_Receive(unsigned char handle, char* addr);
-```
-
-Moves data which has been received from the remote host associated with socket `handle` to the memory at address `addr` (in the bank specified to `UDP_Open()`). The entire packet will be transferred at once, so be sure that there is enough space for an entire packet at the destination address. UDP packets have a theoretical limit of 65507 bytes, but we can also check how much data is waiting with `UDP_Status()`.
-
-*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
-
-*SymbOS name*: `UDP_Receive` (`UDPRCV`).
 
 ### UDP_Send()
 
@@ -286,13 +297,23 @@ signed char UDP_Send(unsigned char handle, char* addr, unsigned short len,
                      char* ip, unsigned short rport)
 ```
 
-Sends a data packet from the memory address `addr` (in the bank specified to `UDP_Open()`) to the host associated with the socket `handle`. If sending fails becaus the buffer is full, the application should idle briefly and try again.
-
-`obj` is an optional pointer to a `TCP_Trans` struct, into which additional information about the transfer will be loaded. This parameter may be set to NULL to omit this information. The structure of the struct is:
+Sends a data packet from the memory address `addr` (in the bank specified in `UDP_Open()` for this session) to the IP address stored in the 4-byte buffer `ip`, using the UDP session with the socket `handle`. If sending fails because the buffer is full, the application should idle briefly and try again.
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
 *SymbOS name*: `UDP_Send` (`UDPSND`).
+
+### UDP_Receive()
+
+```c
+signed char UDP_Receive(unsigned char handle, char* addr);
+```
+
+Moves data which has been received on the UDP session with the socket `handle` to the memory at address `addr` (in the bank specified in `UDP_Open()` for this session). The entire packet will be transferred at once, so be sure that there is enough space for an entire packet at the destination address. (UDP packets have a theoretical limit of 65507 bytes, but we can also check how much data is waiting with `UDP_Event()` or `UDP_Status()`.)
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `UDP_Receive` (`UDPRCV`).
 
 ### UDP_Skip()
 
@@ -300,11 +321,23 @@ Sends a data packet from the memory address `addr` (in the bank specified to `UD
 signed char UDP_Skip(unsigned char handle);
 ```
 
-Skips and throws away a complete packet which has already been received from the host associated with the socket `handle`.
+Skips and throws away a complete packet which has already been received on the UDP session with the socket `handle`.
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
 *SymbOS name*: `UDP_Skip` (`UDPSKP`).
+
+### UDP_Close()
+
+```c
+signed char UDP_Close(unsigned char handle);
+```
+
+Closes and releases the UDP session associated with the socket `handle`.
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `UDP_Close` (`UDPCLO`).
 
 ## DNS functions
 
@@ -348,7 +381,15 @@ Displays a message box with the current error in `_neterr`, if any. `modalWin` s
 signed char Net_SplitURL(char* url, char* host, char** path, int* port);
 ```
 
-A utility function that splits the string `url` into its constituent components, writing the hostname to the buffer at `host`, the address of the path/query string to the variable passed by reference as `path`, and the port number to the variable passed by reference as `port`. The buffer `host` should be at least 65 bytes long.
+A utility function that splits the string `url` (containing a URL) into its constituent components, writing the hostname to the buffer `host`, the address of the path/query string to the variable passed by reference as `path`, and the port number to the variable passed by reference as `port`. The buffer `host` should be at least 65 bytes long.
+
+For example, the URL `http://example.com:8080/path?id=1` would be split into:
+
+* `host`: `example.com`
+* `path`: address of `path?id=1` in `url`
+* `port`: 8080
+
+If not explicitly specified in the URL, `Net_SplitURL()` will attempt to determine a default port number from the detected protocol (e.g., port 80 for HTTP).
 
 *Return value*: On success, returns the identified protocol (one of `PROTO_OTHER`, `PROTO_HTTPS`, `PROTO_HTTP`, `PROTO_FTP`, `PROTO_IRC`, `PROTO_SFTP`, `PROTO_FILE`, `PROTO_IMAP`, `PROTO_POP`, or `PROTO_NNTP`). On failure, sets `_neterr` = `ERR_BADDOMAIN` and returns -1.
 
