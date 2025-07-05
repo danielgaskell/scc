@@ -9,4 +9,6 @@ dns.o
 iptostr.o
 error.o
 network.o
+skip.o
+packet.o
 semaphor.o

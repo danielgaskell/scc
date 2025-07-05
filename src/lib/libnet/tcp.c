@@ -6,12 +6,9 @@
 /* SymbOS Network Daemon calls (TCP)                                          */
 /* ========================================================================== */
 
-// note that the RSF3 M4 implementation only accepts at most 1400-byte frames;
-// older versions of the M4 daemon do this wrong, so we impose this limit here.
-_transfer char _netpacket[1400];
-
 signed char TCP_Close(unsigned char handle) {
     signed char result;
+    Net_SkipMsg(handle); // flush remaining messages pertaining to this handle
     _nsemaon();
     _netmsg[0] = 17;
     _netmsg[3] = handle;
@@ -22,16 +19,19 @@ signed char TCP_Close(unsigned char handle) {
 
 signed char TCP_OpenWait(signed char handle) {
     unsigned char status;
-    while (!Net_Wait(159)) {
-        status = _netmsg[8] & 0x1F;
-        if (status == TCP_OPENED) {
-            _nsemaoff();
-            return handle;
-        } else if (status == TCP_CLOSING || status == TCP_CLOSED) {
-            break;
+    while (!Net_Wait(NET_TCPEVT)) {
+        if (_netmsg[3] == handle) {
+            status = _netmsg[8] & 0x1F;
+            if (status == TCP_OPENED) {
+                _nsemaoff();
+                return handle;
+            } else if (status == TCP_CLOSING || status == TCP_CLOSED) {
+                break;
+            }
         }
-        Msg_Send(_netpid, _msgpid(), _netmsg); // neither an open nor close message, put back on queue
+        Msg_Send(_netpid, _msgpid(), _netmsg); // neither an open nor close message for this socket, put back on queue
     }
+    _nsemaoff();
     TCP_Close(handle);
     _neterr = ERR_CONNECT;
     return -1;
@@ -67,6 +67,7 @@ signed char TCP_OpenServer(unsigned short lport) {
 }
 
 void TCP_Event(char* msg, NetStat* obj) {
+    obj->socket = msg[3];
     obj->bytesrec = *((unsigned short*)(msg + 4));
     obj->rport = *((unsigned short*)(msg + 6));
     obj->status = msg[8] & 0x1F;
@@ -75,7 +76,6 @@ void TCP_Event(char* msg, NetStat* obj) {
     obj->ip[1] = msg[11];
     obj->ip[2] = msg[12];
     obj->ip[3] = msg[13];
-    return;
 }
 
 signed char TCP_Status(unsigned char handle, NetStat* obj) {
@@ -112,17 +112,13 @@ signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, un
 
 signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len) {
     unsigned short transferred;
-    unsigned short packetlen;
     _nsemaon();
     for (;;) {
         _netmsg[0] = 20;
         _netmsg[3] = handle;
-        packetlen = len > sizeof(_netpacket) ? sizeof(_netpacket) : len;
-        if (bank != _symbank || addr != _netpacket)
-            Bank_Copy(_symbank, _netpacket, bank, addr, packetlen);
-        *((unsigned short*)(_netmsg + 4)) = packetlen;
-        _netmsg[6] = _symbank;
-        *((unsigned short*)(_netmsg + 8)) = (unsigned short)_netpacket;
+        *((unsigned short*)(_netmsg + 4)) = len;
+        _netmsg[6] = bank;
+        *((unsigned short*)(_netmsg + 8)) = (unsigned short)addr;
         if (Net_Command()) {
             _nsemaoff();
             return -1;
@@ -160,6 +156,7 @@ signed char TCP_Flush(unsigned char handle) {
 
 signed char TCP_Disconnect(unsigned char handle) {
     signed char result;
+    Net_SkipMsg(handle); // flush remaining messages pertaining to this handle
     _nsemaon();
     _netmsg[0] = 23;
     _netmsg[3] = handle;

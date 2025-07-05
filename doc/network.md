@@ -2,7 +2,7 @@
 
 **Note: The network library as described below is currently only available in development builds of SymbOS. Slightly different versions of `Net_Init()` and the raw TCP/UDP/DNS functions can be found in older releases in the header file `symbos/network.h`.**
 
-**Note:** All raw TCP/UDP/DNS functions are thread-safe, but HTTP functions are not. Only one thread should make HTTP requests at a time.
+**Note:** All network functions are thread-safe.
 
 ## Contents
 
@@ -49,10 +49,10 @@ Initializes the network interface, if present. This should be called before usin
 
 ```c
 int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers,
-             unsigned char bodyonly);
+             unsigned char keep_headers);
 ```
 
-Executes a complete HTTP GET request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `bodyonly` is nonzero, the HTTP headers will be stripped from the response, leaving only the response data. (Note that `maxlen` initially includes the space required to retrieve the headers, so when `bodyonly` is nonzero, the final length of the retrieved response may be less than `maxlen`.)
+Executes a complete HTTP GET request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `maxlen` = `HTTP_FILE`, `dest` will instead be treated as the absolute path of a file to save the response to (with no length limit). If `keep_headers` is nonzero, the response will include the full HTTP headers as well as the body content.
 
 `headers` can be optionally used to specify additional HTTP header requests in the outgoing request (use 0 for no custom headers). Each custom header line should be followed by the HTTP-standard line break `\r\n` (even the last one):
 
@@ -61,27 +61,38 @@ status = HTTP_GET("http://numbersapi.com", buffer, sizeof(buffer),
                   "Accept: text/plain\r\nAccept-Language: en-US\r\n", 1);
 ```
 
-*Return value*: On success, writes the response to `buffer` and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
+*Return value*: On success, writes the response to `buffer` (or the file indicated by `buffer`) and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
 
 ### HTTP_POST()
 
 ```c
 int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers,
-              char* body, unsigned short bodylen, unsigned char bodyonly);
+              char* body, unsigned short bodylen, unsigned char keep_headers);
 ```
 
-Executes a complete HTTP POST request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `bodyonly` is nonzero, the HTTP headers will be stripped from the response, leaving only the response data. (Note that `maxlen` initially includes the space required to retrieve the headers, so when `bodyonly` is nonzero, the final length of the retrieved response may be less than `maxlen`.)
+Executes a complete HTTP POST request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `maxlen` = `HTTP_FILE`, `dest` will instead be treated as the absolute path of a file to save the response to (with no length limit). If `keep_headers` is nonzero, the response will include the full HTTP headers as well as the body content.
 
 POST data are passed in the buffer `body`, where `bodylen` is the length of the buffer. (It is necessary to specify `bodylen` manually because POST requests may include binary data.)
 
 `headers` can be optionally used to specify additional HTTP header requests in the outgoing request (use 0 for no custom headers). Each custom header line should be followed by the HTTP-standard line break `\r\n` (even the last one).
 
 ```c
-status = HTTP_POST("http://example.com", buffer, sizeof(buffer), 0,
-                   "username=test&password=123", 26, 1);
+status = HTTP_POST("http://example.com", "A:\\EXAMPLE.HTM", HTTP_FILE,
+                   0, "username=test&password=123", 26, 1);
 ```
 
 *Return value*: On success, writes the response to `buffer` and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
+
+### Proxy servers
+
+By default, HTTP functions support only unencrypted connections (URLs beginning with `http://`). Native support for SSL-encrypted connections (URLs beginning with `https://`) is not practical on 8-bit hardware. However, it is possible to access HTTPS sites by using a modern go-between computer running a web proxy such as [WebOne](https://github.com/atauenis/webone). To route requests through a proxy, place the IP address of the proxy computer into the global buffer `_http_proxy_ip` (using, e.g., `DNS_Resolve()`) and the proxy's port into the global variable `_http_proxy_port`, e.g.:
+
+```c
+DNS_Resolve(_symbank, "192.168.0.19", _http_proxy_ip);
+_http_proxy_port = 1234;
+```
+
+To turn off proxy use again, clear `_http_proxy_ip` to all zeros. (For user applications, we should presumably provide a way for the user to specify their own proxy details.)
 
 ## TCP functions
 
@@ -128,6 +139,7 @@ A utility function for parsing a `NET_TCPEVT` message into a readable status rep
 
 ```c
 typedef struct {
+    unsigned char socket;    // socket this message pertains to
     unsigned char status;    // status (see below)
     unsigned char ip[4];     // remote IP address
     unsigned short rport;    // remote port
@@ -270,6 +282,7 @@ A utility function for parsing a `NET_UDPEVT` message into a readable status rep
 
 ```c
 typedef struct {
+    unsigned char socket;    // socket this message pertains to
     unsigned char status;    // status
     unsigned char ip[4];     // remote IP address
     unsigned short rport;    // remote port
@@ -401,7 +414,17 @@ signed char Net_PublicIP(char* ip);
 
 A utility function that attempts to determine the computer's public-facing IP address (by querying the free AWS service `checkip.amazonaws.com`). This is useful for server programs that need to tell the user what IP address remote clients should try to connect to.
 
+**Note**: This function is larger that one might expect because it pulls in the full HTTP-handling portion of the library.
+
 *Return value*: On success, stores the IP address in the 4-byte buffer pointed to by `ip` and returns 0. On failure, sets `_neterr` and returns -1.
+
+### Net_SkipMsg()
+
+```c
+void Net_SkipMsg(signed char handle);
+```
+
+A utility function that removes all remaining `NET_TCPEVT` or `NET_UDPEVT` messages pertaining to the socket `handle` from the message queue. This is mainly used internally, but can be useful to keep the ring buffer from overflowing in apps that only selectively ingest certain event messages, putting the rest back on the queue. (If you don't know what that means, you probably don't need to worry about this.)
 
 ### iptoa()
 
@@ -434,4 +457,5 @@ The following errors are primarily issued by the network interface (stored in `_
 * `ERR_RECURSION`: Recursion not supported
 * `ERR_TRUNCATED`: Truncated response
 * `ERR_TOOLARGE`: Packet too large
-* `ERR_CONNECT`: TCP connection not yet established
+* `ERR_CONNECT`: TCP connection not established (or not yet established)
+* `ERR_NETFILE`: File error while performing network operation; check `_fileerr`

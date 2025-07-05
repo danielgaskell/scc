@@ -1,7 +1,7 @@
 #include <symbos.h>
 #include <network.h>
 
-char* _neterrstr[25] = {
+char* _neterrstr[26] = {
     "Undefined",
     "No network hardware",
     "No IP configuration",
@@ -18,7 +18,8 @@ char* _neterrstr[25] = {
     "Recursion not supported",
     "Truncated response",
     "Packet too large", "", "", "",
-    "Connection not yet established"};
+    "Connection not established",
+    "File error"};
 
 void Net_ErrMsg(void* modalWin) {
     char* str;

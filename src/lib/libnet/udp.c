@@ -25,6 +25,7 @@ signed char UDP_Open(unsigned char type, unsigned short lport, unsigned char ban
 
 signed char UDP_Close(unsigned char handle) {
     unsigned char result;
+    Net_SkipMsg(handle);
     _nsemaon();
     _netmsg[0] = 33;
     _netmsg[3] = handle;
@@ -36,6 +37,7 @@ signed char UDP_Close(unsigned char handle) {
 }
 
 void UDP_Event(char* msg, NetStat* obj) {
+    obj->socket = msg[3];
     obj->bytesrec = *((unsigned short*)(msg + 4));
     obj->rport = *((unsigned short*)(msg + 6));
     obj->status = msg[8];

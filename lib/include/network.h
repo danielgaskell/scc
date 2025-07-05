@@ -21,6 +21,7 @@
 #define ERR_TRUNCATED 19
 #define ERR_TOOLARGE 20
 #define ERR_CONNECT 24
+#define ERR_NETFILE 25
 
 #define TCP_OPENING 1
 #define TCP_OPENED 2
@@ -30,6 +31,8 @@
 #define DNS_INVALID 0
 #define DNS_IP 1
 #define DNS_DOMAIN 2
+
+#define HTTP_FILE 0
 
 #define PROTO_OTHER 0
 #define PROTO_HTTPS 1
@@ -46,6 +49,7 @@
 #define NET_UDPEVT 175
 
 typedef struct {
+    unsigned char socket;
     unsigned char status;
     unsigned char ip[4];
     unsigned short rport;
@@ -85,12 +89,15 @@ extern signed char UDP_Skip(unsigned char handle);
 extern signed char DNS_Resolve(unsigned char bank, char* addr, char* ip);
 extern unsigned char DNS_Verify(unsigned char bank, char* addr);
 
-extern int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char bodyonly);
-extern int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers, char* body, unsigned short bodylen, unsigned char bodyonly);
+extern char _http_proxy_ip[4];
+extern int _http_proxy_port;
+extern int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char keep_headers);
+extern int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers, char* body, unsigned short bodylen, unsigned char keep_headers);
 
 extern void Net_ErrMsg(void* modalWin);
 extern signed char Net_SplitURL(char* url, char* host, char** path, int* port);
 extern signed char Net_PublicIP(char* ip);
+extern void Net_SkipMsg(signed char handle);
 extern unsigned char Net_ServerWin(void* modalWin, unsigned char clients, unsigned short port, unsigned short bufsize);
 
 extern void Chat_Init(void* box_ctrl);
