@@ -61,7 +61,7 @@ status = HTTP_GET("http://numbersapi.com", buffer, sizeof(buffer),
                   "Accept: text/plain\r\nAccept-Language: en-US\r\n", 1);
 ```
 
-*Return value*: On success, writes the response to `buffer` (or the file indicated by `buffer`) and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
+*Return value*: On success, writes the response to the buffer `dest` (or the file indicated by `dest`) and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
 
 ### HTTP_POST()
 
@@ -81,18 +81,18 @@ status = HTTP_POST("http://example.com", "A:\\EXAMPLE.HTM", HTTP_FILE,
                    0, "username=test&password=123", 26, 1);
 ```
 
-*Return value*: On success, writes the response to `buffer` and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
+*Return value*: On success, writes the response to the buffer `dest` (or the file indicated by `dest`) and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
 
 ### Proxy servers
 
-By default, HTTP functions support only unencrypted connections (URLs beginning with `http://`). Native support for SSL-encrypted connections (URLs beginning with `https://`) is not practical on 8-bit hardware. However, it is possible to access HTTPS sites by using a modern go-between computer running a web proxy such as [WebOne](https://github.com/atauenis/webone). To route requests through a proxy, place the IP address of the proxy computer into the global buffer `_http_proxy_ip` (using, e.g., `DNS_Resolve()`) and the proxy's port into the global variable `_http_proxy_port`, e.g.:
+By default, HTTP functions support only unencrypted connections (URLs beginning with `http://`). Native support for SSL-encrypted connections (URLs beginning with `https://`) is not practical on 8-bit hardware. However, it is possible to access HTTPS sites by using a modern go-between computer running a web proxy such as [WebOne](https://github.com/atauenis/webone). To route requests through a proxy, place the IP address of the proxy computer into the global buffer `_http_proxy_ip` (using, e.g., `DNS_Resolve()`) and the proxy's port into the global variable `_http_proxy_port`. For example:
 
 ```c
 DNS_Resolve(_symbank, "192.168.0.19", _http_proxy_ip);
 _http_proxy_port = 1234;
 ```
 
-To turn off proxy use again, clear `_http_proxy_ip` to all zeros. (For user applications, we should presumably provide a way for the user to specify their own proxy details.)
+(In practice, of course, it is bad practice to hard-code proxy addresses like this---this should be a setting the user can edit, so the app can keep working even if the original proxy server goes down.) To stop routing requests through a proxy, clear `_http_proxy_ip` to all zeros.
 
 ## TCP functions
 
