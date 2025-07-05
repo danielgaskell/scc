@@ -105,6 +105,8 @@ TCP is the primary low-level network protocol supported by SymbOS network hardwa
 	* When `TCP_Event()` yields `NetStat.status` = `TCP_CLOSED`, the remote server has closed the connection and we can free the socket with `TCP_Close()`.
 * To disconnect from our end, use `TCP_Disconnect()`.
 
+For a complete example of implementing a TCP connection, see `fast.c` in the **sample** folder.
+
 ### TCP_OpenClient()
 
 ```c

@@ -1,0 +1,1 @@
+cc -V -h 0 -N "Speed Test" -o fast.com fast.c -lnet
