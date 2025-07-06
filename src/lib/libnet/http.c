@@ -217,6 +217,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
                         }
                     }
                     ptr = _netpacket;
+                    counter = Sys_Counter16() + _nettimeout; // reset timeout after packet receipt
                     if (!trans_obj.remaining)
                         break;
                     if (_http_interrupt)
