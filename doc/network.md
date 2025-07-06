@@ -26,7 +26,7 @@ To use the library, include the `network.h` header:
 Additionally, use the `-lnet` option when compiling to specify that the executable should be linked with the network library `libnet.a`:
 
 ```bash
-cc source.c -net
+cc source.c -lnet
 ```
 
 Network capabilities are only available if an appropriate network daemon is running. Use `Net_Init()` to initialize the network and connect to the daemon.
