@@ -7,7 +7,9 @@
 
 char _http_proxy_ip[4] = {0, 0, 0, 0};
 int _http_proxy_port = 1234;
-char _http_semaphore = 0;
+signed char _http_progress;
+unsigned char _http_interrupt;
+unsigned char _http_semaphore = 0;
 char* _match_http = "HTTP/1.1 ";
 char* _match_len = "\r\nCONTENT-LENGTH:";
 char* _match_crlf = "\r\n\r\n";
@@ -18,7 +20,8 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     unsigned short counter;
     unsigned short packetlen;
     unsigned short buffer_left;
-    int content_len;
+    unsigned short content_len;
+    unsigned short content_received;
     signed char socket;
     int result;
     int port;
@@ -38,6 +41,8 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
 
     // setup
     fd = 8;
+    _http_interrupt = 0;
+    _http_progress = HTTP_LOOKUP;
     if (maxlen) {
         --maxlen; // to leave room for zero-terminator
         *dest = 0;
@@ -67,6 +72,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
         _http_semaphore = 0;
         return -1;
     }
+    _http_progress = HTTP_CONNECTING;
 
     // open connection
     socket = TCP_OpenClient(ip, -1, 80);
@@ -74,6 +80,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
         _http_semaphore = 0;
         return -1;
     }
+    _http_progress = HTTP_SENDING;
 
     // send message
     strcpy(_netpacket, type ? "POST /" : "GET /" );
@@ -101,6 +108,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
         if (TCP_Send(socket, _symbank, body, bodylen))
             goto _fail;
     }
+    _http_progress = HTTP_WAITING;
 
     // process response (using a confusing state machine)
     result = 0;
@@ -112,10 +120,11 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     ptr = _netpacket;
     buffer_left = maxlen;
     content_len = 0;
+    content_received = 0;
     counter = Sys_Counter16() + _nettimeout;
     for (;;) {
         _netmsg[0] = 0;
-        Msg_Sleep(_msgpid(), _netpid, _netmsg);
+        Msg_Receive(_msgpid(), _netpid, _netmsg);
         if (_netmsg[0] == NET_TCPEVT) {
             TCP_Event(_netmsg, &net_stat);
             if (net_stat.datarec) {
@@ -198,8 +207,11 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
                                 goto _fail;
                             }
                         }
+                        if (content_len > 100)
+                            _http_progress = content_received / (content_len / 100);
                         if (in_body) {
                             content_len -= packetlen;
+                            content_received += packetlen;
                             if (content_len <= 0)
                                 goto _done;
                         }
@@ -207,6 +219,8 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
                     ptr = _netpacket;
                     if (!trans_obj.remaining)
                         break;
+                    if (_http_interrupt)
+                        goto _done;
                 }
             }
             if (net_stat.status == TCP_CLOSING || net_stat.status == TCP_CLOSED)
@@ -218,10 +232,13 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
             _neterr = ERR_TIMEOUT;
             goto _fail;
         }
+        if (_http_interrupt)
+            break;
     }
 
 _done:
     // close connection
+    _http_progress = HTTP_DONE;
     if (TCP_Disconnect(socket))
         goto _fail;
     if (fd < 8)
@@ -230,6 +247,7 @@ _done:
     return result;
 
 _fail:
+    _http_progress = HTTP_DONE;
     result = _neterr;
     TCP_Disconnect(socket);
     if (fd < 8)

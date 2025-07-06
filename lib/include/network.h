@@ -48,6 +48,12 @@
 #define NET_TCPEVT 159
 #define NET_UDPEVT 175
 
+#define HTTP_LOOKUP -1
+#define HTTP_CONNECTING -2
+#define HTTP_SENDING -3
+#define HTTP_WAITING -4
+#define HTTP_DONE -5
+
 typedef struct {
     unsigned char socket;
     unsigned char status;
@@ -91,6 +97,8 @@ extern unsigned char DNS_Verify(unsigned char bank, char* addr);
 
 extern char _http_proxy_ip[4];
 extern int _http_proxy_port;
+extern signed char _http_progress;
+extern unsigned char _http_interrupt;
 extern int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char keep_headers);
 extern int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers, char* body, unsigned short bodylen, unsigned char keep_headers);
 

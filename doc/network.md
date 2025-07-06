@@ -2,7 +2,7 @@
 
 **Note: The network library as described below is currently only available in development builds of SymbOS. Slightly different versions of `Net_Init()` and the raw TCP/UDP/DNS functions can be found in older releases in the header file `symbos/network.h`.**
 
-**Note:** All network functions are thread-safe.
+**Note:** All network functions are thread-safe, and multiple threads can have connections open simultaneously (although the network daemon usually only permits sockets to be accessed by the thread that originally opened them). If a thread calls a network function that is currently in use by another thread, it will automatically wait its turn.
 
 ## Contents
 
@@ -93,6 +93,21 @@ _http_proxy_port = 1234;
 ```
 
 (In practice, of course, it is bad practice to hard-code proxy addresses like this---this should be a setting the user can edit, so the app can keep working even if the original proxy server goes down.) To stop routing requests through a proxy, clear `_http_proxy_ip` to all zeros.
+
+### Tracking progress
+
+Download speeds on 8-bit hardware are not very fast, typically on the order of 56-112 kbps (that is, a bit faster than a dialup modem). At this speed, a multi-megabyte file can take several minutes to download, so it is helpful to have a way to track the progress of a download and interrupt it if needed.
+
+This is most easily done by running `HTTP_GET()` or `HTTP_POST()` on a [separate thread](syscall2.md#multithreading). When running on a different thread, we can interrupt execution by writing a nonzero value to the global variable `_http_interrupt`. `HTTP_GET()` and `HTTP_POST()` will then stop downloading at their earliest convenience, writing/saving only what they have downloaded so far.
+
+`HTTP_GET()` and `HTTP_POST()` also record their progress in the global variable `_http_progress`, with values matching the following constants:
+
+* `HTTP_LOOKUP` - performing DNS lookup and initial preparation
+* `HTTP_CONNECTING` - connecting to remote server
+* `HTTP_SENDING` - sending request
+* `HTTP_WAITING` - waiting for first response packet
+* `HTTP_DONE` - finished execution (whether successfully or not)
+* Any positive value - download percentage (i.e., `_http_progress` = 72 means 72% complete)
 
 ## TCP functions
 
