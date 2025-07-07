@@ -420,7 +420,7 @@ Because FTP does not usually send data unsolicited, it is not generally necessar
 
 * Connect to an FTP server with `FTP_Open()`.
 * Upload, download, or browse files with `FTP_Upload()`, `FTP_Download()`, or `FTP_Listing()`.
-* Disconnect when done with `FTP_Disconnect().
+* Disconnect when done with `FTP_Disconnect()`.
 
 For diagnosing connection problems, in addition to the usual behavior of `_neterr`, the last FTP response code (e.g., `421` = service not available) is stored in the global variable `_ftp_response`.
 
@@ -559,7 +559,7 @@ Sends a QUIT command to the FTP server associated with the socket `handle`, clos
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
-### TCP_Close()
+### FTP_Close()
 
 (alias for `TCP_Close()`, since the FTP control connection is just a normal TCP connection.)
 
