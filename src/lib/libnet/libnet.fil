@@ -2,6 +2,8 @@ chat.o
 server.o
 publicip.o
 http.o
+ftp.o
+receive.o
 tcp.o
 udp.o
 netutils.o

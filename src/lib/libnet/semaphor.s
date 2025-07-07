@@ -18,3 +18,23 @@ __nsemaoff:
 	ld a,0
 	ld (__netmsgsema),a
 	ret
+
+__packsema:		.byte 0 ; multithreading semaphore for _netpacket
+
+; _packsemaon(): _netpacket semaphore on
+.export __packsemaon
+__packsemaon:
+	ld a,(__packsema)
+	or a
+	jr nz,__packsemaon
+	ld a,1
+	ld (__packsema),a
+	ret
+	
+; _packsemaoff(): _netpacket semaphore off
+.export __packsemaoff
+__packsemaoff:
+	ld a,0
+	ld (__packsema),a
+	ret
+

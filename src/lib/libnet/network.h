@@ -18,3 +18,5 @@ unsigned char Net_Command(void);
 signed char Net_SCommand(void);
 extern void _nsemaon(void);
 extern void _nsemaoff(void);
+extern void _packsemaon(void);
+extern void _packsemaoff(void);

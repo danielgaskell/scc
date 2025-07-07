@@ -6,6 +6,8 @@
 /* SymbOS Network Daemon calls (TCP)                                          */
 /* ========================================================================== */
 
+unsigned char _tcp_abort;
+
 signed char TCP_Close(unsigned char handle) {
     signed char result;
     Net_SkipMsg(handle); // flush remaining messages pertaining to this handle
@@ -21,6 +23,12 @@ signed char TCP_OpenWait(signed char handle) {
     unsigned char status;
     while (!Net_Wait(NET_TCPEVT)) {
         if (_netmsg[3] == handle) {
+            if (*((unsigned short*)(_netmsg + 4))) {
+                // already has data waiting (that was fast!), treat as opened
+                Msg_Send(_netpid, _msgpid(), _netmsg); // put back on queue
+                _nsemaoff();
+                return handle;
+            }
             status = _netmsg[8] & 0x1F;
             if (status == TCP_OPENED) {
                 _nsemaoff();
@@ -113,6 +121,7 @@ signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, un
 signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len) {
     unsigned short transferred;
     _nsemaon();
+    _tcp_abort = 0;
     for (;;) {
         _netmsg[0] = 20;
         _netmsg[3] = handle;
@@ -128,6 +137,11 @@ signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsig
         len -= transferred;
         if (len <= 0)
             break;
+        if (_tcp_abort) {
+            _nsemaoff();
+            _neterr = ERR_TRUNCATED;
+            return -1;
+        }
     }
     _nsemaoff();
     return 0;

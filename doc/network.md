@@ -9,8 +9,10 @@
 * [Using the library](#using-the-library)
 * [Function reference](#http-functions)
 	* [HTTP functions](#http-functions)
+	* [DNS functions](#dns-functions)
 	* [TCP functions](#tcp-functions)
 	* [UDP functions](#udp-functions)
+	* [FTP functions](#ftp-functions)
 	* [Helper functions](#helper-functions)
 * [Reference](#reference)
 	* [Error codes](#error-codes)
@@ -52,7 +54,7 @@ int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers,
              unsigned char keep_headers);
 ```
 
-Executes a complete HTTP GET request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `maxlen` = `HTTP_FILE`, `dest` will instead be treated as the absolute path of a file to save the response to (with no length limit). If `keep_headers` is nonzero, the response will include the full HTTP headers as well as the body content.
+Executes a complete HTTP GET request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `maxlen` = `NET_FILE`, `dest` will instead be treated as the absolute path of a file to save the response to (with no length limit). If `keep_headers` is nonzero, the response will include the full HTTP headers as well as the body content.
 
 `headers` can be optionally used to specify additional HTTP header requests in the outgoing request (use 0 for no custom headers). Each custom header line should be followed by the HTTP-standard line break `\r\n` (even the last one):
 
@@ -70,14 +72,14 @@ int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers,
               char* body, unsigned short bodylen, unsigned char keep_headers);
 ```
 
-Executes a complete HTTP POST request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `maxlen` = `HTTP_FILE`, `dest` will instead be treated as the absolute path of a file to save the response to (with no length limit). If `keep_headers` is nonzero, the response will include the full HTTP headers as well as the body content.
+Executes a complete HTTP POST request, downloading whatever content is returned from the URL `url` into the buffer at the address `dest`. A maximum of `maxlen` characters will be written, discarding any extra. If `maxlen` = `NET_FILE`, `dest` will instead be treated as the absolute path of a file to save the response to (with no length limit). If `keep_headers` is nonzero, the response will include the full HTTP headers as well as the body content.
 
 POST data are passed in the buffer `body`, where `bodylen` is the length of the buffer. (It is necessary to specify `bodylen` manually because POST requests may include binary data.)
 
 `headers` can be optionally used to specify additional HTTP header requests in the outgoing request (use 0 for no custom headers). Each custom header line should be followed by the HTTP-standard line break `\r\n` (even the last one).
 
 ```c
-status = HTTP_POST("http://example.com", "A:\\EXAMPLE.HTM", HTTP_FILE,
+status = HTTP_POST("http://example.com", "A:\\EXAMPLE.HTM", NET_FILE,
                    0, "username=test&password=123", 26, 1);
 ```
 
@@ -98,7 +100,7 @@ _http_proxy_port = 1234;
 
 Download speeds on 8-bit hardware are not very fast, typically on the order of 56-112 kbps (that is, a bit faster than a dialup modem). At this speed, a multi-megabyte file can take several minutes to download, so it is helpful to have a way to track the progress of a download and interrupt it if needed.
 
-This is most easily done by running `HTTP_GET()` or `HTTP_POST()` on a [separate thread](syscall2.md#multithreading). When running on a different thread, we can interrupt execution by writing a nonzero value to the global variable `_http_interrupt`. `HTTP_GET()` and `HTTP_POST()` will then stop downloading at their earliest convenience, writing/saving only what they have downloaded so far.
+This is most easily done by running `HTTP_GET()` or `HTTP_POST()` on a [separate thread](syscall2.md#multithreading). When running on a different thread, we can interrupt execution by writing a nonzero value to the global variable `_http_abort`. `HTTP_GET()` and `HTTP_POST()` will then stop downloading at their earliest convenience, writing/saving only what they have downloaded so far.
 
 `HTTP_GET()` and `HTTP_POST()` also record their progress in the global variable `_http_progress`, with values matching the following constants:
 
@@ -109,6 +111,32 @@ This is most easily done by running `HTTP_GET()` or `HTTP_POST()` on a [separate
 * `HTTP_DONE` - finished execution (whether successfully or not)
 * Any positive value - download percentage (i.e., `_http_progress` = 72 means 72% complete)
 
+## DNS functions
+
+### DNS_Resolve()
+
+```c
+signed char DNS_Resolve(unsigned char bank, char* addr, char* ip);
+```
+
+Performs a DNS lookup and attempts to resolve the host IP/URL stored in the string at bank `bank`, address `addr` into an IPv4 address, which will be stored in the 4-byte buffer at `ip`. (Note that the URL should *not* be prefixed with a protocol like `http://`; the easiest way to guarantee this is to use `Net_SplitURL()` and then run `DNS_Resolve()` only on the extracted hostname.)
+
+*Return value*: On success, stores the IP address in the 4-byte buffer pointed to by `ip` and returns 0. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `DNS_Resolve` (`DNSRSV`).
+
+### DNS_Verify()
+
+```c
+unsigned char DNS_Verify(unsigned char bank, char* addr);
+```
+
+Verifies whether the IP/URL stored in the string at bank `bank`, address `addr` is a valid IP or domain address. This function does not interact with the network hardware, so can be used to quickly determine whether an address is valid before initiating a full network request.
+
+*Return value*: On success, returns `DNS_IP` for a valid IP address, `DNS_DOMAIN` for a valid domain address, or `DNS_INVALID` for an invalid address. On failure, sets `_neterr` and returns `DNS_INVALID`.
+
+*SymbOS name*: `DNS_Verify` (`DNSVFY`).
+
 ## TCP functions
 
 TCP is the primary low-level network protocol supported by SymbOS network hardware and underlies other protocols such as Telnet, HTTP, and FTP. In a TCP connection, a **client** requests to establish a two-way connection with a **server** (located at a specific IPv4 address and port number). Once established, both parties can send and receive streams of data, with the network hardware ensuring that the streams are delivered completely, correctly, and in the right order. The connection remains open until it is closed by one party (e.g., at the end of a Telnet session or HTTP request).
@@ -116,7 +144,7 @@ TCP is the primary low-level network protocol supported by SymbOS network hardwa
 * To open a TCP connection, use `TCP_OpenClient()` or `TCP_OpenServer()`.
 * Once open, data can be sent to the other party at any time with `TCP_Send()`.
 * The network daemon will alert us to the arrival of new data (or a change in connection status) by sending message ID `NET_TCPEVT`. We can watch for this message in our main event loop and use `TCP_Event()` to understand its contents.
-	* When `TCP_Event()` yields `NetStat.datarec` = 1, incoming data bytes are waiting; we can download them into a buffer using `TCP_Receive()`.
+	* When `TCP_Event()` yields `NetStat.bytesrec` > 0, incoming data bytes are waiting; we can download them into a buffer using `TCP_Receive()`.
 	* When `TCP_Event()` yields `NetStat.status` = `TCP_CLOSED`, the remote server has closed the connection and we can free the socket with `TCP_Close()`.
 * To disconnect from our end, use `TCP_Disconnect()`.
 
@@ -187,6 +215,8 @@ signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsig
 
 Sends data from memory bank `bank`, address `addr`, to the host associated with the socket `handle`. A total of `len` bytes will be sent.
 
+When running on a [separate thread](syscall2.md#multithreading), writing a nonzero value to the global variable `_tcp_abort` will cause `TCP_Send()` to abort the transfer at its earliest convenience, failing with `_neterr` = `ERR_TRUNCATED`.
+
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
 *SymbOS name*: `TCP_Send` (`TCPSND`).
@@ -220,6 +250,19 @@ A few subtleties:
 *Return value*: On success, returns 0 and loads information into `obj`, if specified. On failure, sets `_neterr` and returns -1.
 
 *SymbOS name*: `TCP_Receive` (`TCPRCV`).
+
+### TCP_ReceiveToEnd()
+
+```c
+signed char TCP_ReceiveToEnd(unsigned char handle, unsigned char bank,
+                             char* addr, unsigned short maxlen);
+```
+
+Listen on the TCP socket `handle`, saving all received data to the buffer `addr` until the remote host disconnects. No more than `maxlen` bytes will be saved, and the socket `handle` will be freed with `TCP_Close()` before returning. If `maxlen` = `NET_FILE`, `addr` will instead be treated as the absolute path of a file to save the response to (with no length limit). (This function is intended for cases where we know the remote host will disconnect when finished sending data.)
+
+When running on a [separate thread](syscall2.md#multithreading), writing a nonzero value to the global variable `_tcp_abort` will cause `TCP_ReceiveToEnd()` to abort the transfer at its earliest convenience, writing only what it has received so far and failing with `_neterr` = `ERR_TRUNCATED`.
+
+*Return value*: On success, returns 0. On failure, disconnects immediately, sets `_neterr`, and returns -1.
 
 ### TCP_Skip()
 
@@ -369,31 +412,156 @@ Closes and releases the UDP session associated with the socket `handle`.
 
 *SymbOS name*: `UDP_Close` (`UDPCLO`).
 
-## DNS functions
+## FTP functions
 
-### DNS_Resolve()
+FTP (File Transfer Protocol) is an older protocol that now runs on TCP, using simple command-response pairs over an open TCP "control" connection and opening a second "data" connection when necessary to transfer data. The network library provides a set of functions for basic FTP commands.
 
-```c
-signed char DNS_Resolve(unsigned char bank, char* addr, char* ip);
-```
+Because FTP does not usually send data unsolicited, it is not generally necessary to listen for `NET_TCPEVT` events as we would for a typical TCP connection. A typical workflow is just:
 
-Performs a DNS lookup and attempts to resolve the host IP/URL stored in the string at bank `bank`, address `addr` into an IPv4 address, which will be stored in the 4-byte buffer at `ip`. (Note that the URL should *not* be prefixed with a protocol like `http://`; the easiest way to guarantee this is to use `Net_SplitURL()` and then run `DNS_Resolve()` only on the extracted hostname.)
+* Connect to an FTP server with `FTP_Open()`.
+* Upload, download, or browse files with `FTP_Upload()`, `FTP_Download()`, or `FTP_Listing()`.
+* Disconnect when done with `FTP_Disconnect().
 
-*Return value*: On success, stores the IP address in the 4-byte buffer pointed to by `ip` and returns 0. On failure, sets `_neterr` and returns -1.
+For diagnosing connection problems, in addition to the usual behavior of `_neterr`, the last FTP response code (e.g., `421` = service not available) is stored in the global variable `_ftp_response`.
 
-*SymbOS name*: `DNS_Resolve` (`DNSRSV`).
-
-### DNS_Verify()
+### FTP_Open()
 
 ```c
-unsigned char DNS_Verify(unsigned char bank, char* addr);
+signed char FTP_Open(char* ip, int rport, char* username, char* password);
 ```
 
-Verifies whether the IP/URL stored in the string at bank `bank`, address `addr` is a valid IP or domain address. This function does not interact with the network hardware, so can be used to quickly determine whether an address is valid before initiating a full network request.
+Opens a client FTP control connection to the IPv4 address `ip` (stored in a 4-byte buffer, one byte per octet), connecting to port `rport` (usually 21). If the server requests a username and password, the provided strings `username` and `password` will be used.
 
-*Return value*: On success, returns `DNS_IP` for a valid IP address, `DNS_DOMAIN` for a valid domain address, or `DNS_INVALID` for an invalid address. On failure, sets `_neterr` and returns `DNS_INVALID`.
+*Return value*: On success, returns a TCP socket handle to the new connection. On failure, sets `_neterr` (and potentially `_ftp_response`) and returns -1. (A common example: invalid login credentials will result in `_neterr` = `ERR_CONNECT`, `_ftp_response` = 430.)
 
-*SymbOS name*: `DNS_Verify` (`DNSVFY`).
+### FTP_Upload()
+
+```c
+signed char FTP_Upload(unsigned char handle, char* filename, unsigned char bank, char* addr, unsigned short maxlen, unsigned char mode);
+```
+
+Executes an FTP upload over the open control connection with the socket number `handle`. `filename` is the name of the *destination* file on the FTP server (not the local filename!) Data can be uploaded from two sources:
+
+* When `maxlen` = `NET_FILE`, the entire file with the absolute path at bank `bank`, address `addr` will be uploaded.
+* When `maxlen` is a positive number, `maxlen` bytes of memory will be uploaded from bank `bank`, address `addr`.
+
+`mode` is the upload mode, one of `FTP_ASCII` or `FTP_BINARY`. (`FTP_BINARY` is usually the safest option unless we know the file is ASCII-only.)
+
+Examples:
+
+```c
+char buffer[1024]; // some data in memory to upload
+FTP_Upload(socket, "remote1.txt", _symbank, buffer, sizeof(buffer), FTP_BINARY);
+FTP_Upload(socket, "remote2.txt", _symbank, "A:\\LOCAL.TXT", NET_FILE, FTP_ASCII);
+```
+
+When running on a [separate thread](syscall2.md#multithreading), writing a nonzero value to the global variable `_tcp_abort` will cause `FTP_Upload()` to abort the transfer at its earliest convenience, writing an incomplete file and failing with `_neterr` = `ERR_TRUNCATED`.
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` (and potentially `_ftp_response`) and returns -1.
+
+### FTP_Download()
+
+```c
+signed char FTP_Download(unsigned char handle, char* filename, unsigned char bank, char* addr, unsigned short maxlen, unsigned char mode);
+```
+
+Executes an FTP download over the open control connection with the socket number `handle`. `filename` is the name of the *source* file on the FTP server (not the local filename!) Data can be downloaded to two destinations:
+
+* When `maxlen` = `NET_FILE`, data will be downloaded to a file; bank `bank`, address `addr` contains the absolute file path.
+* When `maxlen` is a positive number, data will be downloaded to memory bank `bank`, address `addr`. A maximum of `maxlen` bytes will be downloaded.
+
+`mode` is the download mode, one of `FTP_ASCII` or `FTP_BINARY`. (`FTP_BINARY` is usually the safest option unless we know the file is ASCII-only.)
+
+Examples:
+
+```c
+char buffer[1024]; // buffer to store downloaded data
+FTP_Download(socket, "remote1.txt", _symbank, buffer, sizeof(buffer), FTP_BINARY);
+FTP_Download(socket, "remote2.txt", _symbank, "A:\\LOCAL.TXT", NET_FILE, FTP_ASCII);
+```
+
+When running on a [separate thread](syscall2.md#multithreading), writing a nonzero value to the global variable `_tcp_abort` will cause `FTP_Download()` to abort the transfer at its earliest convenience, writing only what it has received so far and failing with `_neterr` = `ERR_TRUNCATED`.
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` (and potentially `_ftp_response`) and returns -1.
+
+### FTP_Listing()
+
+```c
+signed char FTP_Listing(unsigned char handle, unsigned char bank, char* addr, unsigned short maxlen);
+```
+
+Equivalent to `FTP_Download()`, but downloads a listing of files in the server's current directory instead of a specific file. The format of the directory listing is not standardized, but in practice is almost always either Unix-style `ls` output or DOS-style `dir` output, one file per line.
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` (and potentially `_ftp_response`) and returns -1.
+
+### FTP_ChDir()
+
+```c
+signed char FTP_ChDir(unsigned char handle, char* path);
+```
+
+Changes the current working directory of the open FTP control connection with the socket number `handle` to `path`. Paths may be relative or absolute, behaving similarly to a terminal `cd` command:
+
+* `FTP_ChDir(socket, "subdir");` - enter subdirectory `subdir`
+* `FTP_ChDir(socket, "..");` - go up one directory
+* `FTP_ChDir(socket, "/dir/subdir");` - go to the absolute path `/dir/subdir` (note that absolute paths are separated by slashes `/`, *not* backslashes `\`!)
+
+Most FTP servers give users access to a specific subfolder of their native filesystem, treating the root of this folder as `/`. However, some servers use `/` to mean the root of their entire native filesystem (which the user may only be permitted to access part of). To determine the current working path, we can use the FTP `PWD` command:
+
+```c
+char buffer[256];
+FTP_Command(socket, "PWD\r\n", buffer, sizeof(buffer));
+// this will leave buffer[] loaded with something like:
+// 257 "/current/path" is the current directory.
+```
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` (and potentially `_ftp_response`) and returns -1.
+
+### FTP_Command()
+
+```c
+int FTP_Command(unsigned char handle, char* cmd, char* addr, unsigned short maxlen);
+```
+
+Executes a complete FTP command/response pair on the open control connection with the socket number `handle`. The FTP command `cmd` should be a single-line ASCII string ending in `\r\n` (e.g., `"LIST\r\n"`). The response text will be written to the buffer `addr`, up to a maximum of `maxlen` bytes.
+
+*Return value*: On success, returns the three-digit FTP response code (e.g., 550 = file not found). On failure, sets `_neterr` and returns -1.
+
+### FTP_Response()
+
+```c
+int FTP_Response(unsigned char handle, char* addr, unsigned short maxlen);
+```
+
+Waits for an FTP response on the open control connection with the socket number `handle`, without first sending a command. The response text will be written to the buffer `addr`, up to a maximum of `maxlen` bytes. (This is intended for catching responses that are not directly related to a command, e.g., `226 Transfer complete.`.)
+
+*Return value*: On success, returns the three-digit FTP response code (e.g., 550 = file not found). On failure, sets `_neterr` and returns -1.
+
+### FTP_GetPassive()
+
+```c
+signed char FTP_GetPassive(unsigned char handle, char* ip, unsigned short* port);
+```
+
+Executes an FTP `PASV` command on the open control connection with the socket number `handle`, saving the IPv4 address returned by the server to the 4-byte buffer `ip` and the port number to the variable `port` (passed by reference).
+
+Explanation: FTP is unusual in that, for historical reasons, data transfer occurs over a second "data" TCP connection opened parallel to the main "control" connection. Historically, this was done by having the server connect back to a port on the client computer ("active" mode). However, modern firewalls typically block this type of unsolicited connection, so most data connections are now made in "passive" mode: the client sends a `PASV` command to the server, which then responds with an IPv4 address and port number for the client to open the data connection from its side. For simple uploads/downloads, the functions `FTP_Upload()` and `FTP_Download()` handle all of this automatically, but this function exists to facilitate more complicated tasks that require a passive connection.
+
+*Return value*: On success, sets `ip` and `port` to the values indicated by the server and returns 0. On failure, sets `_neterr` (and potentially `_ftp_response`) and returns -1.
+
+### FTP_Disconnect()
+
+```c
+signed char FTP_Disconnect(unsigned char handle);
+```
+
+Sends a QUIT command to the FTP server associated with the socket `handle`, closes the TCP connection, and releases the socket.
+
+*Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
+
+### TCP_Close()
+
+(alias for `TCP_Close()`, since the FTP control connection is just a normal TCP connection.)
 
 ## Helper functions
 
@@ -476,3 +644,4 @@ The following errors are primarily issued by the network interface (stored in `_
 * `ERR_TOOLARGE`: Packet too large
 * `ERR_CONNECT`: TCP connection not established (or not yet established)
 * `ERR_NETFILE`: File error while performing network operation; check `_fileerr`
+* `ERR_RESPONSE`: Unexpected response

@@ -22,6 +22,7 @@
 #define ERR_TOOLARGE 20
 #define ERR_CONNECT 24
 #define ERR_NETFILE 25
+#define ERR_RESPONSE 26
 
 #define TCP_OPENING 1
 #define TCP_OPENED 2
@@ -32,7 +33,7 @@
 #define DNS_IP 1
 #define DNS_DOMAIN 2
 
-#define HTTP_FILE 0
+#define NET_FILE 0
 
 #define PROTO_OTHER 0
 #define PROTO_HTTPS 1
@@ -54,6 +55,9 @@
 #define HTTP_WAITING -4
 #define HTTP_DONE -5
 
+#define FTP_ASCII 0
+#define FTP_BINARY 1
+
 typedef struct {
     unsigned char socket;
     unsigned char status;
@@ -73,12 +77,15 @@ extern unsigned char _neterr;
 extern unsigned char _netthread;
 extern signed char Net_Init(void);
 
+extern unsigned char _tcp_abort;
+
 extern signed char TCP_OpenClient(char* ip, signed short lport, unsigned short rport);
 extern signed char TCP_OpenServer(unsigned short lport);
 extern signed char TCP_Close(unsigned char handle);
 extern void TCP_Event(char* msg, NetStat* obj);
 extern signed char TCP_Status(unsigned char handle, NetStat* obj);
 extern signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, unsigned short len, TCP_Trans* obj);
+extern signed char TCP_ReceiveToEnd(unsigned char handle, unsigned char bank, char* addr, unsigned short len);
 extern signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len);
 extern signed char TCP_Skip(unsigned char handle, unsigned short len);
 extern signed char TCP_Flush(unsigned char handle);
@@ -98,9 +105,21 @@ extern unsigned char DNS_Verify(unsigned char bank, char* addr);
 extern char _http_proxy_ip[4];
 extern int _http_proxy_port;
 extern signed char _http_progress;
-extern unsigned char _http_interrupt;
+extern unsigned char _http_abort;
 extern int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char keep_headers);
 extern int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers, char* body, unsigned short bodylen, unsigned char keep_headers);
+
+#define FTP_Close(x) TCP_Close(x)
+extern int _ftp_response;
+extern signed char FTP_Open(char* ip, int rport, char* username, char* password);
+extern int FTP_Command(unsigned char handle, char* cmd, char* addr, unsigned short maxlen);
+extern int FTP_Response(unsigned char handle, char* addr, unsigned short maxlen);
+extern signed char FTP_GetPassive(unsigned char handle, char* ip, unsigned short* port);
+extern signed char FTP_Upload(unsigned char handle, char* filename, unsigned char bank, char* addr, unsigned short maxlen, unsigned char mode);
+extern signed char FTP_Download(unsigned char handle, char* filename, unsigned char bank, char* addr, unsigned short maxlen, unsigned char mode);
+extern signed char FTP_Listing(unsigned char handle, unsigned char bank, char* addr, unsigned short maxlen);
+extern signed char FTP_ChDir(unsigned char handle, char* path);
+extern signed char FTP_Disconnect(unsigned char handle);
 
 extern void Net_ErrMsg(void* modalWin);
 extern signed char Net_SplitURL(char* url, char* host, char** path, int* port);

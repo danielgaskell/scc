@@ -1,7 +1,7 @@
 #include <symbos.h>
 #include <network.h>
 
-char* _neterrstr[26] = {
+char* _neterrstr[27] = {
     "Undefined",
     "No network hardware",
     "No IP configuration",
@@ -19,12 +19,13 @@ char* _neterrstr[26] = {
     "Truncated response",
     "Packet too large", "", "", "",
     "Connection not established",
-    "File error"};
+    "File error",
+    "Unexpected response"};
 
 void Net_ErrMsg(void* modalWin) {
     char* str;
     if (_neterr) {
-        if (_neterr > 0 && _neterr <= 24)
+        if (_neterr > 0 && _neterr <= 26)
             str = _neterrstr[_neterr];
         else
             str = _neterrstr[0];

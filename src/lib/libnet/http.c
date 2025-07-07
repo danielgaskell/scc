@@ -8,7 +8,7 @@
 char _http_proxy_ip[4] = {0, 0, 0, 0};
 int _http_proxy_port = 1234;
 signed char _http_progress;
-unsigned char _http_interrupt;
+unsigned char _http_abort;
 unsigned char _http_semaphore = 0;
 char* _match_http = "HTTP/1.1 ";
 char* _match_len = "\r\nCONTENT-LENGTH:";
@@ -41,7 +41,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
 
     // setup
     fd = 8;
-    _http_interrupt = 0;
+    _http_abort = 0;
     _http_progress = HTTP_LOOKUP;
     if (maxlen) {
         --maxlen; // to leave room for zero-terminator
@@ -83,6 +83,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     _http_progress = HTTP_SENDING;
 
     // send message
+    _packsemaon();
     strcpy(_netpacket, type ? "POST /" : "GET /" );
     if (proxy)
         strcat(_netpacket, url);
@@ -127,7 +128,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
         Msg_Receive(_msgpid(), _netpid, _netmsg);
         if (_netmsg[0] == NET_TCPEVT) {
             TCP_Event(_netmsg, &net_stat);
-            if (net_stat.datarec) {
+            if (net_stat.bytesrec) {
                 for (;;) {
                     if (TCP_Receive(socket, _symbank, _netpacket, sizeof(_netpacket), &trans_obj))
                         goto _fail;
@@ -220,7 +221,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
                     counter = Sys_Counter16() + _nettimeout; // reset timeout after packet receipt
                     if (!trans_obj.remaining)
                         break;
-                    if (_http_interrupt)
+                    if (_http_abort)
                         goto _done;
                 }
             }
@@ -233,12 +234,13 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
             _neterr = ERR_TIMEOUT;
             goto _fail;
         }
-        if (_http_interrupt)
+        if (_http_abort)
             break;
     }
 
 _done:
     // close connection
+    _packsemaoff();
     _http_progress = HTTP_DONE;
     if (TCP_Disconnect(socket))
         goto _fail;
@@ -248,6 +250,7 @@ _done:
     return result;
 
 _fail:
+    _packsemaoff();
     _http_progress = HTTP_DONE;
     result = _neterr;
     TCP_Disconnect(socket);

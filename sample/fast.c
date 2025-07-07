@@ -89,23 +89,21 @@ int main(int argc, char* argv[]) {
         if (_symmsg[0] == NET_TCPEVT) {
             TCP_Event(_symmsg, &net_stat);
             // fully download any received data (see docs for a discussion of why this loops)
-            if (net_stat.datarec) {
-                get_bytes = net_stat.bytesrec;
-                while (get_bytes) {
-                    // download up to 1K of data
-                    if (get_bytes > sizeof(packet))
-                        get_bytes = sizeof(packet);
-                    if (TCP_Receive(socket, _symbank, packet, get_bytes, &trans_stat))
-                        fail();
-                    get_bytes = trans_stat.remaining; // check if there is still data left in the buffer
+            get_bytes = net_stat.bytesrec;
+            while (get_bytes) {
+                // download up to 1K of data
+                if (get_bytes > sizeof(packet))
+                    get_bytes = sizeof(packet);
+                if (TCP_Receive(socket, _symbank, packet, get_bytes, &trans_stat))
+                    fail();
+                get_bytes = trans_stat.remaining; // check if there is still data left in the buffer
 
-                    // keep track of bytes received and time taken
-                    if (first) { // only starts counter after first transfer, to avoid counting the response time
-                        counter = Sys_Counter();
-                        first = 0;
-                    } else {
-                        received_bytes += trans_stat.transferred;
-                    }
+                // keep track of bytes received and time taken
+                if (first) { // only starts counter after first transfer, to avoid counting the response time
+                    counter = Sys_Counter();
+                    first = 0;
+                } else {
+                    received_bytes += trans_stat.transferred;
                 }
             }
 
