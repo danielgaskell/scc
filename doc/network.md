@@ -576,7 +576,7 @@ Displays a message box with the current error in `_neterr`, if any. `modalWin` s
 ### Net_SplitURL()
 
 ```c
-signed char Net_SplitURL(char* url, char* host, char** path, int* port);
+signed char Net_SplitURL(char* url, char* host, char** path, unsigned short* port);
 ```
 
 A utility function that splits the string `url` (containing a URL) into its constituent components, writing the hostname to the buffer `host`, the address of the path/query string to the variable passed by reference as `path`, and the port number to the variable passed by reference as `port`. The buffer `host` should be at least 65 bytes long.

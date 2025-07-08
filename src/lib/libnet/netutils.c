@@ -6,7 +6,7 @@
 char* _netproto[PROTOCOLS] = {"HTTPS", "HTTP", "FTP", "IRC", "SFTP", "FILE", "IMAP", "POP", "NNTP"};
 int _netprotoport[PROTOCOLS+1] = {0, 443, 80, 21, 6667, 22, 445, 143, 110, 119};
 
-signed char Net_SplitURL(char* url, char* host, char** path, int* port) {
+signed char Net_SplitURL(char* url, char* host, char** path, unsigned short* port) {
     unsigned char i;
     signed char protocol = PROTO_HTTP;
     char* ptr;

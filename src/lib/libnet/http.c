@@ -24,7 +24,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     unsigned short content_received;
     signed char socket;
     int result;
-    int port;
+    unsigned short port;
     unsigned short i;
     char* path;
     char* ptr;

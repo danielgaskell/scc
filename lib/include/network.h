@@ -122,7 +122,7 @@ extern signed char FTP_ChDir(unsigned char handle, char* path);
 extern signed char FTP_Disconnect(unsigned char handle);
 
 extern void Net_ErrMsg(void* modalWin);
-extern signed char Net_SplitURL(char* url, char* host, char** path, int* port);
+extern signed char Net_SplitURL(char* url, char* host, char** path, unsigned short* port);
 extern signed char Net_PublicIP(char* ip);
 extern void Net_SkipMsg(signed char handle);
 extern unsigned char Net_ServerWin(void* modalWin, unsigned char clients, unsigned short port, unsigned short bufsize);
