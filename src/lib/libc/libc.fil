@@ -142,8 +142,9 @@ shellpth.o
 shellmsg.o
 errno.o
 dirread.o
-sysfile.o
+sysdrv.o
 sysdir.o
+sysfile.o
 isupper.o
 islower.o
 _itoa.o

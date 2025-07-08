@@ -1,8 +1,8 @@
 # SymbOS C Compiler
 
 A C compiler for [SymbOS](http://symbos.org) based on Alan Cox's Fuzix Compiler Kit
-(Z80 version). SCC currently runs on Windows and cross-compiles binaries for SymbOS,
-but can also cross-compile itself to run natively (albeit slowly) on SymbOS.
+(Z80 version). SCC currently runs on Windows and Linux and cross-compiles binaries
+for SymbOS, but can also cross-compile itself to run natively (albeit slowly) on SymbOS.
 
 [Documentation and quickstart guide](doc/index.md)
 

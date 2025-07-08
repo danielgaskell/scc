@@ -122,11 +122,11 @@ Images can be converted to SGX format using software such as [MSX Viewer 5](http
 
 ## Features
 
-* Runs natively on Windows and SymbOS.
+* Runs natively on Windows, Linux, and SymbOS.
 * Full build chain with preprocessor, object files, linker, etc.
 * Standard ANSI C syntax, with good support for most typical usage.
 * Standard data types and structures: `char`, `short`, `int`, `long`, `float`, `double`, `signed`, `unsigned`, `struct`, `union`, `enum`, `auto`, `static`, `register`, `extern`, `typedef`.
-* A proper libc port [work in progress] so existing code can be compiled unmodified.
+* A proper libc port so existing code can be compiled unmodified.
 * Headers, typedefs, and support functions for most SymbOS system calls (`symbos.h`).
 * Clean handling of SymbOS segments, with data, buffers, and literals located correctly in the executable without duplication (other compilers struggle with this). Keywords `_data` and `_transfer` allow specifying the segment of globals.
 * Multithreading (yes, [really](syscall2.md#multithreading)!)
@@ -147,3 +147,20 @@ Images can be converted to SGX format using software such as [MSX Viewer 5](http
 * Local variables are technically scoped to their function, not their block.
 * If you run into type-mismatch problems with unusual pointer data types (like struct members that are typed as pointers to another typedef'd struct---this can happen when working with complex data structures for windows), try `void*` instead.
 
+## Some advice on workflow
+
+Development will be much, **much** easier if you cross-compile on a PC and test on an emulator. Working natively on SymbOS sounds cool---and improving the native experience is a long-term goal---but for now, the slow compilation speeds and lack of a good IDE quickly get frustrating. Setting up an efficient cross-compilation workflow will dramatically improve your experience with SCC.
+
+### Testing on an emulator
+
+Some example workflows using [WinApe](http://www.winape.net/) on Windows:
+
+1. Easy: Run SymbOS in WinApe (e.g., from a floppy or hard disk image). Insert a blank, formatted disk image into one of WinApe's virtual floppy drives, and keep the "Edit Disk" window open. Whenever you compile a new version of your app, just drag-and-drop it into the Edit Disk window and run it from SymbOS.
+
+2. Advanced: Create a FAT16 or FAT32 partition on your hard drive and mount it as a hard drive within WinApe (Settings > Other > Logical Drive). Unpack the SymbOS installation packages to this partition and install the SymbOS CPC ROM images to slots Upper 1/2/3/4 in WinApe. You should now be able to run SymbOS directly off of your hard drive, with both Windows and SymbOS seeing the same files simultaneously. Just compile on Windows and run the resulting executable in-place on SymbOS!
+
+Similar workflows are possible with other emulators, depending on setup. For developing [network](network.md) apps, note especially that [CPCEMU](https://www.cpc-emu.org/) can emulate the M4 Board network expansion.
+
+### Editors
+
+SCC code tends to use a lot of SymbOS-specific system calls, so it's worth using a good modern IDE with code-completion---it will drastically reduce the number of times you have to look up syntax in the manual. ([Code::Blocks](https://www.codeblocks.org/) and Visual Studio Code are both popular.) In Code::Blocks, you should add SCC's `lib/include` directory to the search path to enable code-completion for SCC-specific functions (Settings > Compiler > Search directories > Compiler > Add).

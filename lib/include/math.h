@@ -79,7 +79,6 @@ extern float asinhf(float);
 extern float atanf(float);
 extern float atan2f(float, float);
 extern float atanhf(float);
-extern float atof(const char *);
 extern float cbrtf(float);
 extern float ceilf(float);
 extern float copysignf(float, float);

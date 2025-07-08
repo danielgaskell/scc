@@ -451,72 +451,6 @@ Returns the height (in pixels) of the text string at bank `bank`, address `addre
 
 *SymbOS name*: `Screen_TextLength` (`TXTLEN`).
 
-### Sys_Path()
-
-*Currently only available in development builds of SCC.*
-
-```c
-char* Sys_Path(void);
-```
-
-Returns the system path (e.g., `C:\SYMBOS\`) as a string, which will always end in a backslash (`\`).
-
-*SymbOS name*: `System_Information` (`SYSINF`).
-
-### Sys_Type()
-
-*Currently only available in development builds of SCC.*
-
-```c
-unsigned short Sys_Type(void);
-```
-
-Returns the type of machine on which SymbOS is running, one of: `TYPE_CPC`, `TYPE_ENTERPRISE`, `TYPE_MSX`, `TYPE_PCW`, `TYPE_NC`, `TYPE_SVM`, `TYPE_CPC464`, `TYPE_CPC664`, `TYPE_CPC6128`, `TYPE_CPC464PLUS`, `TYPE_CPC6128PLUS`, `TYPE_MSX1`, `TYPE_MSX2`, `TYPE_MSX2PLUS`, `TYPE_MSXTURBOR`, `TYPE_PCW8`, `TYPE_PCW9`, `TYPE_PCW16`, `TYPE_NC100`, `TYPE_NC150`, `TYPE_NC200`, `TYPE_SVM` (SymbOSVM), or `TYPE_OTHER` (anything undefined, included for forward-compatibility with potential future ports).
-
-The general class of machine can be obtained by AND'ing this value with one of `TYPE_CPC`, `TYPE_MSX`, `TYPE_ENTERPRISE`, `TYPE_PCW`, `TYPE_NC`, or `TYPE_SVM`.
-
-*SymbOS name*: `System_Information` (`SYSINF`).
-
-### Sys_GetDrives()
-
-*Currently only available in development builds of SCC.*
-
-```c
-void Sys_GetDrives(void* dest);
-```
-
-Loads available drives into `dest`, which must be an 8-member array of type `Drive_Info` located in the **transfer** segment. `Drive_Info` has the format:
-
-```c
-typedef struct {
-    unsigned char letter;  // ASCII drive letter or 0 = undefined
-    unsigned short config; // drive setup (see below)
-    unsigned char unused;
-    char name[12];         // device name, zero-terminated
-} Drive_Info;
-```
-
-The member `config` is a bitmask defining the system drive setup (partition number, etc.), which depends on the drive type; most of this is not relevant to user applications, so see the [SymbOS developer documentation](https://symbos.org/download.htm) for details. Example:
-
-```c
-_transfer Drive_Info drives[8];
-Sys_GetDrives(&drives);
-```
-
-*SymbOS name*: `System_Information` (`SYSINF`).
-
-### Sys_GetConfig()
-
-*Currently only available in development builds of SCC.*
-
-```c
-void Sys_GetConfig(char* dest, unsigned short offset, unsigned char len);
-```
-
-A low-level function that copies `len` bytes starting at `offset` within the SymbOS configuration information into the buffer at address `dest`, which must be in the **transfer** segment. `offset` = 0 is byte 163 in `SYMBOS.INI` (i.e., the system path). For information on offsets and what information can be retrieved this way, see the SymbOS Developer Documentation.
-
-*SymbOS name*: `System_Information` (`SYSINF`).
-
 ## Mouse status
 
 In addition to `symbos.h`, these functions can be found in `symbos/device.h`.
@@ -626,6 +560,118 @@ Like `Key_Test()`, but tests up to six keys simultaneously. This may save time w
 **Note that keys are tested by *scancode*, not by their ASCII value!** A set of [scancode constants](syscall2.md#keyboard-scancodes) are provided for convenience.
 
 *SymbOS name*: `Device_KeyMulti` (`KEYMUL`).
+
+## System configuration
+
+In addition to `symbos.h`, these functions can be found in `symbos/device.h`.
+
+### Sys_Path()
+
+*Currently only available in development builds of SCC.*
+
+```c
+char* Sys_Path(void);
+```
+
+Returns the system path (e.g., `C:\SYMBOS\`) as a string, which will always end in a backslash (`\`).
+
+*SymbOS name*: `System_Information` (`SYSINF`).
+
+### Sys_Type()
+
+*Currently only available in development builds of SCC.*
+
+```c
+unsigned short Sys_Type(void);
+```
+
+Returns the type of machine on which SymbOS is running, one of: `TYPE_CPC`, `TYPE_ENTERPRISE`, `TYPE_MSX`, `TYPE_PCW`, `TYPE_NC`, `TYPE_SVM`, `TYPE_CPC464`, `TYPE_CPC664`, `TYPE_CPC6128`, `TYPE_CPC464PLUS`, `TYPE_CPC6128PLUS`, `TYPE_MSX1`, `TYPE_MSX2`, `TYPE_MSX2PLUS`, `TYPE_MSXTURBOR`, `TYPE_PCW8`, `TYPE_PCW9`, `TYPE_PCW16`, `TYPE_NC100`, `TYPE_NC150`, `TYPE_NC200`, `TYPE_SVM` (SymbOSVM), or `TYPE_OTHER` (anything undefined, included for forward-compatibility with potential future ports).
+
+The general class of machine can be obtained by AND'ing this value with one of `TYPE_CPC`, `TYPE_MSX`, `TYPE_ENTERPRISE`, `TYPE_PCW`, `TYPE_NC`, or `TYPE_SVM`.
+
+*SymbOS name*: `System_Information` (`SYSINF`).
+
+### Sys_GetDrives()
+
+*Currently only available in development builds of SCC.*
+
+```c
+void Sys_GetDrives(void* dest);
+```
+
+Loads available drives into `dest`, which must be an 8-member array of type `Device_Info` located in the **transfer** segment. `Device_Info` has the format:
+
+```c
+typedef struct {
+    unsigned char letter;  // ASCII drive letter or 0 = undefined
+    unsigned short config; // drive setup (see below)
+    unsigned char unused;
+    char name[12];         // device name, zero-terminated
+} Device_Info;
+```
+
+The member `config` is a bitmask defining the system drive setup (partition number, etc.), which depends on the drive type; most of this is not relevant to user applications, so see the [SymbOS developer documentation](https://symbos.org/download.htm) for details. Example:
+
+```c
+_transfer Device_Info drives[8];
+Sys_GetDrives(&drives);
+```
+
+*SymbOS name*: `System_Information` (`SYSINF`).
+
+### Sys_DriveInfo()
+
+*Currently only available in development builds of SCC.*
+
+```c
+void Sys_DriveInfo(char letter, Drive_Info* obj);
+```
+
+Loads information about the drive with ASCII drive letter `letter` into `obj`, a struct of type `Drive_Info` passed by reference:
+
+```c
+typedef struct {
+    unsigned char status;      // status (see below)
+    unsigned char type;        // medium type (see below)
+    unsigned char removeable;  // 0 or 1
+    unsigned char fs;          // filesystem (see below)
+    unsigned char sectors;     // sectors per cluster
+    unsigned long clusters;    // total clusters
+} Drive_Info;
+```
+
+`status` may be one of `DRIVE_NONE`, `DRIVE_READY`, `DRIVE_NOTREADY`, or `DRIVE_CORRUPT`. `fs` may be one of `FS_AMSDOS_DATA`, `FS_AMSDOS_SYS`, `FS_PCW_180K`, `FS_FAT12`, `FS_FAT16`, or `FS_FAT32`. `type` may be one of:
+
+* `TYPE_FLOPPY_SS` - single-sided floppy (Amstrad, PCW)
+* `TYPE_FLOPPY_DS` - double-sided floppy (FAT12)
+* `TYPE_RAMDRIVE` - RAM drive
+* `TYPE_HARDDRIVE` - IDE/SCSI/SD/MMC mass storage drive
+
+*SymbOS name*: `Directory_DriveInformation` (`DIRINF`).
+
+### Sys_DriveFree()
+
+*Currently only available in development builds of SCC.*
+
+```c
+unsigned long Sys_DriveFree(char letter);
+```
+
+Returns the total number of free 512-byte sectors on the drive with the ASCII drive letter `letter`. (Note that this calculation may take some time on a large FAT16 device.)
+
+*SymbOS name*: `Directory_DriveInformation` (`DIRINF`).
+
+### Sys_GetConfig()
+
+*Currently only available in development builds of SCC.*
+
+```c
+void Sys_GetConfig(char* dest, unsigned short offset, unsigned char len);
+```
+
+A low-level function that copies `len` bytes starting at `offset` within the SymbOS configuration information into the buffer at address `dest`, which must be in the **transfer** segment. `offset` = 0 is byte 163 in `SYMBOS.INI` (i.e., the system path). For information on offsets and what information can be retrieved this way, see the SymbOS Developer Documentation.
+
+*SymbOS name*: `System_Information` (`SYSINF`).
 
 ## Window management
 

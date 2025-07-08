@@ -5,8 +5,8 @@ v1.2
 + Added Gfx_ScrollX() and Gfx_ScrollY()
 + Added InputBox()
 + Added raw image support to libgfx
-+ Added Sys_GetConfig(), Sys_GetDrives(), Sys_Path(), and Sys_Type()
-+ Added Sys_Counter16()
++ Added Sys_GetConfig(), Sys_GetDrives(), Sys_DriveInfo(),
+  Sys_DriveFree(), Sys_Path(), Sys_Type(), and Sys_Counter16()
 + Added Print_Busy(), Print_Char(), Print_String()
 + Added Win_X() and Win_Y()
 + Added Mouse_Dragging()

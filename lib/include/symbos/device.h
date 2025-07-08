@@ -37,6 +37,16 @@
 #define TYPE_NC150 0x210
 #define TYPE_NC200 0x410
 
+#define DRIVE_NONE 0
+#define DRIVE_READY 1
+#define DRIVE_NOTREADY 2
+#define DRIVE_CORRUPT 3
+
+#define TYPE_FLOPPY_SS 1
+#define TYPE_FLOPPY_DS 2
+#define TYPE_RAMDRIVE 3
+#define TYPE_HARDDRIVE 4
+
 #define ScreenColours(x) ScreenColors(x)
 extern unsigned char Screen_Mode(void);
 extern unsigned char Screen_Colors(void);
@@ -74,11 +84,22 @@ typedef struct {
     unsigned short config;
     unsigned char unused;
     char name[12];
+} Device_Info;
+
+typedef struct {
+    unsigned char status;
+    unsigned char type;
+    unsigned char removeable;
+    unsigned char fs;
+    unsigned char sectors;
+    unsigned long clusters;
 } Drive_Info;
 
 #define Sys_Version() _sysversion
 extern void Sys_GetConfig(char* dest, unsigned short offset, unsigned char len);
 extern void Sys_GetDrives(void* dest);
+extern void Sys_DriveInfo(char letter, Drive_Info* obj);
+extern unsigned long Sys_DriveFree(char letter);
 extern char* Sys_Path(void);
 extern unsigned short Sys_Type(void);
 
