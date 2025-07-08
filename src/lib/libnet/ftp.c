@@ -81,8 +81,10 @@ signed char FTP_Open(char* ip, int rport, char* username, char* password) {
 
     _packsemaon();
     handle = TCP_OpenClient(ip, -1, rport);
-    if (handle == -1)
+    if (handle == -1) {
+        _packsemaoff();
         return -1;
+    }
     result = FTP_Response(handle, _netpacket, sizeof(_netpacket));
     if (result == 230) {
         // no username required, we're done

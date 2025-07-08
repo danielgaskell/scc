@@ -12,7 +12,7 @@ char* _neterrstr[27] = {
     "Out of free sockets",
     "Socket does not exist",
     "Wrong socket type",
-    "Socket already in use", "", "", "", ""
+    "Socket already in use", "", "", "", "",
     "Invalid domain",
     "Connection timeout",
     "Recursion not supported",
