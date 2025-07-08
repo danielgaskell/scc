@@ -20,6 +20,7 @@ These headers are not 100% comprehensive; SymbOS provides some additional system
 * [Screen status](#screen-status)
 * [Mouse status](#mouse-status)
 * [Keyboard status](#keyboard-status)
+* [System configuration](#system-configuration)
 * [Window management](#window-management)
 * [Onscreen popups](#onscreen-popups)
 * [File access](syscall2.md#file-access)

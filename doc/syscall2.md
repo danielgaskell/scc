@@ -10,6 +10,7 @@
 * [Screen status](syscall1.md#screen-status)
 * [Mouse status](syscall1.md#mouse-status)
 * [Keyboard status](syscall1.md#keyboard-status)
+* [System configuration](syscall1.md#system-configuration)
 * [Window management](syscall1.md#window-management)
 * [Onscreen popups](syscall1.md#onscreen-popups)
 * [File access](#file-access)
