@@ -17,8 +17,10 @@ signed char Net_SplitURL(char* url, char* host, char** path, unsigned short* por
 
     // extract scheme
     dot = strchr(url, '.');
-    if (!dot)
+    if (!dot) {
+        _neterr = ERR_BADDOMAIN;
         return -1;
+    }
     colon = strstr(url, "://");
     if (colon != 0 && colon < dot) {
         len = colon - url;
