@@ -17,6 +17,7 @@ int FTP_Response(unsigned char handle, char* addr, unsigned short maxlen) {
     NetStat net_stat;
 
     _nsemaon();
+    _ftp_response = 0;
     while (!Net_Wait(NET_TCPEVT)) {
         if (_netmsg[3] == handle) {
             TCP_Event(_netmsg, &net_stat);
@@ -93,7 +94,7 @@ signed char FTP_Open(char* ip, int rport, char* username, char* password) {
     } else if (result == 220) {
         // username required, provide it
         strcpy(_netpacket, "USER ");
-        strcat(_netpacket, username);
+        strcat(_netpacket, *username ? username : "anonymous");
         strcat(_netpacket, "\r\n");
         result = FTP_Command(handle, _netpacket, _netpacket, sizeof(_netpacket));
         if (result == 230) {
@@ -103,7 +104,7 @@ signed char FTP_Open(char* ip, int rport, char* username, char* password) {
         } else if (result == 331) {
             // password required, provide it
             strcpy(_netpacket, "PASS ");
-            strcat(_netpacket, password);
+            strcat(_netpacket, *password ? password : "password");
             strcat(_netpacket, "\r\n");
             if (FTP_Command(handle, _netpacket, _netpacket, sizeof(_netpacket)) == 230) {
                 _packsemaoff();
