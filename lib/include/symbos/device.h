@@ -47,6 +47,13 @@
 #define TYPE_RAMDRIVE 3
 #define TYPE_HARDDRIVE 4
 
+#define FS_AMSDOS_DATA 1
+#define FS_AMSDOS_SYS 2
+#define FS_PCW_180K 3
+#define FS_FAT12 16
+#define FS_FAT16 17
+#define FS_FAT32 18
+
 #define ScreenColours(x) ScreenColors(x)
 extern unsigned char Screen_Mode(void);
 extern unsigned char Screen_Colors(void);
