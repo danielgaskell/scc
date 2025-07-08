@@ -24,3 +24,23 @@ _Sys_GetConfig:
 	pop ix
 	pop bc
 	ret
+
+; Sys_GetDrives
+.export _Sys_GetDrives
+_Sys_GetDrives:
+	push bc
+	push ix
+	push iy
+	ld ix,8
+	add ix,sp
+	ld l,(ix+0)
+	ld h,(ix+1)
+	push hl
+	pop ix
+	ld e,3
+	ld hl,#0x8103
+	rst #0x28
+	pop iy
+	pop ix
+	pop bc
+	ret

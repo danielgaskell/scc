@@ -477,6 +477,34 @@ The general class of machine can be obtained by AND'ing this value with one of `
 
 *SymbOS name*: `System_Information` (`SYSINF`).
 
+### Sys_GetDrives()
+
+*Currently only available in development builds of SCC.*
+
+```c
+void Sys_GetDrives(void* dest);
+```
+
+Loads available drives into `dest`, which must be an 8-member array of type `Drive_Info` located in the **transfer** segment. `Drive_Info` has the format:
+
+```c
+typedef struct {
+    unsigned char letter;  // ASCII drive letter or 0 = undefined
+    unsigned short config; // drive setup (see below)
+    unsigned char unused;
+    char name[12];         // device name, zero-terminated
+} Drive_Info;
+```
+
+The member `config` is a bitmask defining the system drive setup (partition number, etc.), which depends on the drive type; most of this is not relevant to user applications, so see the [SymbOS developer documentation](https://symbos.org/download.htm) for details. Example:
+
+```c
+_transfer Drive_Info drives[8];
+Sys_GetDrives(&drives);
+```
+
+*SymbOS name*: `System_Information` (`SYSINF`).
+
 ### Sys_GetConfig()
 
 *Currently only available in development builds of SCC.*

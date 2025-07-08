@@ -69,8 +69,16 @@ extern signed char Print_Busy(void);
 extern signed char Print_Char(unsigned char ch);
 extern signed char Print_String(char* str);
 
+typedef struct {
+    unsigned char letter;
+    unsigned short config;
+    unsigned char unused;
+    char name[12];
+} Drive_Info;
+
 #define Sys_Version() _sysversion
 extern void Sys_GetConfig(char* dest, unsigned short offset, unsigned char len);
+extern void Sys_GetDrives(void* dest);
 extern char* Sys_Path(void);
 extern unsigned short Sys_Type(void);
 
