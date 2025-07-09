@@ -43,8 +43,8 @@ signed char InputBox(char* title, char* line1, char* line2, char* buffer, unsign
         _inp_form.title = title;
     else
         _inp_form.title = "Input";
-    _inp_cd_text1.text = line1;
-    _inp_cd_text2.text = line2;
+    _inp_cd_text1.text = line1 ? line1 : "";
+    _inp_cd_text2.text = line2 ? line2 : "";
     _inp_cd_input.text = buffer;
     _inp_cd_input.scroll = 0;
     _inp_cd_input.cursor = 0;
