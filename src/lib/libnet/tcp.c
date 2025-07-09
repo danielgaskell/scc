@@ -7,6 +7,7 @@
 /* ========================================================================== */
 
 unsigned char _tcp_abort;
+unsigned long _tcp_progress;
 
 signed char TCP_Close(unsigned char handle) {
     signed char result;
@@ -122,6 +123,8 @@ signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsig
     unsigned short transferred;
     _nsemaon();
     _tcp_abort = 0;
+    *(((unsigned short*)&_tcp_progress)) = 0;
+    *(((unsigned short*)&_tcp_progress) + 1) = 0;
     for (;;) {
         _netmsg[0] = 20;
         _netmsg[3] = handle;
@@ -135,6 +138,7 @@ signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsig
         transferred = *((unsigned short*)(_netmsg + 4));
         addr += transferred;
         len -= transferred;
+        *(unsigned short*)_tcp_progress += transferred;
         if (len <= 0)
             break;
         if (_tcp_abort) {

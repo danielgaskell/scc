@@ -7,7 +7,9 @@
 
 char _http_proxy_ip[4] = {0, 0, 0, 0};
 int _http_proxy_port = 1234;
-signed char _http_progress;
+signed char _http_status;
+unsigned long _http_total;
+unsigned long _http_progress;
 unsigned char _http_abort;
 unsigned char _http_semaphore = 0;
 char* _match_http = "HTTP/1.1 ";
@@ -20,8 +22,6 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     unsigned short counter;
     unsigned short packetlen;
     unsigned short buffer_left;
-    unsigned short content_len;
-    unsigned short content_received;
     signed char socket;
     int result;
     unsigned short port;
@@ -42,7 +42,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     // setup
     fd = 8;
     _http_abort = 0;
-    _http_progress = HTTP_LOOKUP;
+    _http_status = HTTP_LOOKUP;
     if (maxlen) {
         --maxlen; // to leave room for zero-terminator
         *dest = 0;
@@ -72,7 +72,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
         _http_semaphore = 0;
         return -1;
     }
-    _http_progress = HTTP_CONNECTING;
+    _http_status = HTTP_CONNECTING;
 
     // open connection
     socket = TCP_OpenClient(ip, -1, 80);
@@ -80,7 +80,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
         _http_semaphore = 0;
         return -1;
     }
-    _http_progress = HTTP_SENDING;
+    _http_status = HTTP_SENDING;
 
     // send message
     _packsemaon();
@@ -109,7 +109,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
         if (TCP_Send(socket, _symbank, body, bodylen))
             goto _fail;
     }
-    _http_progress = HTTP_WAITING;
+    _http_status = HTTP_WAITING;
 
     // process response (using a confusing state machine)
     result = 0;
@@ -120,8 +120,8 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     progress_crlf = 0;
     ptr = _netpacket;
     buffer_left = maxlen;
-    content_len = 0;
-    content_received = 0;
+    memset(&_http_total, 0, 4);
+    memset(&_http_progress, 0, 4);
     counter = Sys_Counter16() + _nettimeout;
     for (;;) {
         _netmsg[0] = 0;
@@ -147,7 +147,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
                                     numbuf[num_accum] = 0;
                                     if (num_accum > 1) {
                                         if (num_type)
-                                            content_len = atoi(numbuf + 1); // FIXME handle lengths longer than 16-bit (without using LONG)
+                                            _safeatol(numbuf + 1, (char*)&_http_total);
                                         else
                                             result = atoi(numbuf + 1);
                                     }
@@ -180,8 +180,8 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
                                         packetlen -= i;
                                         ptr = ptr2;
                                     } else {
-                                        // otherwise, we need to include this round of headers in the expected content_len
-                                        content_len += i;
+                                        // otherwise, we need to include this round of headers in the expected content length
+                                        _safeadd((char*)&_http_total, i);
                                     }
                                     break;
                                 }
@@ -193,6 +193,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
 
                     // output
                     if (keep_headers || in_body) {
+                        _http_status = HTTP_DOWNLOADING;
                         if (maxlen) {
                             if (packetlen > buffer_left)
                                 packetlen = buffer_left;
@@ -208,12 +209,9 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
                                 goto _fail;
                             }
                         }
-                        if (content_len > 100)
-                            _http_progress = content_received / (content_len / 100);
                         if (in_body) {
-                            content_len -= packetlen;
-                            content_received += packetlen;
-                            if (content_len <= 0)
+                            _safeadd((char*)&_http_progress, packetlen);
+                            if (_safegte((char*)&_http_progress, (char*)&_http_total));
                                 goto _done;
                         }
                     }
@@ -241,7 +239,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
 _done:
     // close connection
     _packsemaoff();
-    _http_progress = HTTP_DONE;
+    _http_status = HTTP_READY;
     if (TCP_Disconnect(socket))
         goto _fail;
     if (fd < 8)
@@ -251,7 +249,7 @@ _done:
 
 _fail:
     _packsemaoff();
-    _http_progress = HTTP_DONE;
+    _http_status = HTTP_READY;
     result = _neterr;
     TCP_Disconnect(socket);
     if (fd < 8)

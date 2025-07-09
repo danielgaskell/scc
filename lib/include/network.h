@@ -49,11 +49,12 @@
 #define NET_TCPEVT 159
 #define NET_UDPEVT 175
 
-#define HTTP_LOOKUP -1
-#define HTTP_CONNECTING -2
-#define HTTP_SENDING -3
-#define HTTP_WAITING -4
-#define HTTP_DONE -5
+#define HTTP_READY 0
+#define HTTP_LOOKUP 1
+#define HTTP_CONNECTING 2
+#define HTTP_SENDING 3
+#define HTTP_WAITING 4
+#define HTTP_DOWNLOADING 5
 
 #define FTP_ASCII 0
 #define FTP_BINARY 1
@@ -78,6 +79,7 @@ extern unsigned char _netthread;
 extern signed char Net_Init(void);
 
 extern unsigned char _tcp_abort;
+extern unsigned long _tcp_progress;
 
 extern signed char TCP_OpenClient(char* ip, signed short lport, unsigned short rport);
 extern signed char TCP_OpenServer(unsigned short lport);
@@ -104,7 +106,9 @@ extern unsigned char DNS_Verify(unsigned char bank, char* addr);
 
 extern char _http_proxy_ip[4];
 extern int _http_proxy_port;
-extern signed char _http_progress;
+extern signed char _http_status;
+extern unsigned long _http_total;
+extern unsigned long _http_downloaded;
 extern unsigned char _http_abort;
 extern int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char keep_headers);
 extern int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers, char* body, unsigned short bodylen, unsigned char keep_headers);

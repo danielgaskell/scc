@@ -13,6 +13,8 @@ signed char TCP_ReceiveToEnd(unsigned char handle, unsigned char bank, char* add
     // setup
     fd = 8;
     _tcp_abort = 0;
+    *(((unsigned short*)&_tcp_progress)) = 0;
+    *(((unsigned short*)&_tcp_progress) + 1) = 0;
     if (!maxlen) {
         fd = File_New(bank, addr, 0);
         if (fd > 7) {
@@ -48,6 +50,7 @@ signed char TCP_ReceiveToEnd(unsigned char handle, unsigned char bank, char* add
                             goto _fail;
                         }
                     }
+                    _safeadd((char*)&_tcp_progress, trans_obj.transferred);
                     get_bytes = trans_obj.remaining;
                     if (_tcp_abort) {
                         _neterr = ERR_TRUNCATED;

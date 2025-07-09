@@ -20,3 +20,7 @@ extern void _nsemaon(void);
 extern void _nsemaoff(void);
 extern void _packsemaon(void);
 extern void _packsemaoff(void);
+
+extern void _safeatol(char* src, char* dest);
+extern void _safeadd(char* dest, unsigned short add);
+extern unsigned char _safegte(char* left, char* right);

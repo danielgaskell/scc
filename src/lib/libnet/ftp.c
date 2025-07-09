@@ -4,6 +4,7 @@
 #include "network.h"
 
 int _ftp_response;
+unsigned long _ftp_progress;
 
 int FTP_Response(unsigned char handle, char* addr, unsigned short maxlen) {
     unsigned short get_bytes;
@@ -201,6 +202,8 @@ signed char _ftp_updown(unsigned char handle, char* filename, unsigned char bank
             if (fd < 8) {
                 _packsemaon();
                 len = 1;
+                *(((unsigned short*)&_ftp_progress)) = 0;
+                *(((unsigned short*)&_ftp_progress) + 1) = 0;
                 while (len) {
                     len = File_Read(fd, _symbank, _netpacket, sizeof(_netpacket));
                     if (len) {
@@ -210,6 +213,7 @@ signed char _ftp_updown(unsigned char handle, char* filename, unsigned char bank
                             File_Close(fd);
                             return -1;
                         }
+                        _safeadd((char*)&_ftp_progress, len);
                     }
                 }
                 _packsemaoff();
