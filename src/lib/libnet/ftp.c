@@ -155,7 +155,7 @@ _fail:
 }
 
 signed char _ftp_updown(unsigned char handle, char* filename, unsigned char bank, char* addr, unsigned short maxlen, unsigned char mode, unsigned char request) {
-    char fd;
+    char fd, i;
     char ip[4];
     unsigned short port;
     unsigned short len;
@@ -207,10 +207,12 @@ signed char _ftp_updown(unsigned char handle, char* filename, unsigned char bank
                 while (len) {
                     len = File_Read(fd, _symbank, _netpacket, sizeof(_netpacket));
                     if (len) {
-                        if (TCP_Send(passive, _symbank, _netpacket, len)) {
+                        if (_tcp_abort || TCP_Send(passive, _symbank, _netpacket, len)) {
                             _packsemaoff();
+                            i = _neterr;
                             TCP_Disconnect(passive);
                             File_Close(fd);
+                            _neterr = i;
                             return -1;
                         }
                         _safeadd((char*)&_ftp_progress, len);
