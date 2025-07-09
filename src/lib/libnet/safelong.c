@@ -9,15 +9,17 @@ void _safeatol(char* src, char* dest) {
     dest[1] = 0;
     dest[2] = 0;
     dest[3] = 0;
-    while (*src >= '0' && *src <= '9') {
+    while (*src == ',' || (*src >= '0' && *src <= '9')) {
         // perform dest = (dest * 10) + digit bytewise, carrying as we go
-        temp = (dest[0] * 10) + (*src++ - '0');
-        dest[0] = temp;
-        temp = (dest[1] * 10) + (temp >> 8);
-        dest[1] = temp;
-        temp = (dest[2] * 10) + (temp >> 8);
-        dest[2] = temp;
-        dest[3] = (dest[3] * 10) + (temp >> 8);
+        if (*src != ',') {
+            temp = (dest[0] * 10) + (*src++ - '0');
+            dest[0] = temp;
+            temp = (dest[1] * 10) + (temp >> 8);
+            dest[1] = temp;
+            temp = (dest[2] * 10) + (temp >> 8);
+            dest[2] = temp;
+            dest[3] = (dest[3] * 10) + (temp >> 8);
+        }
     }
 }
 
