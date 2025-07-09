@@ -17,11 +17,11 @@ unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, un
     pen = pen*4 + 2;
     if (modalWin)
         type |= MSGBOX_MODAL;
-    _msgbox.line1 = line1;
+    _msgbox.line1 = line1 ? line1 : "";
 	_msgbox.pen1 = pen;
-	_msgbox.line2 = line2;
+	_msgbox.line2 = line2 ? line2 : "";
 	_msgbox.pen2 = pen;
-	_msgbox.line3 = line3;
+	_msgbox.line3 = line3 ? line3 : "";
 	_msgbox.pen3 = pen;
 	_msgbox.icon = icon;
 	_msemaon();
