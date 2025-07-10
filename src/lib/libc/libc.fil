@@ -19,6 +19,7 @@ fgetpos.o
 fgets.o
 fsetpos.o
 ftell.o
+ftoa.o
 getopt.o
 gets.o
 getw.o

@@ -22,6 +22,7 @@ typedef struct {
 } ProcHeader;
 
 extern signed char Timer_Add(unsigned char bank, void* header);
+extern signed char Timer_Wake(unsigned char pid, unsigned char msgid, unsigned short cycles);
 extern void Timer_Delete(unsigned char id);
 extern unsigned char Counter_Add(unsigned char bank, char* addr, unsigned char pid, unsigned char speed);
 extern void Counter_Delete(unsigned char bank, char* addr);

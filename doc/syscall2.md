@@ -746,11 +746,13 @@ Sets the scheduler priority of the process with the process ID `pid` to `priorit
 
 ## Timer management
 
-SymbOS implements two types of clock events that fire at regular intervals: **counters** and **timers**. These can be used in cases where we need something to occur at regular intervals of real time (such as movement in a game), rather than at regular intervals of CPU time.
+SCC implements three types of clock events that fire at regular intervals: **counters**, **timers**, and **wake timers**. These can be used in cases where we need something to occur at regular intervals of real time (such as movement in a game), rather than at regular intervals of CPU time.
 
 A **counter** is the simplest method. A byte in memory can be registered as a counter, after which it will be incremented automatically from 1 to 50 times per second. We can then check the value of this byte regularly, and if it has changed, perform whatever action needs to be done.
 
 A **timer** is more complicated. It is essentially a new process that is only given CPU time for brief, regular intervals every 1/50th or 1/60th of a second (depending on the screen vsync frequency of the platform). See `Timer_Add()` and `Proc_Add()` for details on how to define this process.
+
+A **wake timer** is a simplified wrapper that uses a **timer** to perform a single task: at a regular interval, it sends a [message](syscall1.md#messaging) to the specified process ID. The idea is that, instead of continuously running at 100% CPU checking a **counter**, the target process can sit idling on `Msg_Sleep()` and only "wake up" every so often when the wake timer fires.
 
 In addition to `symbos.h`, these functions can be found in `symbos/proc.h`.
 
@@ -808,13 +810,32 @@ void timer_loop(void) {
 
 *SymbOS name*: `Multitasking_Add_Timer_Command` (`MSC_KRL_MTADDT`).
 
+### Timer_Wake()
+
+*Currently only available in development builds of SCC.*
+
+```c
+signed char Timer_Wake(unsigned char pid, unsigned char msgid, unsigned short cycles);
+```
+
+A simplified wrapper around `Timer_Add()` that sets up a "wake timer". Every `cycles` iterations (in 1/50ths of a second), the timer process will send a [message](syscall1.md#messaging) with the first byte `msg[0]` = `msgpid` to the process ID `pid`. For example, to wake our main process up every 5 seconds with `msg[0]` = 200:
+
+```c
+signed char wake_pid;
+wake_pid = Timer_Wake(_sympid, 200, 5*50);
+```
+
+An application can only have one wake timer running at a time.
+
+*Return value*: On success, returns the timer ID needed to stop the timer later with `Timer_Delete()`. On failure, returns -1.
+
 ### Timer_Delete()
 
 ```c
 void Timer_Delete(unsigned char id);
 ```
 
-Stops execution of a timer previously launched by `Timer_Add()`. The parameter `id` is the timer ID returned by `Timer_Add()`.
+Stops execution of a timer previously launched by `Timer_Add()` or `Timer_Wake()`. The parameter `id` is the timer ID returned by `Timer_Add()` or `Timer_Wake()`.
 
 *SymbOS name*: `Multitasking_Delete_Timer_Command` (`MSC_KRL_MTDELT`).
 
@@ -1251,7 +1272,7 @@ int main(int argc, char* argv[]) {
 void thread_quit(char* env);
 ```
 
-Quits the running thread associated with the environment buffer `env`. (This function will not return, so it should only be used inside the thread in question, to quit itself. To forcibly end a running thread from inside a different thread, use [`Proc_Delete()`](#proc_delete).)
+Quits the running thread associated with the environment buffer `env`. (This function will not return, so it should only be used inside the thread in question, to quit itself. To forcibly end a running thread from inside a different thread, use [`Proc_Delete()`](#proc_delete); however, this can leave resources hanging if the thread is interrupted in the middle of a system call, so it is usually better to have the thread quit itself with `thread_quit()`.)
 
 ### Thread safety
 

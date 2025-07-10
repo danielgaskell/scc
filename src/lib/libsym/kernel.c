@@ -3,14 +3,14 @@
 /* ========================================================================== */
 /* Kernel                                                                     */
 /* ========================================================================== */
+signed char _timer_wake = -1;
+
 void _Kern_MsgWait(void) {
     unsigned char response;
     response = _symmsg[0] + 128;
     while (Msg_Send(_msgpid(), 1, _symmsg) == 0);
-    while (_symmsg[0] != response) {
-        Idle();
-        Msg_Receive(_msgpid(), 1, _symmsg);
-    }
+    while (_symmsg[0] != response)
+        Msg_Sleep(_msgpid(), 1, _symmsg);
 }
 
 signed char Timer_Add(unsigned char bank, void* header) {
@@ -35,6 +35,8 @@ void Timer_Delete(unsigned char id) {
     _symmsg[1] = id;
     _Kern_MsgWait();
     _msemaoff();
+    if (id == _timer_wake)
+        _timer_wake = -1;
 }
 
 unsigned char Counter_Add(unsigned char bank, char* addr, unsigned char pid, unsigned char speed) {

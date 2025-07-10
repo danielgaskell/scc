@@ -37,10 +37,8 @@ unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, un
     if (modalWin != 0 && _symmsg[1] == 1) {
         ((Window*)modalWin)->modal = _symmsg[2];
         _symmsg[0] = 0;
-        while (_symmsg[0] != 157) {
-            Idle();
-            Msg_Receive(_msgpid(), 3, _symmsg);
-        }
+        while (_symmsg[0] != 157)
+            Msg_Sleep(_msgpid(), 3, _symmsg);
         ((Window*)modalWin)->modal = 0;
     }
     result = _symmsg[1];

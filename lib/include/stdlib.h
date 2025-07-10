@@ -46,6 +46,7 @@ extern char *ultoa(unsigned long __value, char *__strP, int __radix);
 extern char *ltoa(long __value, char *__strP, int __radix);
 extern char *uitoa(unsigned int __value, char *__strP, int __radix);
 extern char *itoa(int __value, char *__strP, int __radix);
+extern char *ftoa(float __value, char *__strP);
 
 extern int atoi(const char *__nptr);
 extern long atol(const char *__nptr);

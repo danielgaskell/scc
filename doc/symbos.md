@@ -1229,8 +1229,8 @@ _transfer Menu_Entry submenu_row2 = {MENU_ACTIVE, "Entry 2", 2};
 
 _transfer Menu mainmenu = {3};
 _transfer Menu_Entry mainmenu_row1 = {MENU_ACTIVE | MENU_SUBMENU, "Submenu", (unsigned short)&submenu};
-_transfer Menu_Entry mainmenu_row2 = {MENU_ACTIVE | MENU_CHECKED, "Option", 2};
-_transfer Menu_Entry mainmenu_row3 = {0, "Inactive", 3};
+_transfer Menu_Entry mainmenu_row2 = {MENU_ACTIVE | MENU_CHECKED, "Option", 3};
+_transfer Menu_Entry mainmenu_row3 = {0, "Inactive", 4};
 ```
 
 ### Toolbars

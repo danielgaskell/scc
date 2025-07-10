@@ -10,9 +10,11 @@ v1.2
 + Added Print_Busy(), Print_Char(), Print_String()
 + Added Win_X() and Win_Y()
 + Added Mouse_Dragging()
++ Added Timer_Wake()
 + Added support for menu icons
 + Added _msgpid()
 + Enabled %f in scanf()
++ Added ftoa()
 @ Improved thread safety for system calls and various others
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
 @ Fixed gfx2sgx generating incorrect 4-color images

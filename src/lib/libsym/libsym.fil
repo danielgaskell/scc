@@ -22,6 +22,7 @@ drag.o
 deskmode.o
 desksvc.o
 deskmsg.o
+wake.o
 threads.o
 kernel.o
 kernbank.o
