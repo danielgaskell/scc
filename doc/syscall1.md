@@ -115,6 +115,18 @@ while (!(Msg_Sleep(_sympid, -1, _symmsg) & 0x01));
 
 *SymbOS name*: `Message_Sleep_And_Receive` (`MSGSLP`).
 
+### Msg_Wait()
+
+*Currently only available in development builds of SCC.*
+
+```c
+unsigned char Msg_Wait(char rec_pid, char send_pid, char* msg, char id);
+```
+
+A utility function that idles on `Msg_Sleep()` until a message from process ID `send_pid` with the first byte `msg[0]` = `id` arrives. Any other messages received in the meantime will remain on the queue. (This is useful for command/response pairs where we want to send a message to a service and wait for its response.)
+
+*Return value*: sender process ID.
+
 ### Idle()
 
 ```c

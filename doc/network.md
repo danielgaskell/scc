@@ -147,7 +147,7 @@ TCP is the primary low-level network protocol supported by SymbOS network hardwa
 * Once open, data can be sent to the other party at any time with `TCP_Send()`.
 * The network daemon will alert us to the arrival of new data (or a change in connection status) by sending message ID `NET_TCPEVT`. We can watch for this message in our main event loop and use `TCP_Event()` to understand its contents.
 	* When `TCP_Event()` yields `NetStat.bytesrec` > 0, incoming data bytes are waiting; we can download them into a buffer using `TCP_Receive()`.
-	* When `TCP_Event()` yields `NetStat.status` = `TCP_CLOSED`, the remote server has closed the connection and we can free the socket with `TCP_Close()`.
+	* When `TCP_Event()` yields `NetStat.status` = `TCP_CLOSED`, the remote server has closed the connection (although there may still be data in the incoming buffer waiting to be downloaded). Once we've downloaded everything we want, we can free the socket with `TCP_Close()`.
 * To disconnect from our end, use `TCP_Disconnect()`.
 
 For a complete example of implementing a TCP connection, see `fast.c` in the **sample** folder.
@@ -241,9 +241,9 @@ typedef struct {
 } TCP_Trans;
 ```
 
-A few subtleties:
+A small collection of subtleties:
 
-* Note that setting `len` to the total number of available bytes and calling `TCP_Receive()` is not guaranteed to leave the buffer empty, because the network daemon can receive additional bytes at any time. The main situation where this matters is when the app wants to empty the buffer and wait for a `NET_TCPEVT` message from the network daemon alerting it when new data arrives. However, the network daemon will only send a `NET_TCPEVT` message when adding data *to an empty buffer*, so if the initial `TCP_Receive()` call does not actually empty the buffer completely, no message will arrive. One way to avoid this is to check the returned `TCP_Trans.remaining` value and keep calling `TCP_Receive()` until this value is actually zero; alternatively, the app can not rely on receiving a message.
+* Note that setting `len` to the total number of available bytes and calling `TCP_Receive()` is not guaranteed to leave the buffer empty, because the network daemon can receive additional bytes at any time. The main situation where this matters is when the app wants to empty the buffer and wait for a `NET_TCPEVT` message from the network daemon alerting it when new data arrives. However, the network daemon will only send a `NET_TCPEVT` message when adding data *to an empty buffer*, so if the initial `TCP_Receive()` call does not actually empty the buffer completely, no message will arrive. One way to avoid this is to check the returned `TCP_Trans.remaining` value and loop, repeatedly calling `TCP_Receive()`, until this value is actually zero; alternatively, the app can not rely on receiving a message.
 
 * Note that, because TCP data are sent as a continuous stream, fully clearing the TCP buffer does *not* necessarily mean that we have processed all the data the other party intends to send! It is the program's responsibility to understand (from the content of the data stream) when a pause in receiving data means "request finished, please process it" versus "more data coming soon, please wait." Likewise, we need to be careful about assuming that any given call of `TCP_Receive()` will yield a "complete" response, as incoming data may arrive discontinuously and split into chunks of any size (most often 1460 or 2048 bytes, but potentially as small as 1 byte each).
 

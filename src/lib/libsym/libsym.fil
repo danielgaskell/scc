@@ -5,6 +5,7 @@ memsize.o
 msgbox.o
 music.o
 effects.o
+fileerr.o
 sound.o
 popups.o
 printstr.o

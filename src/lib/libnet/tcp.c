@@ -24,21 +24,31 @@ signed char TCP_OpenWait(signed char handle) {
     unsigned char status;
     while (!Net_Wait(NET_TCPEVT)) {
         if (_netmsg[3] == handle) {
-            if (*((unsigned short*)(_netmsg + 4))) {
-                // already has data waiting (that was fast!), treat as opened
-                Msg_Send(_netpid, _msgpid(), _netmsg); // put back on queue
-                _nsemaoff();
-                return handle;
-            }
             status = _netmsg[8] & 0x1F;
             if (status == TCP_OPENED) {
+                // connection stayed open
                 _nsemaoff();
                 return handle;
             } else if (status == TCP_CLOSING || status == TCP_CLOSED) {
-                break;
+                // connection immediately closed...
+                if (*((unsigned short*)(_netmsg + 4))) {
+                    // ...but received data first; treat as open, but requeue this as the close alert
+                    #ifdef _NETDEBUG
+                    msg_print("Requeuing: ");
+                    #endif
+                    Msg_Send(_netpid, _msgpid(), _netmsg);
+                    _nsemaoff();
+                    return handle;
+                } else {
+                    // ...with no data; treat as a rejected connection
+                    break;
+                }
             }
         }
-        Msg_Send(_netpid, _msgpid(), _netmsg); // neither an open nor close message for this socket, put back on queue
+        #ifdef _NETDEBUG
+        msg_print("Requeuing: ");
+        #endif
+        Msg_Send(_netpid, _msgpid(), _netmsg); // not relevant, put back on queue
     }
     _nsemaoff();
     TCP_Close(handle);

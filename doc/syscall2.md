@@ -159,6 +159,14 @@ len = File_Seek(f, 0, SEEK_END); // get length by seeking to file end
 
 *SymbOS name*: `File_Pointer` (`FILPOI`).
 
+## File_ErrMsg()
+
+```c
+void File_ErrMsg(void* modalWin);
+```
+
+Displays a message box with the current error in `_fileerr`, if any. `modalWin` specifies the address of a `Window` data record that should be declared modal, if any; this window will not be able to be focused until the message box is closed. If `modalWin` = 0, no window will be declared modal.
+
 ## Directory access
 
 In addition to `symbos.h`, these functions can be found in `symbos/file.h`.
@@ -825,7 +833,7 @@ signed char wake_pid;
 wake_pid = Timer_Wake(_sympid, 200, 5*50);
 ```
 
-An application can only have one wake timer running at a time.
+This function only supports running one wake timer at a time; for more complex behavior, see `Timer_Add()`.
 
 *Return value*: On success, returns the timer ID needed to stop the timer later with `Timer_Delete()`. On failure, returns -1.
 

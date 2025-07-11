@@ -159,3 +159,4 @@ memset.o
 memmove.o
 time.o
 systime.o
+respond.o

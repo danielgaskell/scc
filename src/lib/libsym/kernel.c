@@ -5,13 +5,7 @@
 /* ========================================================================== */
 signed char _timer_wake = -1;
 
-void _Kern_MsgWait(void) {
-    unsigned char response;
-    response = _symmsg[0] + 128;
-    while (Msg_Send(_msgpid(), 1, _symmsg) == 0);
-    while (_symmsg[0] != response)
-        Msg_Sleep(_msgpid(), 1, _symmsg);
-}
+void _Kern_MsgWait(void) { Msg_Respond(_msgpid(), 1, _symmsg); }
 
 signed char Timer_Add(unsigned char bank, void* header) {
     signed char result;
@@ -24,7 +18,7 @@ signed char Timer_Add(unsigned char bank, void* header) {
         _msemaoff();
         return -1;
     }
-    result = _symmsg[1];
+    result = _symmsg[2];
     _msemaoff();
     return result;
 }

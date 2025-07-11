@@ -115,6 +115,7 @@ extern int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers
 
 #define FTP_Close(x) TCP_Close(x)
 extern int _ftp_response;
+extern unsigned long _ftp_progress;
 extern signed char FTP_Open(char* ip, int rport, char* username, char* password);
 extern int FTP_Command(unsigned char handle, char* cmd, char* addr, unsigned short maxlen);
 extern int FTP_Response(unsigned char handle, char* addr, unsigned short maxlen);

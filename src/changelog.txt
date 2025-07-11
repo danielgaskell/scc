@@ -11,11 +11,14 @@ v1.2
 + Added Win_X() and Win_Y()
 + Added Mouse_Dragging()
 + Added Timer_Wake()
++ Added Msg_Wait()
++ Added File_ErrMsg()
 + Added support for menu icons
 + Added _msgpid()
 + Enabled %f in scanf()
 + Added ftoa()
 @ Improved thread safety for system calls and various others
+@ Reduced chances of ill-timed messages being lost
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
 @ Fixed gfx2sgx generating incorrect 4-color images
 @ Fixed thread_quit() semaphore conflict that could cause freezes
@@ -25,6 +28,7 @@ v1.2
 @ Fixed bad forward references to memmove()
 @ Fixed Mouse_X() returning Y value
 @ Fixed digit order in atof()
+@ Fixed Timer_Add() returning wrong ID
 @ Simplified FRAME_XOR property
 @ Moved atof() from libm to stdlib
 @ Changed Sys_Version() to _sysversion global (now used by crt0)

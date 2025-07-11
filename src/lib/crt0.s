@@ -181,7 +181,7 @@ _symexit_loop:
 	rst #0x30
 	jr _symexit_loop
 
-; Message_Sleep_And_Receive
+; Msg_Sleep
 .export _Msg_Sleep
 _Msg_Sleep:
 	push bc
@@ -205,7 +205,7 @@ _Msg_Sleep:
 	pop bc
 	ret
 	
-; Message_Send
+; Msg_Send
 .export _Msg_Send
 _Msg_Send:
 	push bc
@@ -229,7 +229,7 @@ _Msg_Send:
 	pop bc
 	ret
 
-; Message_Receive
+; Msg_Receive
 .export _Msg_Receive
 _Msg_Receive:
 	push bc

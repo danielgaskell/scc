@@ -4,7 +4,7 @@
 signed char Net_PublicIP(char* ip) {
     char* ptr;
     char ipbuf[24];
-    if (HTTP_GET("checkip.amazonaws.com", ipbuf, sizeof(ipbuf) - 1, 0, 0) == -1)
+    if (HTTP_GET("http://checkip.amazonaws.com", ipbuf, sizeof(ipbuf) - 1, 0, 0) == -1)
         return _neterr;
     ptr = ipbuf + strlen(ipbuf) - 1;
     if (ptr == ipbuf - 1)

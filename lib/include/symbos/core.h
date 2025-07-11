@@ -24,6 +24,8 @@ extern char _argv[];
 extern unsigned short Msg_Sleep(char rec_pid, char send_pid, char* msg);
 extern unsigned char Msg_Send(char rec_pid, char send_pid, char* msg);
 extern unsigned short Msg_Receive(char rec_pid, char send_pid, char* msg);
+extern unsigned char Msg_Wait(char rec_pid, char send_pid, char* msg, char id);
+extern void Msg_Respond(char rec_pid, char send_pid, char* msg);
 extern void Idle(void);
 
 extern unsigned long Sys_Counter(void);

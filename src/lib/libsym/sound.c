@@ -27,12 +27,7 @@ unsigned char Sound_Command(unsigned char wait) {
     }
     while (Msg_Send(_msgpid(), _soundpid, _symmsg) == 0);
     if (wait) {
-        for (;;) {
-            Msg_Sleep(_msgpid(), _soundpid, _symmsg);
-            if (_symmsg[0] == id)
-                break;
-            Msg_Send(_soundpid, _msgpid(), _symmsg); // put message back on queue
-        }
+        Msg_Wait(_msgpid(), _soundpid, _symmsg, id);
         if (_symmsg[2] & 0x01) {
             _sounderr = _symmsg[3];
             return _sounderr;

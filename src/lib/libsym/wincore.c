@@ -9,6 +9,7 @@ void _setpid(unsigned char bank, void* addr) {
 
 signed char Win_Open(unsigned char bank, void* addr) {
     signed char result;
+    unsigned short response;
     Bank_WriteByte(bank, &((Window*)addr)->pid, _msgpid());
     _setpid(bank, &((Window*)addr)->controls);
     _setpid(bank, &((Window*)addr)->toolbar);
@@ -17,17 +18,19 @@ signed char Win_Open(unsigned char bank, void* addr) {
     _symmsg[1] = bank;
     *((char**)(_symmsg + 2)) = addr;
     _Desk_Msg();
-    while (1) {
-        _Desk_Wait();
+    for (;;) {
+        response = Msg_Sleep(_msgpid(), 2, _symmsg);
         if (_symmsg[0] == 160) { // failure: return -1
             _msemaoff();
             return -1;
         }
         if (_symmsg[0] == 161) { // success: return window ID
-            _msemaoff();
             result = _symmsg[4];
+            _msemaoff();
             return result;
         }
+        if (response & 1)
+            Msg_Send(2, _msgpid(), _symmsg); // something else, keep it on the queue
     }
 }
 

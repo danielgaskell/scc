@@ -63,6 +63,7 @@ extern unsigned short File_Read(unsigned char id, unsigned char bank, char* addr
 extern unsigned char File_ReadLine(unsigned char id, unsigned char bank, char* addr);
 extern unsigned short File_ReadComp(unsigned char id, unsigned char bank, char* addr, unsigned short len);
 extern unsigned short File_Write(unsigned char id, unsigned char bank, char* addr, unsigned short len);
+extern void File_ErrMsg(void* modalWin);
 extern long File_Seek(unsigned char id, long offset, unsigned char ref);
 
 typedef struct {

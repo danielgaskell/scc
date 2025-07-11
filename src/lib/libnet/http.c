@@ -125,7 +125,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     counter = Sys_Counter16() + _nettimeout;
     for (;;) {
         _netmsg[0] = 0;
-        Msg_Receive(_msgpid(), _netpid, _netmsg);
+        i = Msg_Receive(_msgpid(), _netpid, _netmsg);
         if (_netmsg[0] == NET_TCPEVT) {
             TCP_Event(_netmsg, &net_stat);
             if (net_stat.bytesrec) {
@@ -225,7 +225,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
             }
             if (net_stat.status == TCP_CLOSING || net_stat.status == TCP_CLOSED)
                 break;
-        } else {
+        } else if (i & 1) {
             Msg_Send(_netpid, _msgpid(), _netmsg); // something else, put back on queue
         }
         if (Sys_Counter16() > counter) {

@@ -7,11 +7,7 @@ unsigned char _fileerr;
 /* ========================================================================== */
 unsigned char File_Command(void) {
     _symmsg[0] = 26;
-    while (Msg_Send(_msgpid(), 3, _symmsg) == 0);
-    while (_symmsg[0] != 154) {
-        Idle();
-        Msg_Receive(_msgpid(), 3, _symmsg);
-    }
+    Msg_Respond(_msgpid(), 3, _symmsg);
     if (_symmsg[2] & 0x01) {
         _fileerr = _symmsg[3] + 16; // note: +16 from documented errors!
         return _fileerr;

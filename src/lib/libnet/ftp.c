@@ -8,7 +8,7 @@ unsigned long _ftp_progress;
 
 int FTP_Response(unsigned char handle, char* addr, unsigned short maxlen) {
     unsigned short get_bytes;
-    char ch;
+    char ch, got_bytes, stopping;
     char progress = 2; // starts looking for number first
     char* ptr = addr;
     char* ptrend = addr + maxlen - 1;
@@ -19,12 +19,23 @@ int FTP_Response(unsigned char handle, char* addr, unsigned short maxlen) {
 
     _nsemaon();
     _ftp_response = 0;
-    while (!Net_Wait(NET_TCPEVT)) {
+    got_bytes = 0;
+    stopping = 0;
+    while (!stopping && !Net_Wait(NET_TCPEVT)) {
         if (_netmsg[3] == handle) {
             TCP_Event(_netmsg, &net_stat);
+            _nsemaoff();
+            if (net_stat.status == TCP_CLOSING || net_stat.status == TCP_CLOSED) {
+                // TCP_CLOSED implies "read until exhausted, then close" - but if it
+                // arrives during a TCP_Receive cycle, we exhaust first and *then*
+                // encounter TCP_CLOSED with an outdated bytesrec. Some devices
+                // misbehave when asked to read from an empty RX, so trap this.
+                if (got_bytes)
+                    break;
+                stopping = 1;
+            }
             if (net_stat.bytesrec) {
                 // read response
-                _nsemaoff();
                 get_bytes = net_stat.bytesrec;
                 while (get_bytes) {
                     if (TCP_Receive(handle, _symbank, ptr, ptrend - ptr, &trans_obj))
@@ -35,6 +46,7 @@ int FTP_Response(unsigned char handle, char* addr, unsigned short maxlen) {
                         return -1;
                     }
                     get_bytes = trans_obj.remaining;
+                    got_bytes = 1;
                 }
                 *ptr = 0;
 
@@ -57,12 +69,11 @@ int FTP_Response(unsigned char handle, char* addr, unsigned short maxlen) {
                     }
                     ++ptr_check;
                 }
-                _nsemaon();
             }
-            if (net_stat.status == TCP_CLOSING || net_stat.status == TCP_CLOSED)
-                break;
+            _nsemaon();
         } else {
-            Msg_Send(_netpid, _msgpid(), _netmsg); // not relevant to this socket, put back on queue
+            // not relevant to this socket, put back on queue
+            Msg_Send(_netpid, _msgpid(), _netmsg);
         }
     }
     _nsemaoff();
@@ -82,6 +93,7 @@ signed char FTP_Open(char* ip, int rport, char* username, char* password) {
     int result;
 
     _packsemaon();
+    _ftp_response = 0;
     handle = TCP_OpenClient(ip, -1, rport);
     if (handle == -1) {
         _packsemaoff();
@@ -160,11 +172,13 @@ signed char _ftp_updown(unsigned char handle, char* filename, unsigned char bank
     unsigned short port;
     unsigned short len;
     signed char passive;
+    _ftp_response = 0;
     _packsemaon();
     if (FTP_Command(handle, mode ? "TYPE I\r\n" : "TYPE A\r\n", _netpacket, sizeof(_netpacket)) != 200) {
         _packsemaoff();
         return -1;
     }
+    _ftp_response = 0;
     _packsemaoff();
     if (FTP_GetPassive(handle, ip, &port))
         return -1;
@@ -180,6 +194,7 @@ signed char _ftp_updown(unsigned char handle, char* filename, unsigned char bank
         _packsemaoff();
         return -1;
     }
+    _ftp_response = 0;
     _packsemaoff();
     passive = TCP_OpenClient(ip, -1, port);
     if (passive == -1)

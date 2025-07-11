@@ -1,6 +1,8 @@
 #define MAX_CLIENTS 32
 #define CLIENT_NAME_LEN 16
 
+//#define _NETDEBUG
+
 extern char _clientnames[MAX_CLIENTS][CLIENT_NAME_LEN+1];
 extern char _clientcolors[];
 
@@ -24,3 +26,5 @@ extern void _packsemaoff(void);
 extern void _safeatol(char* src, char* dest);
 extern void _safeadd(char* dest, unsigned short add);
 extern unsigned char _safegte(char* left, char* right);
+
+extern void msg_print(char* header);

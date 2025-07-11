@@ -34,6 +34,7 @@ char _inp_winID = 0;
 
 signed char InputBox(char* title, char* line1, char* line2, char* buffer, unsigned short buflen, void* modalWin) {
     signed char result = -1;
+    unsigned short response;
     while (_inp_winID); // multithreading semaphore
 
     // open form
@@ -60,24 +61,28 @@ signed char InputBox(char* title, char* line1, char* line2, char* buffer, unsign
     // handle events
 	while (1) {
 		_symmsg[0] = 0;
-		Msg_Sleep(_msgpid(), -1, _symmsg);
-		if (_symmsg[0] == MSR_DSK_WCLICK && _symmsg[1] == _inp_winID) {
-            switch (_symmsg[2]) {
-            case DSK_ACT_CLOSE: // Alt+F4 or click close
-                goto _done;
-                break;
-            case DSK_ACT_CONTENT: // content click
-                switch (_symmsg[8]) {
-                case 4: // OK
-                    result = 0;
+		response = Msg_Sleep(_msgpid(), 2, _symmsg);
+		if (_symmsg[1] == _inp_winID) {
+            if (_symmsg[0] == MSR_DSK_WCLICK) {
+                switch (_symmsg[2]) {
+                case DSK_ACT_CLOSE: // Alt+F4 or click close
                     goto _done;
                     break;
-                case 5: // Cancel
-                    goto _done;
+                case DSK_ACT_CONTENT: // content click
+                    switch (_symmsg[8]) {
+                    case 4: // OK
+                        result = 0;
+                        goto _done;
+                        break;
+                    case 5: // Cancel
+                        goto _done;
+                        break;
+                    }
                     break;
                 }
-                break;
             }
+		} else if (response & 1) {
+		    Msg_Send(2, _msgpid(), _symmsg); // something else, keep it on the queue
 		}
 	}
 _done:
