@@ -184,12 +184,21 @@ signed char TCP_Flush(unsigned char handle) {
 
 signed char TCP_Disconnect(unsigned char handle) {
     signed char result;
-    Net_SkipMsg(handle); // flush remaining messages pertaining to this handle
+    NetStat net_stat;
+
+    // some hardware (erroneously?) leaves data in RX even after disconnect, so skip anything left
+    net_stat.bytesrec = 0;
+    if (!TCP_Status(handle, &net_stat) && net_stat.bytesrec)
+        TCP_Skip(handle, net_stat.bytesrec);
+
+    // send disconnect message
     _nsemaon();
     _netmsg[0] = 23;
     _netmsg[3] = handle;
     result = Net_SCommand();
     _nsemaoff();
+
+    // flush remaining messages pertaining to this handle
+    Net_SkipMsg(handle);
     return result;
 }
-
