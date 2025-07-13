@@ -8,7 +8,10 @@ output_path = "./manual.pdf"
 
 # Concatenate Markdown files in the given order
 input_files = [
-    "index.md", "symbos.md", "syscall1.md", "syscall2.md",
+    "index.md", "compiler.md", "symbos.md", "s_ctrl.md",
+    "s_event.md", "syscalls.md", "s_core.md", "s_shell.md",
+    "s_window.md", "s_desk.md", "s_file.md", "s_task.md",
+    "s_device.md", "s_sound.md", "s_print.md", "s_ref.md",
     "graphics.md", "network.md", "special.md", "porting.md"
 ]
 combined_md = "combined.md"

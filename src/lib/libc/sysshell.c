@@ -94,6 +94,15 @@ signed char Shell_Print(char* addr) {
     return Shell_StringOut(0, _symbank, addr, strlen(addr));
 }
 
+signed char Shell_Locate(unsigned char col, unsigned char row) {
+    char buf[4];
+    buf[0] = 0x1F;
+    buf[1] = col;
+    buf[2] = row;
+    buf[3] = 0;
+    return Shell_Print(buf);
+}
+
 void Shell_Exit(unsigned char type) {
     if (_shellpid) {
         _msemaon();

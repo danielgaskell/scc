@@ -100,7 +100,7 @@ _http_proxy_port = 1234;
 
 Download speeds on 8-bit hardware are not very fast, typically on the order of 56-112 kbps (that is, a bit faster than a dialup modem). At this speed, a multi-megabyte file can take several minutes to download, so it is helpful to have a way to track the progress of a download and interrupt it if needed.
 
-This is most easily done by running `HTTP_GET()` or `HTTP_POST()` on a [separate thread](syscall2.md#multithreading). When running on a different thread, we can interrupt execution by writing a nonzero value to the global variable `_http_abort`. `HTTP_GET()` and `HTTP_POST()` will then stop downloading at their earliest convenience, writing/saving only what they have downloaded so far.
+This is most easily done by running `HTTP_GET()` or `HTTP_POST()` on a [separate thread](s_task.md#multithreading). When running on a different thread, we can interrupt execution by writing a nonzero value to the global variable `_http_abort`. `HTTP_GET()` and `HTTP_POST()` will then stop downloading at their earliest convenience, writing/saving only what they have downloaded so far.
 
 `HTTP_GET()` and `HTTP_POST()` also record their status in the global variable `_http_status`, with values matching the following constants:
 
@@ -217,7 +217,7 @@ signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsig
 
 Sends data from memory bank `bank`, address `addr`, to the host associated with the socket `handle`. A total of `len` bytes will be sent.
 
-When running on a [separate thread](syscall2.md#multithreading), the global **unsigned long** variable `_tcp_progress` contains the number of bytes sent so far. Writing a nonzero value to the global variable `_tcp_abort` will cause `TCP_Send()` to abort the transfer at its earliest convenience, failing with `_neterr` = `ERR_TRUNCATED`.
+When running on a [separate thread](s_task.md#multithreading), the global **unsigned long** variable `_tcp_progress` contains the number of bytes sent so far. Writing a nonzero value to the global variable `_tcp_abort` will cause `TCP_Send()` to abort the transfer at its earliest convenience, failing with `_neterr` = `ERR_TRUNCATED`.
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
@@ -262,7 +262,7 @@ signed char TCP_ReceiveToEnd(unsigned char handle, unsigned char bank,
 
 Listens on the TCP socket `handle`, saving all received data to the buffer `addr` until the remote host disconnects. No more than `maxlen` bytes will be saved, and the socket `handle` will be freed with `TCP_Close()` before returning. If `maxlen` = `NET_FILE`, `addr` will instead be treated as the absolute path of a file to save the response to (with no length limit). (This function is intended for cases where we know the remote host will disconnect when finished sending data.)
 
-When running on a [separate thread](syscall2.md#multithreading), the global **unsigned long** variable `_tcp_progress` contains the number of bytes received so far. Writing a nonzero value to the global variable `_tcp_abort` will cause `TCP_ReceiveToEnd()` to abort the transfer at its earliest convenience, writing only what it has received so far and failing with `_neterr` = `ERR_TRUNCATED`.
+When running on a [separate thread](s_task.md#multithreading), the global **unsigned long** variable `_tcp_progress` contains the number of bytes received so far. Writing a nonzero value to the global variable `_tcp_abort` will cause `TCP_ReceiveToEnd()` to abort the transfer at its earliest convenience, writing only what it has received so far and failing with `_neterr` = `ERR_TRUNCATED`.
 
 *Return value*: On success, returns 0. On failure, disconnects immediately, sets `_neterr`, and returns -1.
 
@@ -457,7 +457,7 @@ FTP_Upload(socket, "remote1.txt", _symbank, buffer, sizeof(buffer), FTP_BINARY);
 FTP_Upload(socket, "remote2.txt", _symbank, "A:\\LOCAL.TXT", NET_FILE, FTP_ASCII);
 ```
 
-When running on a [separate thread](syscall2.md#multithreading), the number of bytes sent so far is stored in the global **unsigned long** variable `_tcp_progress` (for uploads from a memory buffer) or the global **unsigned long** variable `_ftp_progress` (for uploads from a file). Writing a nonzero value to the global variable `_tcp_abort` will cause `FTP_Upload()` to abort the transfer at its earliest convenience, writing an incomplete file and failing with `_neterr` = `ERR_TRUNCATED`.
+When running on a [separate thread](s_task.md#multithreading), the number of bytes sent so far is stored in the global **unsigned long** variable `_tcp_progress` (for uploads from a memory buffer) or the global **unsigned long** variable `_ftp_progress` (for uploads from a file). Writing a nonzero value to the global variable `_tcp_abort` will cause `FTP_Upload()` to abort the transfer at its earliest convenience, writing an incomplete file and failing with `_neterr` = `ERR_TRUNCATED`.
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` (and potentially `_ftp_response`) and returns -1.
 
@@ -482,7 +482,7 @@ FTP_Download(socket, "remote1.txt", _symbank, buffer, sizeof(buffer), FTP_BINARY
 FTP_Download(socket, "remote2.txt", _symbank, "A:\\LOCAL.TXT", NET_FILE, FTP_ASCII);
 ```
 
-When running on a [separate thread](syscall2.md#multithreading), the global **unsigned long** variable `_tcp_progress` contains the number of bytes received so far. Writing a nonzero value to the global variable `_tcp_abort` will cause `FTP_Download()` to abort the transfer at its earliest convenience, writing only what it has received so far and failing with `_neterr` = `ERR_TRUNCATED`.
+When running on a [separate thread](s_task.md#multithreading), the global **unsigned long** variable `_tcp_progress` contains the number of bytes received so far. Writing a nonzero value to the global variable `_tcp_abort` will cause `FTP_Download()` to abort the transfer at its earliest convenience, writing only what it has received so far and failing with `_neterr` = `ERR_TRUNCATED`.
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` (and potentially `_ftp_response`) and returns -1.
 

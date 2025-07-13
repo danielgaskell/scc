@@ -9,6 +9,7 @@ v1.2
   Sys_DriveFree(), Sys_Path(), Sys_Type(), and Sys_Counter16()
 + Added Print_Busy(), Print_Char(), Print_String()
 + Added Win_X() and Win_Y()
++ Added Shell_Locate()
 + Added Mouse_Dragging()
 + Added Timer_Wake()
 + Added Msg_Wait()
@@ -17,6 +18,7 @@ v1.2
 + Added _msgpid()
 + Enabled %f in scanf()
 + Added ftoa()
+@ Reorganized documentation
 @ Improved thread safety for system calls and various others
 @ Reduced chances of ill-timed messages being lost
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]

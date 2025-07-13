@@ -425,7 +425,7 @@ Returns the address of tile number `tile` within the image set at the address `i
 
 ### Raw image controls
 
-Most of the graphics library deals with canvases, which allow graphics to be edited and redraw on the fly. However, if we just want to display static images as part of a form, we can often achieve this more efficiently by simply creating a [`C_IMAGE`](symbos.md#c_image) or [`C_IMAGE_EXT`](symbos.md#c_image_ext) control and setting the parameter to the address of the static image data.
+Most of the graphics library deals with canvases, which allow graphics to be edited and redraw on the fly. However, if we just want to display static images as part of a form, we can often achieve this more efficiently by simply creating a [`C_IMAGE`](s_ctrls.md#c_image) or [`C_IMAGE_EXT`](s_ctrls.md#c_image_ext) control and setting the parameter to the address of the static image data.
 
 **Step 1: Generate a compatible image file**
 
@@ -437,20 +437,20 @@ gfx2sgx image.png -4
 
 **Step 2: Load the image into a buffer**
 
-Load the image data into a suitably sized buffer that does not cross a 16KB boundary, e.g., in the **data** or **transfer** segments. The utility function [`Gfx_Load_Raw()`](#gfx_load_raw) is the recommended way to do this, since this will perform the necessary updates to the the [extended graphics header](symbos.md#C_IMAGE_EXT) automatically.
+Load the image data into a suitably sized buffer that does not cross a 16KB boundary, e.g., in the **data** or **transfer** segments. The utility function [`Gfx_Load_Raw()`](#gfx_load_raw) is the recommended way to do this, since this will perform the necessary updates to the the [extended graphics header](s_ctrls.md#c_image_ext) automatically.
 
-(Note that, since we will not be manipulating this image after it is loaded, we can technically store it in [banked memory](syscall1.md#memory-management) if needed. For this reason, all raw image functions allow specifying the memory bank. If banked memory is used, remember to set the `.bank` property of the image control correctly and free the reserved memory with [`Mem_Release()`](syscall1.md#mem_release) before exit.)
+(Note that, since we will not be manipulating this image after it is loaded, we can technically store it in [banked memory](s_core.md#memory-management) if needed. For this reason, all raw image functions allow specifying the memory bank. If banked memory is used, remember to set the `.bank` property of the image control correctly and free the reserved memory with [`Mem_Release()`](s_core.md#mem_release) before exit.)
 
 **Step 3: Create an image control**
 
-For a 4-color image, use a [`C_IMAGE`](symbos.md#c_image) control and set the parameter to the address of the image buffer:
+For a 4-color image, use a [`C_IMAGE`](s_ctrls.md#c_image) control and set the parameter to the address of the image buffer:
 
 ```
 _data char imgbuf[256]; // load the image data into this buffer
 _transfer Ctrl c_image1 = {1, C_IMAGE, -1, (unsigned short)imgbuf, 10, 10, 24, 24};
 ```
 
-For a 16-color iamge, use a [`C_IMAGE_EXT`](symbos.md#c_image_ext) control and set the parameter to the address of the image buffer:
+For a 16-color iamge, use a [`C_IMAGE_EXT`](s_ctrls.md#c_image_ext) control and set the parameter to the address of the image buffer:
 
 ```
 _data char imgbuf[384]; // load the image data into this buffer
@@ -516,7 +516,7 @@ Because `graphics.h` implement raw canvases and images, it does not have any bui
 * Before plotting a sprite, use `Gfx_Get()` to copy the background behind it into a temporary buffer. Then, when the sprite needs to be moved, erase it by plotting the old background on top of it with `Gfx_Put()`.
 * For graphics based on multiple layers of regularly-spaced tiles (like an RPG), simply replot any affected tiles from the bottom up with `Gfx_Put()`, redrawing the background over the sprite.
 * A flexible (but memory-hungry) solution is to maintain two canvases: a "background" canvas containing the background, and a "visible" canvas actually shown in the window. To move a sprite, use `Gfx_Select()`, `Gfx_Get()`, and `Gfx_Put()` to copy the relevant parts of the "background" canvas over the sprite's location on the "visible" canvas.
-* If only a few sprites are needed, consider drawing them using separate [`C_IMAGE_TRANS`](symbos.md#c_image_trans) controls pointing to [raw images](#raw-images).
+* If only a few sprites are needed, consider drawing them using separate [`C_IMAGE_TRANS`](s_ctrls.md#c_image_trans) controls pointing to [raw images](#raw-images).
 
 ### Memory problems
 
@@ -545,9 +545,9 @@ So, SymbOS throws an "out of memory" error even though the total file size is <6
 But what if we're just hitting the 64KB limit? Some suggestions, from least to most complicated:
 
 * Eliminate all unnecessary canvas and buffer space. For example, in games, it is often unnecessary to actually draw the entire play field using a single large canvas. If there is a significant amount of whitespace, consider breaking the canvas up into several smaller canvases and drawing the whitespace using a `C_AREA` control instead (which takes almost no memory).
-* Store graphics assets in [banked memory](syscall1.md#memory-management) and only load them into the application's main 64KB address space when needed. (This works best when draw-time is not critical, or when we only need a portion of all available graphics assets at one time.)
-* For repeating elements, instead of using one large `C_IMAGE_EXT` control pointing to one large canvas, use several small `C_IMAGE_EXT` controls pointing to the same small canvas. Overlapping [`C_IMAGE_TRANS`](symbos.md#c_image_trans) controls could also be used to create transparent sprites without requiring a separate mask image.
-* Most complicated, but theoretically useful for game engines: perform all graphics rendering in a dedicated [process](syscall2.md#process-management) with its own 64KB address space, telling the rendering process what to do using [inter-process messaging](syscall1.md#messaging) or a shared memory space in banked memory.
+* Store graphics assets in [banked memory](s_core.md#memory-management) and only load them into the application's main 64KB address space when needed. (This works best when draw-time is not critical, or when we only need a portion of all available graphics assets at one time.)
+* For repeating elements, instead of using one large `C_IMAGE_EXT` control pointing to one large canvas, use several small `C_IMAGE_EXT` controls pointing to the same small canvas. Overlapping [`C_IMAGE_TRANS`](s_ctrl.md#c_image_trans) controls could also be used to create transparent sprites without requiring a separate mask image.
+* Most complicated, but theoretically useful for game engines: perform all graphics rendering in a dedicated [process](s_task.md#processes) with its own 64KB address space, telling the rendering process what to do using [inter-process messaging](s_core.md#messaging) or a shared memory space in banked memory.
 
 ## Reference
 

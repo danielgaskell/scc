@@ -4,9 +4,21 @@ call makesym.bat
 
 echo Converting docs to .HLP...
 python ..\doc\md2hlp.py ..\doc\index.md
+python ..\doc\md2hlp.py ..\doc\compiler.md
 python ..\doc\md2hlp.py ..\doc\symbos.md
-python ..\doc\md2hlp.py ..\doc\syscall1.md
-python ..\doc\md2hlp.py ..\doc\syscall2.md
+python ..\doc\md2hlp.py ..\doc\syscalls.md
+python ..\doc\md2hlp.py ..\doc\s_core.md
+python ..\doc\md2hlp.py ..\doc\s_ctrl.md
+python ..\doc\md2hlp.py ..\doc\s_desk.md
+python ..\doc\md2hlp.py ..\doc\s_device.md
+python ..\doc\md2hlp.py ..\doc\s_event.md
+python ..\doc\md2hlp.py ..\doc\s_file.md
+python ..\doc\md2hlp.py ..\doc\s_print.md
+python ..\doc\md2hlp.py ..\doc\s_shell.md
+python ..\doc\md2hlp.py ..\doc\s_sound.md
+python ..\doc\md2hlp.py ..\doc\s_task.md
+python ..\doc\md2hlp.py ..\doc\s_window.md
+python ..\doc\md2hlp.py ..\doc\s_ref.md
 python ..\doc\md2hlp.py ..\doc\graphics.md
 python ..\doc\md2hlp.py ..\doc\network.md
 python ..\doc\md2hlp.py ..\doc\porting.md

@@ -1,5 +1,9 @@
 # Porting tips
 
+## Contents
+
+* [Common problems](#common-problems)
+
 ## Common problems
 
 ### "Unknown symbol" errors on compilation
