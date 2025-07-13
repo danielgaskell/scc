@@ -87,8 +87,8 @@ It is recommended to install SCC to a relatively "root" subfolder (such as `C:\S
 SymbOS executables include several special resources used by the desktop. These can be specified using command-line arguments passed to `cc`:
 
 * `-N "appname"` - specifies the application name shown in the task manager.
-* `-G iconfile - specifies the 4-color application icon (see below).
-* `-g iconfile - specifies the 16-color application icon (see below).
+* `-G iconfile` - specifies the 4-color application icon (see below).
+* `-g iconfile` - specifies the 16-color application icon (see below).
 
 For example:
 
