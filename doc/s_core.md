@@ -258,7 +258,7 @@ The structure of a compressed data block is as follows:
 unsigned long Sys_Counter(void);
 ```
 
-Returns the system counter, which increments 50 times per second. This can be used to calculate time elapsed for regulating framerates in games, etc.
+Returns the system counter, which increment by two 50 times per second (so every second, the timer increases by 100). This can be used to calculate time elapsed for regulating framerates in games, etc.
 
 *SymbOS name*: `Multitasking_GetCounter` (`MTGCNT`).
 
@@ -268,7 +268,7 @@ Returns the system counter, which increments 50 times per second. This can be us
 unsigned short Sys_Counter16(void);
 ```
 
-Equivalent to `Sys_Counter()`, but returns only the low 16 bits of the system counter. (This wraps around every 22 minutes, but can be useful when [multithreading](s_task.md#multithreading) because **long** is not thread-safe.)
+Equivalent to `Sys_Counter()`, but returns only the low 16 bits of the system counter. (This wraps around every 11 minutes, but can be useful when [multithreading](s_task.md#multithreading) because **long** is not thread-safe.)
 
 *SymbOS name*: `Multitasking_GetCounter` (`MTGCNT`).
 

@@ -6,7 +6,7 @@
 _transfer char _netmsg[14];
 unsigned char _netpid;
 unsigned char _neterr;
-unsigned short _nettimeout = 750; // 15 seconds by default
+unsigned short _nettimeout = 1500; // 15 seconds by default
 
 char* _useragent = "User-Agent: NetSCC/1.0 (SymbOS 4.0; CPC)\r\nCache-Control: no-cache\r\n";
 

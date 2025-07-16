@@ -28,7 +28,7 @@ void fail(void) {
 
 // calculate and show speed, in KBPS
 void show_speed(unsigned short len) {
-    int kbps = len / (Sys_Counter() - counter) * 50 * 8 / 1024;
+    int kbps = len / (Sys_Counter() - counter) * 100 * 8 / 1024;
     itoa(kbps, textbuf, 10);
     strcat(textbuf, " kbps\r\n");
     Shell_Print(textbuf);

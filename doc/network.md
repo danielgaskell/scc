@@ -98,7 +98,7 @@ _http_proxy_port = 1234;
 
 ### Tracking progress
 
-Download speeds on 8-bit hardware are not very fast, typically on the order of 56-112 kbps (that is, a bit faster than a dialup modem). At this speed, a multi-megabyte file can take several minutes to download, so it is helpful to have a way to track the progress of a download and interrupt it if needed.
+Download speeds on 8-bit hardware are not very fast, typically on the order of 100-200 kbps (that is, a few times faster than a dialup modem). At this speed, a multi-megabyte file can take several minutes to download, so it is helpful to have a way to track the progress of a download and interrupt it if needed.
 
 This is most easily done by running `HTTP_GET()` or `HTTP_POST()` on a [separate thread](s_task.md#multithreading). When running on a different thread, we can interrupt execution by writing a nonzero value to the global variable `_http_abort`. `HTTP_GET()` and `HTTP_POST()` will then stop downloading at their earliest convenience, writing/saving only what they have downloaded so far.
 
