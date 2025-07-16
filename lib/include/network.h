@@ -24,6 +24,7 @@
 #define ERR_NETFILE 25
 #define ERR_RESPONSE 26
 
+#define TCP_BUSY 0
 #define TCP_OPENING 1
 #define TCP_OPENED 2
 #define TCP_CLOSING 3

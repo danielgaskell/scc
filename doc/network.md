@@ -195,7 +195,13 @@ typedef struct {
 } NetStat;
 ```
 
-`status` may be one of `TCP_OPENING`, `TCP_OPENED`, `TCP_CLOSING`, or `TCP_CLOSED`.
+`status` may be one of:
+
+* `TCP_OPENING` - Waiting for the remote server to accept the connection.
+* `TCP_OPENED` - Open connection, ready to send/receive.
+* `TCP_BUSY` - Open connection, but hardware is busy. (Only some hardware reports this. In practice we should just treat this as equivalent to `TCP_OPENED`, since the hardware status only matters to the network daemon.)
+* `TCP_CLOSING` - Disconnect in progress.
+* `TCP_CLOSED` - Connection closed by remote host. (Once a connection closes, we can no longer send data, but there may still be received data buffered that we have not downloaded---check `NetStat.bytesrec`.)
 
 ### TCP_Status()
 

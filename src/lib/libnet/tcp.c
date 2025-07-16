@@ -11,33 +11,48 @@ unsigned long _tcp_progress;
 
 signed char TCP_Close(unsigned char handle) {
     signed char result;
+    #ifdef _NETDEBUG
+    Shell_Print("[TCP_Close]\r\n");
+    #endif
     Net_SkipMsg(handle); // flush remaining messages pertaining to this handle
     _nsemaon();
     _netmsg[0] = 17;
     _netmsg[3] = handle;
     result = Net_SCommand();
     _nsemaoff();
+    #ifdef _NETDEBUG
+    Shell_Print("[done]\r\n");
+    #endif
     return result;
 }
 
 signed char TCP_OpenWait(signed char handle) {
     unsigned char status;
+    #ifdef _NETDEBUG
+    Shell_Print("[TCP_OpenWait]\r\n");
+    #endif
     while (!Net_Wait(NET_TCPEVT)) {
         if (_netmsg[3] == handle) {
             status = _netmsg[8] & 0x1F;
             if (status == TCP_OPENED) {
                 // connection stayed open
                 _nsemaoff();
+                #ifdef _NETDEBUG
+                Shell_Print("[done]\r\n");
+                #endif
                 return handle;
             } else if (status == TCP_CLOSING || status == TCP_CLOSED) {
                 // connection immediately closed...
                 if (*((unsigned short*)(_netmsg + 4))) {
                     // ...but received data first; treat as open, but requeue this as the close alert
                     #ifdef _NETDEBUG
-                    msg_print("Requeuing: ");
+                    msg_print("REQ: ");
                     #endif
                     Msg_Send(_netpid, _msgpid(), _netmsg);
                     _nsemaoff();
+                    #ifdef _NETDEBUG
+                    Shell_Print("[done]\r\n");
+                    #endif
                     return handle;
                 } else {
                     // ...with no data; treat as a rejected connection
@@ -46,17 +61,23 @@ signed char TCP_OpenWait(signed char handle) {
             }
         }
         #ifdef _NETDEBUG
-        msg_print("Requeuing: ");
+        msg_print("REQ: ");
         #endif
         Msg_Send(_netpid, _msgpid(), _netmsg); // not relevant, put back on queue
     }
     _nsemaoff();
     TCP_Close(handle);
     _neterr = ERR_CONNECT;
+    #ifdef _NETDEBUG
+    Shell_Print("[fail]\r\n");
+    #endif
     return -1;
 }
 
 signed char TCP_OpenClient(char* ip, signed short lport, unsigned short rport) {
+    #ifdef _NETDEBUG
+    Shell_Print("[TCP_OpenClient]\r\n");
+    #endif
     _nsemaon();
     _netmsg[0] = 16;
     _netmsg[3] = 0;
@@ -68,21 +89,36 @@ signed char TCP_OpenClient(char* ip, signed short lport, unsigned short rport) {
     _netmsg[13] = ip[3];
     if (Net_Command()) {
         _nsemaoff();
+        #ifdef _NETDEBUG
+        Shell_Print("[fail]\r\n");
+        #endif
         return -1;
     }
+    #ifdef _NETDEBUG
+    Shell_Print("[done]\r\n");
+    #endif
     return TCP_OpenWait(_netmsg[3]);
 }
 
 signed char TCP_OpenServer(unsigned short lport) {
+    #ifdef _NETDEBUG
+    Shell_Print("[TCP_OpenServer]\r\n");
+    #endif
     _nsemaon();
     _netmsg[0] = 16;
     _netmsg[3] = 1;
     *((unsigned short*)(_netmsg + 8)) = lport;
     if (Net_Command()) {
         _nsemaoff();
+        #ifdef _NETDEBUG
+        Shell_Print("[fail]\r\n");
+        #endif
         return -1;
     }
     return TCP_OpenWait(_netmsg[3]);
+    #ifdef _NETDEBUG
+    Shell_Print("[done]\r\n");
+    #endif
 }
 
 void TCP_Event(char* msg, NetStat* obj) {
@@ -98,19 +134,31 @@ void TCP_Event(char* msg, NetStat* obj) {
 }
 
 signed char TCP_Status(unsigned char handle, NetStat* obj) {
+    #ifdef _NETDEBUG
+    Shell_Print("[TCP_Status]\r\n");
+    #endif
     _nsemaon();
     _netmsg[0] = 18;
     _netmsg[3] = handle;
     if (Net_Command()) {
         _nsemaoff();
+        #ifdef _NETDEBUG
+        Shell_Print("[fail]\r\n");
+        #endif
         return -1;
     }
     TCP_Event(_netmsg, obj);
     _nsemaoff();
+    #ifdef _NETDEBUG
+    Shell_Print("[done]\r\n");
+    #endif
     return 0;
 }
 
 signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, unsigned short len, TCP_Trans* obj) {
+    #ifdef _NETDEBUG
+    Shell_Print("[TCP_Receive]\r\n");
+    #endif
     _nsemaon();
     _netmsg[0] = 19;
     _netmsg[3] = handle;
@@ -119,6 +167,9 @@ signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, un
     *((unsigned short*)(_netmsg + 8)) = (unsigned short)addr;
     if (Net_Command()) {
         _nsemaoff();
+        #ifdef _NETDEBUG
+        Shell_Print("[fail]\r\n");
+        #endif
         return -1;
     }
     if (obj != 0) {
@@ -126,11 +177,17 @@ signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, un
         obj->remaining = *((unsigned short*)(_netmsg + 8));
     }
     _nsemaoff();
+    #ifdef _NETDEBUG
+    Shell_Print("[done]\r\n");
+    #endif
     return 0;
 }
 
 signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len) {
     unsigned short transferred;
+    #ifdef _NETDEBUG
+    Shell_Print("[TCP_Send]\r\n");
+    #endif
     _nsemaon();
     _tcp_abort = 0;
     *(((unsigned short*)&_tcp_progress)) = 0;
@@ -143,6 +200,9 @@ signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsig
         *((unsigned short*)(_netmsg + 8)) = (unsigned short)addr;
         if (Net_Command()) {
             _nsemaoff();
+            #ifdef _NETDEBUG
+            Shell_Print("[fail]\r\n");
+            #endif
             return -1;
         }
         transferred = *((unsigned short*)(_netmsg + 4));
@@ -154,31 +214,49 @@ signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsig
         if (_tcp_abort) {
             _nsemaoff();
             _neterr = ERR_TRUNCATED;
+            #ifdef _NETDEBUG
+            Shell_Print("[abort]\r\n");
+            #endif
             return -1;
         }
     }
     _nsemaoff();
+    #ifdef _NETDEBUG
+    Shell_Print("[done]\r\n");
+    #endif
     return 0;
 }
 
 signed char TCP_Skip(unsigned char handle, unsigned short len) {
     signed char result;
+    #ifdef _NETDEBUG
+    Shell_Print("[TCP_Skip]\r\n");
+    #endif
     _nsemaon();
     _netmsg[0] = 21;
     _netmsg[3] = handle;
     *((unsigned short*)(_netmsg + 4)) = len;
     result = Net_SCommand();
     _nsemaoff();
+    #ifdef _NETDEBUG
+    Shell_Print("[done]\r\n");
+    #endif
     return result;
 }
 
 signed char TCP_Flush(unsigned char handle) {
     signed char result;
+    #ifdef _NETDEBUG
+    Shell_Print("[TCP_Flush]\r\n");
+    #endif
     _nsemaon();
     _netmsg[0] = 22;
     _netmsg[3] = handle;
     result = Net_SCommand();
     _nsemaoff();
+    #ifdef _NETDEBUG
+    Shell_Print("[done]\r\n");
+    #endif
     return result;
 }
 
@@ -186,7 +264,11 @@ signed char TCP_Disconnect(unsigned char handle) {
     signed char result;
     NetStat net_stat;
 
-    // some hardware (erroneously?) leaves data in RX even after disconnect, so skip anything left
+    #ifdef _NETDEBUG
+    Shell_Print("[TCP_Disconnect]\r\n");
+    #endif
+
+    // old versions of RSF3 erroneously leave data in RX even after disconnect, so skip anything left
     net_stat.bytesrec = 0;
     if (!TCP_Status(handle, &net_stat) && net_stat.bytesrec)
         TCP_Skip(handle, net_stat.bytesrec);
@@ -200,5 +282,8 @@ signed char TCP_Disconnect(unsigned char handle) {
 
     // flush remaining messages pertaining to this handle
     Net_SkipMsg(handle);
+    #ifdef _NETDEBUG
+    Shell_Print("[done]\r\n");
+    #endif
     return result;
 }

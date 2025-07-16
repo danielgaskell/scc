@@ -89,7 +89,7 @@ signed char TCP_ReceiveToEnd(unsigned char handle, unsigned char bank, char* add
         } else {
             // not relevant to this socket, put back on queue
             #ifdef NETDEBUG
-            msg_print("Requeuing: ");
+            msg_print("REQ: ");
             #endif
             Msg_Send(_netpid, _msgpid(), _netmsg);
         }

@@ -16,12 +16,12 @@ char* _useragent = "User-Agent: NetSCC/1.0 (SymbOS 4.0; CPC)\r\nCache-Control: n
 
 #ifdef _NETDEBUG
 void msg_print(char* header) {
-    // FIXME
     char textbuf[64];
     strcpy(textbuf, header);
-    itoa(_netmsg[0], textbuf+strlen(textbuf), 10); strcat(textbuf, ",");
-    itoa(_netmsg[3], textbuf+strlen(textbuf), 10); strcat(textbuf, "=");
-    itoa(_netmsg[8], textbuf+strlen(textbuf), 10); strcat(textbuf, ",");
+    itoa(_netmsg[0], textbuf+strlen(textbuf), 10); strcat(textbuf, ": CF=");
+    itoa(_netmsg[2] & 1, textbuf+strlen(textbuf), 10); strcat(textbuf, ", A=");
+    itoa(_netmsg[3], textbuf+strlen(textbuf), 10); strcat(textbuf, ", L=");
+    itoa(_netmsg[8], textbuf+strlen(textbuf), 10); strcat(textbuf, ", BC=");
     itoa(*(unsigned short*)&_netmsg[4], textbuf+strlen(textbuf), 10); strcat(textbuf, "\r\n");
     Shell_Print(textbuf);
 }
@@ -42,17 +42,17 @@ unsigned char Net_Wait(unsigned char id) {
     unsigned short counter = Sys_Counter16() + _nettimeout;
     for (;;) {
         if (Msg_Receive(_msgpid(), _netpid, _netmsg) & 1) {
+            #ifdef _NETDEBUG
+            msg_print("REC: ");
+            #endif
             if (_netmsg[0] == id) {
                 _neterr = 0;
                 if (_netmsg[2] & 0x01)
                     _neterr = _netmsg[3];
-                #ifdef _NETDEBUG
-                msg_print("Ingesting: ");
-                #endif
                 return _neterr;
             }
             #ifdef _NETDEBUG
-            msg_print("Requeuing: ");
+            msg_print("REQ: ");
             #endif
             Msg_Send(_netpid, _msgpid(), _netmsg); // put message back on queue
         }
@@ -65,6 +65,9 @@ unsigned char Net_Wait(unsigned char id) {
 
 unsigned char Net_Command(void) {
     unsigned char id = _netmsg[0] + 128;
+    #ifdef _NETDEBUG
+    msg_print("CMD: ");
+    #endif
     if (_netpid == 0) {
         _neterr = ERR_OFFLINE;
         return ERR_OFFLINE;
