@@ -186,7 +186,7 @@ lbut = Mouse_Buttons() & BUTTON_LEFT;
 unsigned char Mouse_Dragging(unsigned char delay);
 ```
 
-A utility function for determining whether a mouse click is the start of a drag-and-drop operation (or just a normal click). After detecting a click, call `Mouse_Dragging()` with the `delay` parameter indicating a short length of time to wait (in 1/50ths of a second, e.g., 25 = half a second). If the user releases the mouse within this time limit, this function immediately returns 0, indicating a single click. If time expires with the button still down, or the user moves the mouse without releasing the button, it immediately returns a nonzero bitmask (equivalent to [`Mouse_Buttons()`](#mouse_buttons)) indicating which buttons are being held down for a drag-and-drop operation.
+A utility function for determining whether a mouse click is the start of a drag-and-drop operation (or just a normal click). After detecting a click, call `Mouse_Dragging()` with the `delay` parameter indicating a short length of time to wait (in 100ths of a second, e.g., 50 = half a second). If the user releases the mouse within this time limit, this function immediately returns 0, indicating a single click. If time expires with the button still down, or the user moves the mouse without releasing the button, it immediately returns a nonzero bitmask (equivalent to [`Mouse_Buttons()`](#mouse_buttons)) indicating which buttons are being held down for a drag-and-drop operation.
 
 *Return value*: 0 for a click, nonzero bitmask for a drag.
 

@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     NetStat net_stat;
     TCP_Trans trans_stat;
 
-    Shell_Print("Network Speed Test\r\n");
+    Shell_Print("Network Speed Test\r\nSymbOS C Compiler Sample\r\n\r\n");
 
     // locate network daemon
     if (Net_Init())
