@@ -5,7 +5,7 @@
 * [SymbOS programming guide](symbos.md)
 	* **Start here** for a quickstart guide to writing your first SymbOS app (both console apps to run in SymShell and windowed apps to run on the desktop).
 * [System call reference](syscalls.md)
-* [Control reference](s_ctrls.md)
+* [Control reference](s_ctrl.md)
 * [Event reference](s_event.md)
 * [Graphics library](graphics.md)
 * [Network library](network.md)
