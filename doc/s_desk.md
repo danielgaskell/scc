@@ -5,7 +5,7 @@
 * [Popup dialogs](#popup-dialogs)
 * [Context menus](#context-menus)
 * [Rubber band select](#rubber-band-select)
-* [Clipboard](#clipboard]
+* [Clipboard](#clipboard)
 * [System tray](#system-tray)
 
 ## Popup dialogs
