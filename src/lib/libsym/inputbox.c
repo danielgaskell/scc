@@ -70,6 +70,13 @@ signed char InputBox(char* title, char* line1, char* line2, char* buffer, unsign
                     break;
                 case DSK_ACT_CONTENT: // content click
                     switch (_symmsg[8]) {
+                    case 3: // input
+                        if (_symmsg[3] == DSK_SUB_KEY && _symmsg[4] == '\r') {
+                            // Enter key in textbox
+                            result = 0;
+                            goto _done;
+                        }
+                        break;
                     case 4: // OK
                         result = 0;
                         goto _done;
