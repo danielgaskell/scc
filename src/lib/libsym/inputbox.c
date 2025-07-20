@@ -94,4 +94,5 @@ _done:
 	}
 	Win_Close(_inp_winID);
 	_inp_winID = 0;
+	return result;
 }

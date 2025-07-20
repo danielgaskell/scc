@@ -132,7 +132,7 @@ char Select_Pos(unsigned short* x, unsigned short* y, unsigned short w, unsigned
 
 Opens a "rubber band" selector (dotted rectangle) at the specified absolute `*x` and `*y` position on the screen (in pixels), with width `w` and height `h` (in pixels). The user will be able to change the position (but not the size) of this selector by moving the mouse, until they either confirm their selection by releasing the left mouse button or cancel it by pressing ESC. (This is usually used for drag-and-drop operations triggered by first pressing the left mouse button.) The final position of the selector will be written back to the variables passed by reference in `x` and `y`.
 
-Note that absolute screen coordinates are used, not coordinates relative to window content. To translate between the two, see [`Win_X()`](s_window.md#win_x) and [`Win_Y()`](s_window.md#win_y).
+Note that absolute screen coordinates are used, not coordinates relative to window content. To translate between the two, see [`Win_X()`](s_window.md#win_x) and [`Win_Y()`](s_window.md#win_y). Note also that the popup will not appear if the initial coordinates are offscreen (this includes `x` = 0, `y` = 0 because the box is drawn *around* the specified coordinates, so this would place the selector at -1, -1).
 
 *Return value*: On successful completion, returns 1. If the user cancelled the operation by pressing ESC, returns 0.
 
@@ -146,7 +146,7 @@ char Select_Size(unsigned short x, unsigned short y, unsigned short* w, unsigned
 
 Opens a "rubber band" selector (dotted rectangle) at the specified absolute `x` and `y` position on the screen (in pixels), with width `*w` and height `*h` (in pixels). The user will be able to change the size (but not the position) of this selector by moving the mouse, until they either confirm their selection by releasing the left mouse button or cancel it by pressing ESC. (This is usually used for drag-and-drop operations triggered by first pressing the left mouse button.) The final size of the selector will be written back to the variables passed by reference in `w` and `h`.
 
-Note that absolute screen coordinates are used, not coordinates relative to window content. To translate between the two, see [`Win_X()`](s_window.md#win_x) and [`Win_Y()`](s_window.md#win_y).
+Note that absolute screen coordinates are used, not coordinates relative to window content. To translate between the two, see [`Win_X()`](s_window.md#win_x) and [`Win_Y()`](s_window.md#win_y). Note also that the popup will not appear if the initial coordinates are offscreen (this includes `x` = 0, `y` = 0 because the box is drawn *around* the specified coordinates, so this would place the selector at -1, -1).
 
 *Return value*: On successful completion, returns 1. If the user cancelled the operation by pressing ESC, returns 0.
 
