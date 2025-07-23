@@ -169,6 +169,7 @@ _fail:
 signed char _ftp_updown(unsigned char handle, char* filename, unsigned char bank, char* addr, unsigned short maxlen, unsigned char mode, unsigned char request) {
     char fd, i;
     char ip[4];
+    char* got_226;
     unsigned short port;
     unsigned short len;
     signed char passive;
@@ -190,15 +191,22 @@ signed char _ftp_updown(unsigned char handle, char* filename, unsigned char bank
     } else {
         strcpy(_netpacket, "LIST\r\n");
     }
-    if (FTP_Command(handle, _netpacket, _netpacket, sizeof(_netpacket)) != 150) {
+    if (TCP_Send(handle, _symbank, _netpacket, strlen(_netpacket))) {
         _packsemaoff();
         return -1;
     }
     _ftp_response = 0;
-    _packsemaoff();
     passive = TCP_OpenClient(ip, -1, port);
-    if (passive == -1)
+    if (passive == -1) {
+        _packsemaoff();
         return -1;
+    }
+    if (FTP_Response(handle, _netpacket, sizeof(_netpacket)) != 150) { // we wait for the response here because some servers only send it after the data connection opens
+        _packsemaoff();
+        return -1;
+    }
+    got_226 = strstr(_netpacket, "\r\n226 "); // depending on timing, 226 Transfer Complete can arrive in the same TCP_Receive chunk, in which case we don't need to wait for it later
+    _packsemaoff();
     if (request < 2) {
         // download/list
         if (TCP_ReceiveToEnd(passive, bank, addr, maxlen))
@@ -243,12 +251,14 @@ signed char _ftp_updown(unsigned char handle, char* filename, unsigned char bank
         if (TCP_Disconnect(passive))
             return -1;
     }
-    _packsemaon();
-    if (FTP_Response(handle, _netpacket, sizeof(_netpacket)) != 226) {
+    if (!got_226) {
+        _packsemaon();
+        if (FTP_Response(handle, _netpacket, sizeof(_netpacket)) != 226) {
+            _packsemaoff();
+            return -1;
+        }
         _packsemaoff();
-        return -1;
     }
-    _packsemaoff();
     return 0;
 }
 

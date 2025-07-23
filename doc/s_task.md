@@ -340,12 +340,18 @@ Standard SymbOS system calls that do not use 32-bit data types (`File_Open()`, e
 
 ### Thread-safe messaging
 
-When using inter-process messaging functions (`Msg_Send()`, `Msg_Sleep()`, etc.) within a secondary thread, it is strongly recommended to use the utility function `_msgpid()` for the return process ID instead of `_sympid`. E.g.:
+When using inter-process messaging functions (`Msg_Send()`, `Msg_Sleep()`, etc.) within a secondary thread, it is strongly recommended to use the utility function `_msgpid()` (representing the running thread's process ID) for the return process ID instead of `_sympid`. E.g.:
 
 ```c
-Msg_Sleep(_msgpid(), -1, _symmsg);
+Msg_Sleep(_msgpid(), -1, threadmsg);
 ```
 
-If we used `_sympid`, all messages would be addressed to the application's main process. This queue can technically be read by any process, but using one queue for all messages makes it easy to end up in situations where one thread accidentally receives and discards a message intended for another thread, causing all sorts of strange bugs. It's safer to keep each thread's messages completely separate using `_msgpid()`.
+If we used `_sympid` instead of `_msgpid()`, all messages would be addressed to the application's main process. This queue can technically be read by any process, but using one queue for all messages makes it easy to end up in situations where one thread accidentally receives and discards a message intended for another thread, causing all sorts of strange bugs. It's safer to keep each thread's messages completely separate using `_msgpid()`.
 
-(Note that the value of `_msgpid()` is *not* simply the current process ID; its behavior will depend on SymbOS version.)
+(Note that the return value of `_msgpid()` is *not* simply the current process ID; its behavior will depend on SymbOS version. If we need to know the actual process ID of the thread, save the result of the initial `thread_start()` call.)
+
+It is also unsafe to use the generic message buffer `_symmsg` within a secondary thread, as this may collide with system calls on other threads. Use a thread-specific message buffer instead, e.g.:
+
+```c
+_transfer char threadmsg[14];
+```

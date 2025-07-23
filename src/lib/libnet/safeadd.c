@@ -1,3 +1,5 @@
+#include <symbos.h>
+
 // This small island of insanity brought to you by the fact that 32-bit data
 // types are inherently thread-unsafe in SCC.
 

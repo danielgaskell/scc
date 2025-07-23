@@ -33,7 +33,9 @@ signed char TCP_ReceiveToEnd(unsigned char handle, unsigned char bank, char* add
     _packsemaon();
     got_bytes = 0;
     stopping = 0;
-    while (!stopping && !Net_Wait(NET_TCPEVT)) {
+    while (!stopping) {
+        if (Net_Wait(NET_TCPEVT))
+            goto _fail;
         if (_netmsg[3] == handle) {
             TCP_Event(_netmsg, &net_stat);
             _nsemaoff();
