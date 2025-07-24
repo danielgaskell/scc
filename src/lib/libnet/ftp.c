@@ -197,16 +197,14 @@ signed char _ftp_updown(unsigned char handle, char* filename, unsigned char bank
     }
     _ftp_response = 0;
     passive = TCP_OpenClient(ip, -1, port);
-    if (passive == -1) {
-        _packsemaoff();
-        return -1;
-    }
     if (FTP_Response(handle, _netpacket, sizeof(_netpacket)) != 150) { // we wait for the response here because some servers only send it after the data connection opens
         _packsemaoff();
         return -1;
     }
     got_226 = strstr(_netpacket, "\r\n226 "); // depending on timing, 226 Transfer Complete can arrive in the same TCP_Receive chunk, in which case we don't need to wait for it later
     _packsemaoff();
+    if (passive == -1 && !got_226) // 0-byte downloads appear as a closed connection + 226 Transfer Complete; otherwise, this is an error
+        return -1;
     if (request < 2) {
         // download/list
         if (TCP_ReceiveToEnd(passive, bank, addr, maxlen))

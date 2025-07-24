@@ -29,6 +29,14 @@ signed char TCP_ReceiveToEnd(unsigned char handle, unsigned char bank, char* add
     }
 
     // receive
+    if (handle == 255) { // -1
+        // no handle - just write blank data (when the download is zero bytes,
+        // it can just look like a rejected connection; but routines like
+        // _ftp_updown still want to write a file in this case.)
+        if (maxlen)
+            Bank_WriteByte(bank, addr, 0); // ensure zero-termination of buffer
+        goto _bypass;
+    }
     _nsemaon();
     _packsemaon();
     got_bytes = 0;
@@ -98,9 +106,12 @@ signed char TCP_ReceiveToEnd(unsigned char handle, unsigned char bank, char* add
     }
     _nsemaoff();
     _packsemaoff();
+_bypass:
     if (fd < 8)
         File_Close(fd);
-    return TCP_Close(handle);
+    if (handle != 255)
+        return TCP_Close(handle);
+    return 0;
 
 _fail:
     ch = _neterr;

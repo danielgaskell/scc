@@ -270,6 +270,8 @@ Listens on the TCP socket `handle`, saving all received data to the buffer `addr
 
 When running on a [separate thread](s_task.md#multithreading), the global **unsigned long** variable `_tcp_progress` contains the number of bytes received so far. Writing a nonzero value to the global variable `_tcp_abort` will cause `TCP_ReceiveToEnd()` to abort the transfer at its earliest convenience, writing only what it has received so far and failing with `_neterr` = `ERR_TRUNCATED`.
 
+**Note**: This function expects to receive a `NET_TCPEVT` message when data arrives, so it should only be called when the receive buffer is empty (`NetStat.bytesrec` == 0) or immediately after opening the connection.
+
 *Return value*: On success, returns 0. On failure, disconnects immediately, sets `_neterr`, and returns -1.
 
 ### TCP_Skip()
