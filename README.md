@@ -12,7 +12,7 @@ SCC features:
 * A proper libc port for plug-and-play compilation of existing code
 * Extensive wrappers and utility functions for SymbOS system calls
 * Extensive [documentation](doc/index.md) to help you get started with SymbOS programming
-* Multithreading (yes, [really](doc/syscall2.md#multithreading)!)
+* Multithreading (yes, [really](doc/s_task.md#multithreading)!)
 * A complete sample application (programmer's calculator) for reference
 
 SCC is considered stable and can be used to write both console and graphical
