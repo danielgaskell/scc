@@ -3,7 +3,7 @@
 
 int Dir_Read(char* path, unsigned char attrib, void* buf, unsigned short len, unsigned short skip) {
     char *ptr_in, *ptr_out;
-    unsigned char skipped, skipped2, first;
+    unsigned char skipped, first;
     int count, count2, count3;
 
     // do directory read
@@ -34,12 +34,11 @@ int Dir_Read(char* path, unsigned char attrib, void* buf, unsigned short len, un
 
     // copy from end to start
     while (count3 > 1) {
-        skipped2 = *(ptr_in - 1) - 128;
+        skipped = *(ptr_in - 1) - 128;
         *(ptr_in - 1) = 0;
         memmove(ptr_out, ptr_in, sizeof(DirEntry));
         ptr_in -= skipped;
         ptr_out -= sizeof(DirEntry);
-        skipped = skipped2;
         --count3;
     }
 

@@ -138,7 +138,7 @@ len = File_Seek(f, 0, SEEK_END); // get length by seeking to file end
 
 *SymbOS name*: `File_Pointer` (`FILPOI`).
 
-## File_ErrMsg()
+### File_ErrMsg()
 
 ```c
 void File_ErrMsg(void* modalWin);

@@ -28,6 +28,7 @@ v1.2
 @ Fixed vertical C_GRID controls
 @ Fixed Menu_Context() return values
 @ Fixed bad forward references to memmove()
+@ Fixed Dir_Read() failing on some file length sequences
 @ Fixed Mouse_X() returning Y value
 @ Fixed digit order in atof()
 @ Fixed Timer_Add() returning wrong ID
