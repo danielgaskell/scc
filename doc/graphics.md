@@ -459,6 +459,8 @@ _transfer Ctrl c_image1 = {1, C_IMAGE_EXT, -1, (unsigned short)imgbuf, 10, 10, 2
 
 ### Gfx_Load_Raw()
 
+*Currently only available in development builds of SCC.*
+
 ```c
 unsigned char Gfx_Load_Raw(char* filename, unsigned char bank, char* buffer);
 ```
@@ -470,6 +472,8 @@ The difference between this function and the regular [`Gfx_Load()`](#gfx_load) i
 *Return value*: On success, returns 0. On failure, sets `_fileerr` and returns 1.
 
 ### Gfx_Load_Set_Raw()
+
+*Currently only available in development builds of SCC.*
 
 ```c
 unsigned char Gfx_Load_Set_Raw(char* filename, unsigned char bank, char* buffer);
@@ -485,6 +489,8 @@ This function is a convenient way to load a large number of raw images at once. 
 
 ### Gfx_Prep_Raw()
 
+*Currently only available in development builds of SCC.*
+
 ```c
 void Gfx_Prep_Raw(unsigned char bank, char* buffer);
 ```
@@ -493,6 +499,8 @@ If the memory at bank `bank`, address `buffer` contains a raw 16-color image, pr
 
 ### Gfx_Prep_Set_Raw()
 
+*Currently only available in development builds of SCC.*
+
 ```c
 void Gfx_Prep_Set_Raw(unsigned char bank, char* buffer);
 ```
@@ -500,6 +508,8 @@ void Gfx_Prep_Set_Raw(unsigned char bank, char* buffer);
 Equivalent to `Gfx_Prep_Raw()`, but preps image sets instead of single images.
 
 ### Gfx_TileAddr_Raw()
+
+*Currently only available in development builds of SCC.*
 
 ```c
 char* Gfx_TileAddr_Raw(unsigned char bank, char* image, unsigned char tile);

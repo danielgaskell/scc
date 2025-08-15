@@ -38,6 +38,7 @@ v1.2
 @ Win_Open() PID now set correctly for other banks/threads
 @ Changed ip to char[4] for thread-safety in libnet
 @ Moved location of 16-color icon so EXEs compress correctly
+@ _Sym_Header -> App_Header, with fixed contents
 @ Various structs tweaked to better support SymbOS 4.0 features
 
 v1.1

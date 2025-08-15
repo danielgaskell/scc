@@ -19,13 +19,17 @@ typedef struct {
     char* segtrans;
     unsigned char timers[4];
     unsigned char bank;
+    char name[25];
+    char flags;
+    unsigned short icon16off;
+    char unused[5];
     _Memory memory[8];
     unsigned char appid;
     unsigned char pid;
     char iconsmall[19];
     char iconbig[147];
-} _SymHeader;
+} App_Header;
 
-extern _SymHeader _symheader;
+extern App_Header _symheader;
 
 #endif
