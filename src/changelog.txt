@@ -25,6 +25,7 @@ v1.2
 @ Fixed gfx2sgx generating incorrect 4-color images
 @ Fixed thread_quit() semaphore conflict that could cause freezes
 @ Fixed Gfx_VLine() overwriting IY
+@ Fixed Gfx_Line() freezing on long lines
 @ Fixed vertical C_GRID controls
 @ Fixed Menu_Context() return values
 @ Fixed bad forward references to memmove()

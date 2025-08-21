@@ -2,12 +2,12 @@
 #include "gfxcore.h"
 
 void Gfx_Line(unsigned short x0, unsigned char y0, unsigned short x1, unsigned char y1, unsigned char color) {
-    signed char dx =  abs (x1 - x0);
+    int dx = abs(x1 - x0);
+    int dy = -abs(y1 - y0);
+    int err = dx + dy;
     signed char sx = x0 < x1 ? 1 : -1;
-    signed char dy = -abs (y1 - y0);
     signed char sy = y0 < y1 ? 1 : -1;
-    signed char err = dx + dy;
-    signed char e2;
+    int e2;
 
     for (;;) {
         Gfx_Pixel(x0, y0, color);
