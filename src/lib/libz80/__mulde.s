@@ -8,6 +8,9 @@
 ;	TODO: rework for Z80 optimized - use B not C etc
 ;
 
+__mulde0d:
+		ld	d,0
+		jr	__mulde
 __mul:
 		ex	de,hl
 		pop	hl
@@ -15,7 +18,6 @@ __mul:
 ;
 ;		HL * DE
 ;
-__mulde0d:	ld	d,0
 __mulde:	push	bc
 
 		ld	b,h		; save old upper byte
