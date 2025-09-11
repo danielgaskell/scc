@@ -33,3 +33,4 @@ kerndev.o
 kerncfg.o
 kernmem.o
 kernmult.o
+di.o

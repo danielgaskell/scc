@@ -38,4 +38,7 @@ extern unsigned short App_Search(char bank, char* idstring);
 extern unsigned short App_Service(char bank, char* idstring);
 extern void App_Release(char appID);
 
+extern void Int_Disable(void);
+extern void Int_Enable(void);
+
 #endif
