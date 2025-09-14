@@ -96,6 +96,7 @@ static char *appname = NULL; /* SymbOS application name */
 static char *appicon = NULL; /* SymbOS application icon */
 static char *appicon16 = NULL; /* SymbOS 16-color application icon */
 static char *heapsize = NULL; /* SymbOS heap size */
+static char *widget_opts = NULL; /* SymbOS widget options */
 static addr_t dot;			/* Working address as we link */
 
 static unsigned progress;		/* Did we make forward progress ?
@@ -109,6 +110,7 @@ static uint_fast8_t rel_check;		/* Check fits mask */
 static FILE *relocf;
 
 static char iconbuf[298];
+static char widgetbuf[22] = {'S', 'W', 'G', '1'};
 
 /*
  *	Report an error, and if possible give the object or library that
@@ -1424,8 +1426,32 @@ static void write_binary(FILE *mp)
                 extra += 256; // unclear why this is needed - path suffix seems to overwrite last 256 bytes of extra if present
             out_seek(56);
             out_write(&extra, 2);
-            out_seek(258);
+            out_seek(280);
             out_write(&extra, 2);
+        }
+        if (widget_opts) {
+            widgetbuf[5] = atoi(widget_opts);
+            i = 0;
+            while (*widget_opts) {
+                while (*widget_opts != ',') {
+                    if (*widget_opts == 0)
+                        goto widget_done;
+                    ++widget_opts;
+                }
+                ++widget_opts;
+                if (i >= 8) {
+                    warning("Extra widget sizes ignored");
+                    break;
+                }
+                *(unsigned short*)&widgetbuf[i + 6] = atoi(widget_opts);
+                i += 2;
+            }
+        widget_done:
+            if (i == 0 || i & 1)
+                error("Invalid widget settings");
+            widgetbuf[4] = ((i - 1) >> 1);
+            out_seek(256);
+            out_write(widgetbuf, sizeof(widgetbuf));
         }
     }
 	if (err == 0) {
@@ -1524,7 +1550,7 @@ int main(int argc, char *argv[])
 
 	arg0 = argv[0];
 
-	while ((opt = getopt(argc, argv, "rbvtsiu:o:m:f:R:A:B:C:D:G:N:Z:d:g:h:T")) != -1) {
+	while ((opt = getopt(argc, argv, "rbvtsiu:o:m:f:R:A:B:C:D:G:N:Z:d:g:h:T:w:")) != -1) {
 		switch (opt) {
 		case 'r':
 			ldmode = LD_RFLAG;
@@ -1534,7 +1560,7 @@ int main(int argc, char *argv[])
 			strip = 1;
 			break;
 		case 'v':
-			printf("SymbOS-FCC LD 0.2.1\n");
+			printf("SCC LD 0.2.3\n");
 			break;
 		case 't':
 			verbose = 1;
@@ -1605,6 +1631,9 @@ int main(int argc, char *argv[])
 			base[7] = xstrtoul(optarg);
 			baseset[7] = 1;
 			break;
+        case 'w':
+            widget_opts = optarg;
+            break;
 		default:
 			fprintf(stderr, "%s: name ...\n", argv[0]);
 			exit(1);

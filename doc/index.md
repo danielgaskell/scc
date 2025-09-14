@@ -9,6 +9,7 @@
 * [Event reference](s_event.md)
 * [Graphics library](graphics.md)
 * [Network library](network.md)
+* [Desktop widgets](s_widget.md)
 * [Special considerations](special.md) (compiler quirks, etc.)
 * [Porting tips/troubleshooting](porting.md)
 

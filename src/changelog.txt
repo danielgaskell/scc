@@ -1,6 +1,7 @@
 v1.2
 + Added Linux/POSIX build script
 + Added libnet
++ Added support for building widgets
 + Added md2pdf.py and .PDF documentation
 + Added Gfx_ScrollX() and Gfx_ScrollY()
 + Added InputBox()

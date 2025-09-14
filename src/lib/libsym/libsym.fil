@@ -15,6 +15,7 @@ systray.o
 syspath.o
 systype.o
 textbox.o
+widget.o
 wincore.o
 winxtra.o
 winsize.o

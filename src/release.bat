@@ -17,6 +17,7 @@ python ..\doc\md2hlp.py ..\doc\s_print.md
 python ..\doc\md2hlp.py ..\doc\s_shell.md
 python ..\doc\md2hlp.py ..\doc\s_sound.md
 python ..\doc\md2hlp.py ..\doc\s_task.md
+python ..\doc\md2hlp.py ..\doc\s_widget.md
 python ..\doc\md2hlp.py ..\doc\s_window.md
 python ..\doc\md2hlp.py ..\doc\s_ref.md
 python ..\doc\md2hlp.py ..\doc\graphics.md
@@ -57,6 +58,7 @@ copy /Y ..\lib\include\sys\*.h ..\release\win32\lib\include\sys
 copy /Y ..\lib\include\symbos\*.h ..\release\win32\lib\include\symbos
 copy /Y ..\sample\windemo.c ..\release\win32\sample
 copy /Y ..\sample\threads.c ..\release\win32\sample
+copy /Y ..\sample\widget.c ..\release\win32\sample
 copy /Y ..\sample\basic.c ..\release\win32\sample
 copy /Y ..\sample\makebas.bat ..\release\win32\sample
 copy /Y ..\sample\calc.sgx ..\release\win32\sample
@@ -89,6 +91,7 @@ copy /Y ..\lib\include\sys\*.h ..\release\symbos\lib\include\sys
 copy /Y ..\lib\include\symbos\*.h ..\release\symbos\lib\include\symbos
 copy /Y ..\sample\windemo.c ..\release\symbos\sample
 copy /Y ..\sample\threads.c ..\release\symbos\sample
+copy /Y ..\sample\widget.c ..\release\symbos\sample
 copy /Y ..\sample\calc.sgx ..\release\symbos\sample
 copy /Y ..\sample\calc16.sgx ..\release\symbos\sample
 copy /Y ..\sample\progcalc.c ..\release\symbos\sample

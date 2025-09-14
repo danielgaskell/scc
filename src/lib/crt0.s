@@ -60,16 +60,26 @@ __exehead_iconlg:
 	.byte #0xF0, #0xF0, #0xF0, #0xF0, #0xD2, #0x87, #0x0F, #0x0F, #0x0F, #0x0F
 	.byte #0x1E, #0xF0, #0xF0, #0xF0, #0xF0, #0xF0, #0xF0
 
+; widget header, written by linker in widget mode
+__wdghead:
+	.byte 0,0,0,0	; SWG1
+	.byte 0			; number of sizes
+	.byte 0			; flags (bit 0 = property dialogue available)
+.export __widget_sizes
+__widget_sizes:
+	.word 0,0,0,0,0,0,0,0
+
+; values written by the linker
 .export __segcode
 __segcode:
 	.word __codestart
-__heapsize:			; note: must be at byte 258! written by linker
+__heapsize:			; note: must be at byte 280!
 	.word 4096
 .export __debugtrace
-__debugtrace:       ; note: must be at byte 260!
+__debugtrace:       ; note: must be at byte 282!
 	.word 0
 .export __debugstack
-__debugstack:       ; note: must be at byte 262!
+__debugstack:       ; note: must be at byte 284!
 	.word 0
 
 ; entry point

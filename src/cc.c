@@ -186,6 +186,7 @@ char *appname = NULL;
 char *appicon = NULL;
 char *appicon16 = NULL;
 char *heapsize = "4096";
+char *widgetopts = NULL;
 char heapsize_cust = 0;
 int strip;
 int c_files;
@@ -725,10 +726,10 @@ void link_phase(void)
 	p = xstrdup(make_bin_name("ld.exe", ""), 0);
 	#endif
 
-	/* Set the target as infile.exe if there is no target */
+	/* Set the target as infile.exe or infile.wdg if there is no target */
 	if (target==NULL) {
 		target=xstrdup(objlist.head->name, 4);
-        strcpy(strrchr(target, '.'), ".exe");
+        strcpy(strrchr(target, '.'), widgetopts ? ".wdg" : ".exe");
 	}
 
 	build_arglist(p);
@@ -785,6 +786,10 @@ void link_phase(void)
 	if (heapsize_cust) {
         add_argument("-h");
         add_argument(heapsize);
+	}
+	if (widgetopts) {
+        add_argument("-w");
+        add_argument(widgetopts);
 	}
 	if (mapfile) {
 		/* For now output a map file. One day we'll have debug symbols
@@ -916,6 +921,7 @@ void usage(void)
 	printf("-S      compile to assembly source only\n");
 	printf("-T x    set the starting address of the text/code segment\n");
 	printf("-V      verbosely print pass information\n");
+	printf("-w x    compile to widget (see docs for options)\n");
 	printf("-X      keep temporary files for debugging\n\n");
 	printf("long options:\n");
 	printf("--dlib:	build a loadable object module instead\n\n");
@@ -1240,6 +1246,16 @@ int main(int argc, char *argv[]) {
 		case 'T':
 			codeseg = *p + 2;
 			break;
+        case 'w':
+			if ((*p)[2])
+				widgetopts = *p + 2;
+			else if (*p)
+				widgetopts = *++p;
+			else {
+				fprintf(stderr, "cc: no widget options given.\n");
+				fatal();
+			}
+            break;
 		default:
 			usage();
 		}

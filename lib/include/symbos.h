@@ -16,5 +16,6 @@
 #include <symbos/threads.h>
 #include <symbos/time.h>
 #include <symbos/windows.h>
+#include <symbos/widget.h>
 
 #endif
