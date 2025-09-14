@@ -1,5 +1,7 @@
 # Desktop widgets
 
+**The features described below are currently only available in development builds of SCC.**
+
 When "SymbOS extensions" are active, SymbOS allows the user to add "widgets" to their desktop (right-click > New > Widget). These are essentially normal SymbOS applications, but with certain specific behaviors expected by SymbOS.
 
 Source code for a minimal example widget (`widget.c`) can be found in the `sample` directory.
