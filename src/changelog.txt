@@ -43,6 +43,7 @@ v1.2
 @ Moved location of 16-color icon so EXEs compress correctly
 @ _Sym_Header -> App_Header, with fixed contents
 @ Fixed a rare casting error when multiplying ints
+@ Added "first" param to Win_Redraw_Sub()
 @ Various structs tweaked to better support SymbOS 4.0 features
 
 v1.1

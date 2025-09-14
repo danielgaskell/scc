@@ -121,10 +121,11 @@ If the window has focus and is resizable, redraws the main content area's scroll
 ### Win_Redraw_Sub()
 
 ```c
-void Win_Redraw_Sub(unsigned char winID, unsigned char collection, unsigned char control);
+void Win_Redraw_Sub(unsigned char winID, unsigned char collection,
+                    unsigned char what, unsigned char first);
 ```
 
-Redraws the single control with the ID `control` inside the control collection with the ID `collection` on window `winID`.
+Redraws one or more controls inside the control collection with the ID `collection` on window `winID`. `what` can be either (1) the control ID of a single control to redraw, or (2) a negative number (from -2 to -16) indicating how many controls should be redrawn (from 2 to 16), in which case `first` indicates the control ID of the first control to redraw.
 
 *SymbOS name*: `Window_Redraw_SubControl_Command` (`MSC_DSK_WINSIN`).
 

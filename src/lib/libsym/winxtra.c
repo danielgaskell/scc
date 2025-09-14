@@ -120,12 +120,13 @@ void Win_Redraw_Area(unsigned char winID, unsigned char what, unsigned char firs
     _msemaoff();
 }
 
-void Win_Redraw_Sub(unsigned char winID, unsigned char collection, unsigned char control) {
+void Win_Redraw_Sub(unsigned char winID, unsigned char collection, unsigned char what, unsigned char first) {
     _msemaon();
     _symmsg[0] = 51;
     _symmsg[1] = winID;
     _symmsg[2] = collection;
-    _symmsg[3] = control;
+    _symmsg[3] = what;
+    _symmsg[4] = first;
     _Desk_Msg();
     _msemaoff();
 }

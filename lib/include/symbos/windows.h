@@ -198,7 +198,8 @@ extern void Win_Redraw_Ext(unsigned char winID, unsigned char what, unsigned cha
 extern void Win_Redraw_Slider(unsigned char winID);
 extern void Win_Redraw_Area(unsigned char winID, unsigned char what, unsigned char first,
                             unsigned short x, unsigned short y, unsigned short w, unsigned short h);
-extern void Win_Redraw_Sub(unsigned char winID, unsigned char collection, unsigned char control);
+extern void Win_Redraw_Sub(unsigned char winID, unsigned char collection,
+                           unsigned char what, unsigned char first);
 
 extern unsigned char TextBox_Pos(void* win, void* textbox);
 extern void TextBox_Redraw(void* win, void* textbox);
