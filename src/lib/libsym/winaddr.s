@@ -1,8 +1,6 @@
 .code
 .z80
 
-.byte 1,2,3,4,1,2,3,4
-
 .export _Win_Addr
 _Win_Addr:
 	push bc
