@@ -20,6 +20,7 @@ wincore.o
 winxtra.o
 winsize.o
 winpos.o
+winaddr.o
 drag.o
 deskmode.o
 desksvc.o

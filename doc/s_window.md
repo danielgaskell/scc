@@ -213,26 +213,6 @@ Resizes the window `winID` so that the main content of the window has the width 
 
 *SymbOS name*: `Window_Set_Size_Command` (`MSC_DSK_WINSIZ`).
 
-### Win_Width()
-
-```c
-unsigned short Win_Width(Window* win);
-```
-
-A utility function that returns the width of the visible content area of the window `win`, in pixels. (Note that the window is passed as the address of the relevant `Window` record, *not* as the window ID!)
-
-When determining the visible size of a resizable window, this function should be used instead of directly reading the `Window.w` record. This is because the `Window.w` record contains the width the window "wants" to be, not necessarily its true current size; for example, when a window is maximized, `Window.w` will be the original "restored" width rather than the true "maximized" width. This function handles all the necessary calculations for determining the true width automatically.
-
-### Win_Height()
-
-```c
-unsigned short Win_Height(Window* win);
-```
-
-A utility function that returns the height of the visible content area of the window `win`, in pixels. (Note that the window is passed as the address of the relevant `Window` record, *not* as the window ID!)
-
-When determining the visible size of a resizable window, this function should be used instead of directly reading the `Window.h` record. This is because the `Window.h` record contains the height the window "wants" to be, not necessarily its true current size; for example, when a window is maximized, `Window.h` will contain the original "restored" height rather than the true "maximized" height. This function handles all the necessary calculations for determining the true height automatically.
-
 ## Window status
 
 ### Win_X()
@@ -258,6 +238,45 @@ int Win_Y(Window* win);
 A utility function that returns the absolute screen Y position of the visible content area of the window `win`, in pixels. (Note that the window is passed as the address of the relevant `Window` record, *not* as the window ID!)
 
 This is mainly useful for translating between absolute and relative screen position when using functions such as [`Select_Pos()`](s_desk.md#select_pos). This function is more reliable than simply reading the `Window.y` record because it accounts for how SymbOS lays out the titlebar, menubar, and toolbar, as well as maximized windows.
+
+### Win_Width()
+
+```c
+unsigned short Win_Width(Window* win);
+```
+
+A utility function that returns the width of the visible content area of the window `win`, in pixels. (Note that the window is passed as the address of the relevant `Window` record, *not* as the window ID!)
+
+When determining the visible size of a resizable window, this function should be used instead of directly reading the `Window.w` record. This is because the `Window.w` record contains the width the window "wants" to be, not necessarily its true current size; for example, when a window is maximized, `Window.w` will be the original "restored" width rather than the true "maximized" width. This function handles all the necessary calculations for determining the true width automatically.
+
+### Win_Height()
+
+```c
+unsigned short Win_Height(Window* win);
+```
+
+A utility function that returns the height of the visible content area of the window `win`, in pixels. (Note that the window is passed as the address of the relevant `Window` record, *not* as the window ID!)
+
+When determining the visible size of a resizable window, this function should be used instead of directly reading the `Window.h` record. This is because the `Window.h` record contains the height the window "wants" to be, not necessarily its true current size; for example, when a window is maximized, `Window.h` will contain the original "restored" height rather than the true "maximized" height. This function handles all the necessary calculations for determining the true height automatically.
+
+### Win_Addr()
+
+*Currently only available in development builds of SCC.*
+
+```c
+void Win_Addr(unsigned char winID, unsigned char* bank, Window** addr);
+```
+
+A utility function that takes a window ID and retrieves the memory address of the matching `Window` record, storing the bank number in `bank` (passed by reference) and the address in `addr` (passed by reference). The window can belong to any process.
+
+Example:
+
+```c
+// retrieve address of the window with the ID 5
+char bank;
+Window* addr;
+Win_Addr(5, &bank, &addr);
+```
 
 ### TextBox_Pos()
 
