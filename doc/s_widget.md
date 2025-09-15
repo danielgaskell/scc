@@ -120,6 +120,21 @@ In addition to setting up the window, `Widget_Init()` sets the following global 
 We need `_widget_win` and `_widget_col` to redraw controls with [`Win_Redraw_Sub()`](s_window.md#win_redraw_sub) when they change:
 
 ```c
-Win_Redraw_Sub(_widget_win, _widget_col, 3);
+Win_Redraw_Sub(_widget_win, _widget_col, 3, 0);
 ```
 
+### Widget_X
+
+```c
+unsigned short Widget_X(void);
+```
+
+Returns the X location of the widget on the desktop, in pixels. (Note that SymbOS will not send any message to the widget when it is moved---if we need to know, we can check whether the value of `Widget_X()` or `Widget_Y()` has changed. Note also that the value of this function may be incorrect if called immediately after `Widget_Init()`; it takes a fraction of a second to update.)
+
+### Widget_Y
+
+```c
+unsigned short Widget_Y(void);
+```
+
+Returns the Y location of the widget on the desktop, in pixels. (Note that SymbOS will not send any message to the widget when it is moved---if we need to know, we can check whether the value of `Widget_X()` or `Widget_Y()` has changed. Note also that the value of this function may be incorrect if called immediately after `Widget_Init()`; it takes a fraction of a second to update.)

@@ -5,6 +5,8 @@
 #define FNC_DXT_WDGOKY  8
 
 extern void Widget_Init(Ctrl_Collection* col, char* msg, unsigned char send_pid);
+extern unsigned short Widget_X(void);
+extern unsigned short Widget_Y(void);
 
 extern unsigned short _widget_sizes[4][2];
 extern unsigned char _widget_win;
