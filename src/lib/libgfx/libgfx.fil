@@ -17,4 +17,5 @@ pixel.o
 put.o
 value.o
 text.o
+prep.o
 core.o
