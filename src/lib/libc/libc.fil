@@ -146,6 +146,7 @@ dirread.o
 sysdrv.o
 sysdir.o
 sysfile.o
+sysferr.o
 isupper.o
 islower.o
 _itoa.o

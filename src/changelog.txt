@@ -45,6 +45,7 @@ v1.2
 @ Fixed a rare casting error when multiplying ints
 @ Added "first" param to Win_Redraw_Sub()
 @ Various structs tweaked to better support SymbOS 4.0 features
+@ Split various modules to improve executable size
 
 v1.1
 + Added libgfx
