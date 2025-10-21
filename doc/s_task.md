@@ -247,7 +247,7 @@ Unregisters all **counter** bytes associated with the process ID *pid*.
 signed char Timer_Add(unsigned char bank, void* header);
 ```
 
-Behaves identically to `Proc_Add()`, but launches the new process as a **timer**. (See [`Proc_Add()`](#proc_add) for details on how a new process is implemented.) The timer code should ideally be short to ensure that it can fully complete in the allotted time, even under higher CPU load. Typically, we want to implement the timer code as a short loop that ends by calling `Idle()`; the timer process will then execute the loop contents, finish, go to sleep, and be woken up 1/50th of a second later for another pass through the loop:
+Behaves identically to `Proc_Add()`, but launches the new process as a **timer**. (See [`Proc_Add()`](#proc_add) for details on how a new process is implemented.) The timer code must be short enough that it can fully complete in the allotted time, even under higher CPU load. Typically, we want to implement the timer code as a short loop that ends by calling `Idle()`; the timer process will then execute the loop contents, finish, go to sleep, and be woken up 1/50th of a second later for another pass through the loop:
 
 ```c
 void timer_loop(void) {
@@ -278,6 +278,14 @@ wake_pid = Timer_Wake(_sympid, 200, 5*50);
 ```
 
 This function only supports running one wake timer at a time; for more complex behavior, see `Timer_Add()`.
+
+Wake timers are intended for unusual cases where the process needs to receive messages at precise intervals, regardless of CPU load. If we just want to idle for a specified amount of time, it is usually easier to loop on [`Idle()`](c_core.md#idle):
+
+```c
+long start_time = Sys_Counter();
+while (Sys_Counter() - start_time < 500)
+    Idle(); // wait at least 5 seconds
+```
 
 *Return value*: On success, returns the timer ID needed to stop the timer later with `Timer_Delete()`. On failure, returns -1.
 

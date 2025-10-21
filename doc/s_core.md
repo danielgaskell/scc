@@ -82,7 +82,17 @@ A utility function that idles on `Msg_Sleep()` until a message from process ID `
 void Idle(void);
 ```
 
-Return CPU time to SymbOS and idle until something wakes it up---for example, an incoming message.
+Finishes the current multitasking timeslot early, returning any remaining CPU time to the kernel so other processes can use it. When the process gets its next multitasking timeslot, execution will continue from this point.
+
+It is recommended to use `Idle()` whenever the program is in a loop waiting for something external to happen. This way, the program will only check once per multitasking timeslot and give back the rest of its CPU time to other programs:
+
+```c
+while (Mouse_X() < 125) {
+    Idle();
+}
+```
+
+(Note that this "Idle" state is different from the "Sleep" state triggered by `Msg_Sleep()`, which only ends when the process receives a new message or is otherwise woken up by another process.)
 
 *SymbOS name*: `Multitasking_SoftInterrupt` (`RST #30`).
 
