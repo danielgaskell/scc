@@ -198,7 +198,7 @@ A utility function for determining whether a mouse click is the start of a drag-
 unsigned char Key_Down(unsigned char scancode);
 ```
 
-Returns 1 if the key specified by `scancode` is currently down, otherwise 0. **Note that keys are tested by *scancode*, not by their ASCII value!** A set of [scancode constants](s_ref.md#keyboard-scancodes) are provided for convenience.
+Returns 1 if the key specified by `scancode` is currently down, otherwise 0. **Note that keys are tested by *scancode*, not by their ASCII value!** A set of [scancode constants](s_ref.md#keyboard-scancodes) are provided for convenience. Note also that modifier keys (Ctrl, Alt, Shift, CapsLock) will **not** be detected by `Key_Down()`; to detect these, use `Key_Status()` (below) instead.
 
 *SymbOS name*: `Device_KeyTest` (`KEYTST`).
 
