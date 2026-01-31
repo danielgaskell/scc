@@ -118,7 +118,7 @@ void _disconnect(void) {
         _serv_list.lines = 0;
         _msemaon();
         _symmsg[0] = 255; // shut yourself down
-        Msg_Send(_msgpid(), _servpid, _symmsg);
+        Msg_Send(_threadpid(), _servpid, _symmsg);
         _msemaoff();
         _servpid = 0;
     }
@@ -175,7 +175,7 @@ unsigned char Net_ServerWin(void* modalWin, unsigned char clients, unsigned shor
     // handle events
 	while (1) {
 		_symmsg[0] = 0;
-		Msg_Sleep(_msgpid(), -1, _symmsg);
+		Msg_Sleep(_threadpid(), -1, _symmsg);
 		if (_symmsg[0] == MSR_DSK_WCLICK && _symmsg[1] == _serv_winID) {
             switch (_symmsg[2]) {
             case DSK_ACT_CLOSE: // Alt+F4 or click close

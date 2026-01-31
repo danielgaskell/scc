@@ -48,7 +48,7 @@ signed char TCP_OpenWait(signed char handle) {
                     #ifdef _NETDEBUG
                     msg_print("REQ: ");
                     #endif
-                    Msg_Send(_netpid, _msgpid(), _netmsg);
+                    Msg_Send(_netpid, _threadpid(), _netmsg);
                     _nsemaoff();
                     #ifdef _NETDEBUG
                     Shell_Print("[done]\r\n");
@@ -63,7 +63,7 @@ signed char TCP_OpenWait(signed char handle) {
         #ifdef _NETDEBUG
         msg_print("REQ: ");
         #endif
-        Msg_Send(_netpid, _msgpid(), _netmsg); // not relevant, put back on queue
+        Msg_Send(_netpid, _threadpid(), _netmsg); // not relevant, put back on queue
     }
     _nsemaoff();
     TCP_Close(handle);

@@ -16,7 +16,7 @@ v1.2
 + Added Msg_Wait()
 + Added File_ErrMsg()
 + Added support for menu icons
-+ Added _msgpid()
++ Added _threadpid()
 + Enabled %f in scanf()
 + Added ftoa()
 + Added (undocumented) Int_Enable() and Int_Disable()

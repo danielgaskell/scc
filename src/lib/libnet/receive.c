@@ -101,7 +101,7 @@ signed char TCP_ReceiveToEnd(unsigned char handle, unsigned char bank, char* add
             #ifdef NETDEBUG
             msg_print("REQ: ");
             #endif
-            Msg_Send(_netpid, _msgpid(), _netmsg);
+            Msg_Send(_netpid, _threadpid(), _netmsg);
         }
     }
     _nsemaoff();

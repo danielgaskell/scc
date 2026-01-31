@@ -41,7 +41,7 @@ signed char Net_Init(void) {
 unsigned char Net_Wait(unsigned char id) {
     unsigned short counter = Sys_Counter16() + _nettimeout;
     for (;;) {
-        if (Msg_Receive(_msgpid(), _netpid, _netmsg) & 1) {
+        if (Msg_Receive(_threadpid(), _netpid, _netmsg) & 1) {
             #ifdef _NETDEBUG
             msg_print("REC: ");
             #endif
@@ -54,7 +54,7 @@ unsigned char Net_Wait(unsigned char id) {
             #ifdef _NETDEBUG
             msg_print("REQ: ");
             #endif
-            Msg_Send(_netpid, _msgpid(), _netmsg); // put message back on queue
+            Msg_Send(_netpid, _threadpid(), _netmsg); // put message back on queue
         }
         if (Sys_Counter16() > counter) {
             _neterr = ERR_TIMEOUT;
@@ -72,7 +72,7 @@ unsigned char Net_Command(void) {
         _neterr = ERR_OFFLINE;
         return ERR_OFFLINE;
     }
-    while (Msg_Send(_msgpid(), _netpid, _netmsg) == 0);
+    while (Msg_Send(_threadpid(), _netpid, _netmsg) == 0);
     return Net_Wait(id);
 }
 

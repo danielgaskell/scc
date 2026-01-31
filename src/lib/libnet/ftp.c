@@ -73,7 +73,7 @@ int FTP_Response(unsigned char handle, char* addr, unsigned short maxlen) {
             _nsemaon();
         } else {
             // not relevant to this socket, put back on queue
-            Msg_Send(_netpid, _msgpid(), _netmsg);
+            Msg_Send(_netpid, _threadpid(), _netmsg);
         }
     }
     _nsemaoff();

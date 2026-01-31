@@ -108,7 +108,7 @@ void Shell_Exit(unsigned char type) {
         _msemaon();
         _symmsg[0] = 68;
         _symmsg[1] = type;
-        while(Msg_Send(_msgpid(), _shellpid, _symmsg) == 0);
+        while(Msg_Send(_threadpid(), _shellpid, _symmsg) == 0);
         _msemaoff();
     }
     _shellerr = ERR_NOSHELL;

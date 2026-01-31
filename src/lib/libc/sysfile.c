@@ -5,7 +5,7 @@
 /* ========================================================================== */
 unsigned char File_Command(void) {
     _symmsg[0] = 26;
-    Msg_Respond(_msgpid(), 3, _symmsg);
+    Msg_Respond(_threadpid(), 3, _symmsg);
     if (_symmsg[2] & 0x01) {
         _fileerr = _symmsg[3] + 16; // note: +16 from documented errors!
         return _fileerr;

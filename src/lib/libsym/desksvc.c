@@ -7,10 +7,10 @@ void _Desk_Service(char id) {
     _symmsg[1] = id;
     _Desk_Msg();
     for (;;) {
-        response = Msg_Sleep(_msgpid(), 2, _symmsg);
+        response = Msg_Sleep(_threadpid(), 2, _symmsg);
         if (_symmsg[0] == 163 || _symmsg[1] == id)
             return;
         if (response & 1)
-            Msg_Send(2, _msgpid(), _symmsg); // something else, keep it on the queue
+            Msg_Send(2, _threadpid(), _symmsg); // something else, keep it on the queue
     }
 }

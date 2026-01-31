@@ -269,47 +269,42 @@ _Idle:
 	rst #0x30
 	ret
 	
-; _msgpid() - returns the process ID that represents "current thread" to
-; Msg_Send(), etc. For SymbOS >4.0, this is -1. For SymbOS <=4.0, the actual
-; current process ID is (HL' - 0x40) / 6. (This relies on knowing the legacy
-; structure of the kernel process table, which may change in future versions,
-; so for >4.0 the new -1 method is preferred.)
-.export __msgpid
-__msgpid:
+; _threadpid() - returns the process ID of the currently running thread. For
+; SymbOS >4.0, use the kernel MTGPID call; for SymbOS <=4.0, calculate this
+; using the known structure of the kernel process table, (HL' - 0x40) / 6.
+.export __threadpid
+__threadpid:
 	or a
 	ld hl,(__symversion)
 	ld de,41
 	sbc hl,de
-	jr nc,_msgpidneg
+	jr nc,_threadpidsys
 	; SymbOS <=4.0 case: actual process ID
-	push bc
 	di
 	exx
 	push hl
 	exx
 	ei
 	pop hl
-	ld de,#0x40
-	or a
-	sbc hl,de
-	ld d,6
-    ; HL = HL/6
-	xor a
-	ld b,16
-_div8loop:
-	add hl,hl
-	rla
-	cp d
-	jp c,_div8next
-	sub d
-	inc l
-_div8next:
-	djnz _div8loop
-	pop bc
+	srl h
+    ld a,l
+	rra
+    sub #0x2C
+    ld hl,3
+_threadpidloop:
+    inc l
+    sub 3
+    jr nc,_threadpidloop
 	ret
-_msgpidneg:
-	; SymbOS >4.0 case: -1
-	ld l,-1
+_threadpidsys:
+	push ix
+	push bc
+	ld hl,#0x816C
+	rst #0x28
+	ld h,0
+	ld l,e
+	pop bc
+	pop ix
 	ret
 
 ; _msemaon(): _symmsg semaphore on

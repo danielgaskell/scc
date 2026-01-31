@@ -9,7 +9,7 @@ signed char Systray_Add(unsigned char bank, char* addr, unsigned char code) {
     *((char**)(_symmsg + 2)) = addr;
     _symmsg[4] = code;
     _Desk_Msg();
-    Msg_Wait(_msgpid(), 2, _symmsg, 169); // note: not +128, so we can't use Msg_Respond()
+    Msg_Wait(_threadpid(), 2, _symmsg, 169); // note: not +128, so we can't use Msg_Respond()
     if (_symmsg[1] == 0) {
         result = _symmsg[2];
         _msemaoff();

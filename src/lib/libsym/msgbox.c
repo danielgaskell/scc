@@ -29,10 +29,10 @@ unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, un
     *((char**)(_symmsg + 1)) = (char*)&_msgbox;
 	_symmsg[3] = _symbank;
 	_symmsg[4] = type;
-	Msg_Respond(_msgpid(), 3, _symmsg);
+	Msg_Respond(_threadpid(), 3, _symmsg);
     if (modalWin != 0 && _symmsg[1] == 1) {
         ((Window*)modalWin)->modal = _symmsg[2];
-        Msg_Wait(_msgpid(), 3, _symmsg, 157); // wait for response
+        Msg_Wait(_threadpid(), 3, _symmsg, 157); // wait for response
         ((Window*)modalWin)->modal = 0;
     }
     result = _symmsg[1];

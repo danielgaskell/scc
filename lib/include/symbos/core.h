@@ -32,7 +32,7 @@ extern unsigned long Sys_Counter(void);
 extern unsigned short Sys_Counter16(void);
 extern unsigned short Sys_IdleCount(void);
 
-extern signed char _msgpid(void);
+extern signed char _threadpid(void);
 extern void _msemaon(void);
 extern void _msemaoff(void);
 

@@ -25,9 +25,9 @@ unsigned char Sound_Command(unsigned char wait) {
         _sounderr = ERR_NOSOUND;
         return ERR_NOSOUND;
     }
-    while (Msg_Send(_msgpid(), _soundpid, _symmsg) == 0);
+    while (Msg_Send(_threadpid(), _soundpid, _symmsg) == 0);
     if (wait) {
-        Msg_Wait(_msgpid(), _soundpid, _symmsg, id);
+        Msg_Wait(_threadpid(), _soundpid, _symmsg, id);
         if (_symmsg[2] & 0x01) {
             _sounderr = _symmsg[3];
             return _sounderr;

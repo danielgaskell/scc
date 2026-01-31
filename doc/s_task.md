@@ -340,6 +340,14 @@ void thread_quit(char* env);
 
 Quits the running thread associated with the environment buffer `env`. (This function will not return, so it should only be used inside the thread in question, to quit itself. To forcibly end a running thread from inside a different thread, use [`Proc_Delete()`](#proc_delete); however, this can leave resources hanging if the thread is interrupted in the middle of a system call, so it is usually better to have the thread quit itself with `thread_quit()`.)
 
+### _threadpid()
+
+```c
+unsigned char _threadpid(void);
+```
+
+Returns the process ID of the currently running thread. (See [thread-safe messaging](#thread-safe-messaging) below.)
+
 ### Thread safety
 
 **Warning**: When multithreading, we have to worry about all the problems that come with multithreading---race conditions, deadlocks, concurrent access, reentrancy, etc. The current implementation of libc is also not generally designed with thread-safety in mind, so while most small utility functions (`memcpy()`, `strcat()`, etc.) are thread-safe, others are not---in particular, much of `stdio.h`. Any function that relies on temporarily storing data in a static buffer (rather than local variables) is not thread-safe and may misbehave if two threads call it at the same time. When in doubt, check the library source code to verify that a function does not rely on any static/global variables, or write your own reentrant substitute (e.g., using only local variables, or with a semaphore system that sets a global variable when the shared resource is being used and, if it is already set, loops until it is unset by whatever other thread is using the resource). Any use of 32-bit data types (**long**, **float**, **double**) is also currently not thread-safe, as these internally rely on static "extended" registers, meaning that only one thread at a time can safely use 32-bit data types.
@@ -348,15 +356,13 @@ Standard SymbOS system calls that do not use 32-bit data types (`File_Open()`, e
 
 ### Thread-safe messaging
 
-When using inter-process messaging functions (`Msg_Send()`, `Msg_Sleep()`, etc.) within a secondary thread, it is strongly recommended to use the utility function `_msgpid()` (representing the running thread's process ID) for the return process ID instead of `_sympid`. E.g.:
+When using inter-process messaging functions (`Msg_Send()`, `Msg_Sleep()`, etc.) within a secondary thread, it is strongly recommended to use the utility function `_threadpid()` (which returns the running thread's process ID) for the return process ID instead of `_sympid`. E.g.:
 
 ```c
-Msg_Sleep(_msgpid(), -1, threadmsg);
+Msg_Sleep(_threadpid(), -1, threadmsg);
 ```
 
-If we used `_sympid` instead of `_msgpid()`, all messages would be addressed to the application's main process. This queue can technically be read by any process, but using one queue for all messages makes it easy to end up in situations where one thread accidentally receives and discards a message intended for another thread, causing all sorts of strange bugs. It's safer to keep each thread's messages completely separate using `_msgpid()`.
-
-(Note that the return value of `_msgpid()` is *not* simply the current process ID; its behavior will depend on SymbOS version. If we need to know the actual process ID of the thread, save the result of the initial `thread_start()` call.)
+If we used `_sympid` instead of `_threadpid()`, all messages would be addressed to the application's main process. This queue can technically be read by any process, but using one queue for all messages makes it easy to end up in situations where one thread accidentally receives and discards a message intended for another thread, causing all sorts of strange bugs. It's safer to keep each thread's messages completely separate using `_threadpid()`.
 
 It is also unsafe to use the generic message buffer `_symmsg` within a secondary thread, as this may collide with system calls on other threads. Use a thread-specific message buffer instead, e.g.:
 

@@ -4,13 +4,13 @@
 void _setpid(unsigned char bank, void* addr) {
     char* ptr = (char*)Bank_ReadWord(bank, (char*)addr);
     if (ptr)
-        Bank_WriteByte(bank, &((Ctrl_Group*)ptr)->pid, _msgpid());
+        Bank_WriteByte(bank, &((Ctrl_Group*)ptr)->pid, _threadpid());
 }
 
 signed char Win_Open(unsigned char bank, void* addr) {
     signed char result;
     unsigned short response;
-    Bank_WriteByte(bank, &((Window*)addr)->pid, _msgpid());
+    Bank_WriteByte(bank, &((Window*)addr)->pid, _threadpid());
     _setpid(bank, &((Window*)addr)->controls);
     _setpid(bank, &((Window*)addr)->toolbar);
     _msemaon();
@@ -19,7 +19,7 @@ signed char Win_Open(unsigned char bank, void* addr) {
     *((char**)(_symmsg + 2)) = addr;
     _Desk_Msg();
     for (;;) {
-        response = Msg_Sleep(_msgpid(), 2, _symmsg);
+        response = Msg_Sleep(_threadpid(), 2, _symmsg);
         if (_symmsg[0] == 160) { // failure: return -1
             _msemaoff();
             return -1;
@@ -30,7 +30,7 @@ signed char Win_Open(unsigned char bank, void* addr) {
             return result;
         }
         if (response & 1)
-            Msg_Send(2, _msgpid(), _symmsg); // something else, keep it on the queue
+            Msg_Send(2, _threadpid(), _symmsg); // something else, keep it on the queue
     }
 }
 

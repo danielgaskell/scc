@@ -3,13 +3,13 @@
 /* ========================================================================== */
 /* System Manager                                                             */
 /* ========================================================================== */
-void _Sys_Msg(void) { Msg_Respond(_msgpid(), 3, _symmsg); }
+void _Sys_Msg(void) { Msg_Respond(_threadpid(), 3, _symmsg); }
 
 void App_End(char appID) {
     _msemaon();
     _symmsg[0] = 17;
     _symmsg[1] = appID;
-    Msg_Send(_msgpid(), 3, _symmsg);
+    Msg_Send(_threadpid(), 3, _symmsg);
     _msemaoff();
 }
 

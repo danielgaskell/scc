@@ -61,7 +61,7 @@ signed char InputBox(char* title, char* line1, char* line2, char* buffer, unsign
     // handle events
 	while (1) {
 		_symmsg[0] = 0;
-		response = Msg_Sleep(_msgpid(), 2, _symmsg);
+		response = Msg_Sleep(_threadpid(), 2, _symmsg);
 		if (_symmsg[1] == _inp_winID) {
             if (_symmsg[0] == MSR_DSK_WCLICK) {
                 switch (_symmsg[2]) {
@@ -89,7 +89,7 @@ signed char InputBox(char* title, char* line1, char* line2, char* buffer, unsign
                 }
             }
 		} else if (response & 1) {
-		    Msg_Send(2, _msgpid(), _symmsg); // something else, keep it on the queue
+		    Msg_Send(2, _threadpid(), _symmsg); // something else, keep it on the queue
 		}
 	}
 _done:

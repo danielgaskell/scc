@@ -8,7 +8,7 @@ unsigned short App_Run(char bank, char* path, char suppress) {
     _symmsg[0] = 16;
     *((char**)(_symmsg + 1)) = path;
 	_symmsg[3] = bank;
-	Msg_Respond(_msgpid(), 3, _symmsg);
+	Msg_Respond(_threadpid(), 3, _symmsg);
     if (_symmsg[1] == 0) {
         result = *((unsigned short*)(_symmsg + 8)); // includes both pid and appid!
         _msemaoff();
