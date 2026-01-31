@@ -16,3 +16,10 @@ _Mouse_Y:
 	.word #0x813C
 	ret
 	
+; Device_MouseKeyStatus
+.export _Mouse_Buttons
+_Mouse_Buttons:
+	rst #0x20
+	.word #0x813F
+	ret
+	
