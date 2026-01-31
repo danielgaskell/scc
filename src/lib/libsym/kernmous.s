@@ -21,5 +21,7 @@ _Mouse_Y:
 _Mouse_Buttons:
 	rst #0x20
 	.word #0x813F
+	ld h,0
+	ld l,a
 	ret
 	
