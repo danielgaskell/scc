@@ -1371,6 +1371,12 @@ static void write_binary(FILE *mp)
 	write_stream(CODE);
 	hdr.o_segbase[1] = out_tell();
 	write_stream(DATA);
+    if (appicon16) {
+        // relocation entries for 16-color icon header (need to be here so symtools reloc table packing works)
+        iconloc16 = size[CODE] + size[DATA] + size[BSS];
+        record_reloc(0, 2, BSS, iconloc16 + 3);
+        record_reloc(0, 2, BSS, iconloc16 + 5);
+    }
 	if (ldmode == LD_FUZIX)
 		write_stream(LITERAL);
 	if (ldmode == LD_FUZIX) {
@@ -1408,7 +1414,6 @@ static void write_binary(FILE *mp)
             fclose(ficn);
         }
         if (appicon16) {
-            iconloc16 = size[CODE] + size[DATA] + size[BSS];
             out_seek(iconloc16);
             ficn = xfopen(appicon16, "rb");
             if (ficn == NULL)
@@ -1421,8 +1426,6 @@ static void write_binary(FILE *mp)
             out_seek(40);
             out_byte(1);                // flag: 1 = 16-color icon included
             out_write(&iconloc16, 2);   // icon location
-            record_reloc(0, 2, CODE, iconloc16 + 3);
-            record_reloc(0, 2, CODE, iconloc16 + 5);
         }
         if (heapsize) {
             extra = atoi(heapsize);
