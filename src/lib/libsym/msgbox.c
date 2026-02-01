@@ -8,11 +8,13 @@ typedef struct {
 	char *line3;
 	unsigned int pen3;
 	char *icon;
+	char *icon4;
+	char *icon16;
 } MSGBOX;
 
 _transfer MSGBOX _msgbox;
 
-unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, unsigned char type, char* icon, void* modalWin) {
+unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, unsigned char type, char* icon4, char* icon16, void* modalWin) {
     unsigned char result;
     pen = pen*4 + 2;
     if (modalWin)
@@ -23,7 +25,13 @@ unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen, un
 	_msgbox.pen2 = pen;
 	_msgbox.line3 = line3 ? line3 : "";
 	_msgbox.pen3 = pen;
-	_msgbox.icon = icon;
+	if (icon16) {
+        _msgbox.icon = 0;
+        _msgbox.icon4 = icon4;
+        _msgbox.icon16 = icon16;
+	} else {
+        _msgbox.icon = icon4;
+	}
 	_msemaon();
 	_symmsg[0] = 29;
     *((char**)(_symmsg + 1)) = (char*)&_msgbox;

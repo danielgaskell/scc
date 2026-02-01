@@ -43,6 +43,6 @@ void File_ErrMsg(void* modalWin) {
         strcpy(textbuf, "Disc error (Code ");
         itoa(_fileerr - 16, textbuf + 17, 10);
         strcat(textbuf, "):");
-        MsgBox(textbuf, _fileerrstr[_fileerr - 15], 0, COLOR_BLACK, BUTTON_OK, 0, modalWin);
+        MsgBox(textbuf, _fileerrstr[_fileerr - 15], 0, COLOR_BLACK, BUTTON_OK, 0, 0, modalWin);
     }
 }

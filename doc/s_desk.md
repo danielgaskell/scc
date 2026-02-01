@@ -14,9 +14,11 @@ In addition to `symbos.h`, these functions can be found in `symbos/popups.h`.
 
 ### MsgBox()
 
+*Note: The `icon16` parameter is currently only available in development builds of SCC. Release 1.1 omits this parameter.*
+
 ```c
 unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen,
-                     unsigned char type, char* icon, void* modalWin);
+                     unsigned char type, char* icon4, char* icon16, void* modalWin);
 ```
 
 Opens a message box onscreen. `line1`, `line2`, and `line3` are three text strings that will be displayed. `pen` is the text color, one of `COLOR_BLACK`, `COLOR_RED`, `COLOR_ORANGE`, or `COLOR_YELLOW` (usually we want `COLOR_BLACK`). `type` is a OR'd bitmask of one or more of the following options:
@@ -30,7 +32,7 @@ Opens a message box onscreen. `line1`, `line2`, and `line3` are three text strin
 * `TITLE_CONFIRM`: title the box "Confirmation"
 * `MSGBOX_ICON`: use a custom icon
 
-`icon` is the address of a 24x24 custom icon image, in 4-color SGX format. If `icon` = 0, a default icon will be used. The variable `_symicon` stores the address of the application's main 4-color icon.
+When using `MSGBOX_ICON`, the parameter `icon4` holds the address of a 24x24 icon image in 4-color SGX format, and `icon16` holds the address of a 24x24 icon image in 16-color SGX format. Note that it is legal to provide only a 4-color icon (leaving `icon16` = 0), but it is **not** legal to provide only a 16-color icon; if a 16-color icon is provided, a fallback 4-color icon must also be provided. (Custom icons can be created using the included [`gfx2sgx`](graphics.md#converting-images) tool. To use the application's main icon, we can use the system variables `_symicon4` and `_symicon16`, which hold the addresses of the 4-color and 16-color icons, respectively.)
 
 `modalWin` specifies the address of a `Window` data record that should be declared modal, if any; this window will not be able to be focused until the message box is closed. If `modalWin` = 0, no window will be declared modal.
 

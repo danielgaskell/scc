@@ -16,6 +16,7 @@ v1.2
 + Added Msg_Wait()
 + Added File_ErrMsg()
 + Added support for menu icons
++ Added support for 16-color MsgBox icons
 + Added _threadpid()
 + Enabled %f in scanf()
 + Added ftoa()
@@ -41,6 +42,8 @@ v1.2
 @ Win_Open() PID now set correctly for other banks/threads
 @ Changed ip to char[4] for thread-safety in libnet
 @ Moved location of 16-color icon so EXEs compress correctly
+@ Fixed 16-color icon appearing as garbage in the task switcher
+@ _symicon -> _symicon4 and _symicon16
 @ _Sym_Header -> App_Header, with fixed contents
 @ Fixed a rare casting error when multiplying ints
 @ Added "first" param to Win_Redraw_Sub()

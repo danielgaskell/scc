@@ -46,7 +46,7 @@ extern char FileBoxExt[4];
 extern char FileBoxPath[256];
 
 extern unsigned char MsgBox(char* line1, char* line2, char* line3, unsigned int pen,
-                            unsigned char type, char* icon, void* modalWin);
+                            unsigned char type, char* icon4, char* icon16, void* modalWin);
 extern signed char InputBox(char* title, char* line1, char* line2, char* buffer,
                             unsigned short buflen, void* modalWin);
 extern unsigned char FileBox(char* path, char* filter, unsigned char flags, unsigned char attribs,

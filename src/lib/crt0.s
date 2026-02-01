@@ -23,6 +23,8 @@ __exehead_name:		.byte 65	; App
 					.byte 112
 					.ds 22
 __exehead_flags:	.byte 0
+.export __symicon16
+__symicon16:
 __exehead_icon16:	.word 0
 					.ds 5
 __exehead_exeid:	.byte 83	; SymExe10
@@ -334,8 +336,8 @@ __malloc_top:
 .export __malloc_max
 __malloc_max:
 	.word 0
-.export __symicon
-__symicon:
+.export __symicon4
+__symicon4:
 	.word __exehead_iconlg
 .export __exit_hooks
 __exit_hooks:

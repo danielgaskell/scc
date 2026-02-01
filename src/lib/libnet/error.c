@@ -29,6 +29,6 @@ void Net_ErrMsg(void* modalWin) {
             str = _neterrstr[_neterr];
         else
             str = _neterrstr[0];
-        MsgBox("Network error:", str, 0, COLOR_BLACK, BUTTON_OK, 0, modalWin);
+        MsgBox("Network error:", str, 0, COLOR_BLACK, BUTTON_OK, 0, 0, modalWin);
     }
 }

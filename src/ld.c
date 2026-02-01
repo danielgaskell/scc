@@ -1414,11 +1414,15 @@ static void write_binary(FILE *mp)
             if (ficn == NULL)
                 error("Cannot open icon file");
             fread(iconbuf, 298, 1, ficn);
+            *(unsigned short*)&iconbuf[3] = iconloc16 + 10;
+            *(unsigned short*)&iconbuf[5] = iconloc16 + 9;
             out_write(iconbuf, 298);
             fclose(ficn);
             out_seek(40);
             out_byte(1);                // flag: 1 = 16-color icon included
             out_write(&iconloc16, 2);   // icon location
+            record_reloc(0, 2, CODE, iconloc16 + 3);
+            record_reloc(0, 2, CODE, iconloc16 + 5);
         }
         if (heapsize) {
             extra = atoi(heapsize);

@@ -105,7 +105,7 @@ _thread_done:
 unsigned char _ask_reset(void) {
     unsigned char i;
     if (_clients) {
-        i = MsgBox("This will close all open", "client connections. Proceed?", "", COLOR_BLACK, BUTTON_YN | TITLE_CONFIRM, 0, &_serv_form);
+        i = MsgBox("This will close all open", "client connections. Proceed?", "", COLOR_BLACK, BUTTON_YN | TITLE_CONFIRM, 0, 0, &_serv_form);
         if (i != MSGBOX_YES)
             return 1;
     }
