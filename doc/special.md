@@ -60,7 +60,7 @@ as asmfile.s
 Then, use `ld` to link the `.o` file into a binary. To output a raw binary file without `ld` trying to patch the start of the file (see below), we should run `ld` with the `-b` option:
 
 ```bash
-ld asmfile.o -b -o asmfile.out
+ld -b -o asmfile.out asmfile.o
 ```
 
 The `-o` option allows us to specify the output file name, in this case `asmfile.out`. Multiple `.o` files can be linked into a single binary by listing them in the command line (e.g., `ld asmfile1.o asmfile2.o`...), so we can split up large projects into multiple `.s` files, assemble them separately into object files, and link all the object files together. Symbols can be shared between source files using the `.export` directive, as described above.
