@@ -177,7 +177,7 @@ typedef struct {
     unsigned char retctrl;    // control ID to "click" on pressing Return
     unsigned char escctrl;    // control ID to "click" on pressing Escape
     char reserved1[4];
-    unsigned char focusctrl;  // control ID to select on window focus
+    unsigned char focusctrl;  // control ID + 1 that initially has focus
     unsigned char reserved2;
 } Ctrl_Group;
 ```
