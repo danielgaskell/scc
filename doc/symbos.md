@@ -174,10 +174,10 @@ typedef struct {
     void* first;              // address of first control's data
     void* calcrule;           // address of first resizing calculation (see below), or 0 for none
     unsigned short unused1;
-    unsigned char retctrl;    // control ID to "click" on pressing Return
-    unsigned char escctrl;    // control ID to "click" on pressing Escape
+    unsigned char retctrl;    // control index + 1 to "click" on pressing Return
+    unsigned char escctrl;    // control index + 1 to "click" on pressing Escape
     char reserved1[4];
-    unsigned char focusctrl;  // control ID + 1 that initially has focus
+    unsigned char focusctrl;  // control index + 1 that has focus
     unsigned char reserved2;
 } Ctrl_Group;
 ```
