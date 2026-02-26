@@ -138,7 +138,7 @@ typedef struct {
 ```c
 // example
 _transfer Ctrl_TFrame cd_tframe1 =
-    {"Title", COLOR_BLACK | AREA_16COLOR, (COLOR_BLACK << 2) | COLOR_LBLUE};
+    {"Title", COLOR_BLACK | AREA_16COLOR, (COLOR_BLACK << 4) | COLOR_LBLUE};
 _transfer Ctrl c_tframe1 =
     {1, C_TFRAME, -1, (unsigned short)&cd_tframe1, 10, 10, 64, 64};
 ```
