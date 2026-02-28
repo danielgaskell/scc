@@ -15,6 +15,7 @@ v1.2
 + Added Timer_Wake()
 + Added Msg_Wait()
 + Added File_ErrMsg()
++ Added Desktop_Redraw()
 + Added support for menu icons
 + Added support for 16-color MsgBox icons
 + Added _threadpid()

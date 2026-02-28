@@ -34,6 +34,7 @@ winpos.o
 winaddr.o
 drag.o
 deskmode.o
+deskdraw.o
 desksvc.o
 deskmsg.o
 wake.o

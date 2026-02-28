@@ -202,6 +202,8 @@ extern void Win_Redraw_Area(unsigned char winID, unsigned char what, unsigned ch
 extern void Win_Redraw_Sub(unsigned char winID, unsigned char collection,
                            unsigned char what, unsigned char first);
 
+extern void Desktop_Redraw(void);
+
 extern unsigned char TextBox_Pos(void* win, void* textbox);
 extern void TextBox_Redraw(void* win, void* textbox);
 extern void TextBox_Select(void* win, void* textbox, int cursor, int selection);

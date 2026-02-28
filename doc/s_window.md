@@ -309,3 +309,17 @@ void TextBox_Select(Window* win, Ctrl* textbox, int cursor, int selection);
 Updates the cursor position and selection of the specified multi-line textbox (passed as a pointer to its `Ctrl` struct with the parameter `textbox`), scrolling and redrawing the textbox as necessary. `cursor` is the new cursor position, in bytes from the start of the complete text; `selection` is the number of characters to select (0 for none, greater than 0 for the cursor to mark the start of the selection, and less than 0 for the cursor to mark the end of the selection). For internal reasons, this command will only work if the textbox currently has keyboard focus, and we must also pass a pointer to its host window's `Window` struct with the parameter `win`.
 
 *SymbOS name*: `KEYPUT 31`.
+
+## Desktop
+
+### Desktop_Redraw()
+
+*Currently only available in development builds of SCC.*
+
+```c
+void Desktop_Redraw(void);
+```
+
+Redraws the entire desktop.
+
+*SymbOS name*: `DesktopService_RedrawComplete` (`DSK_SRV_DSKPLT`).
