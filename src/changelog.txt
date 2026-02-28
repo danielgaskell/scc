@@ -47,6 +47,7 @@ v1.2
 @ _Sym_Header -> App_Header, with fixed contents
 @ Fixed a rare casting error when multiplying ints
 @ Added "first" param to Win_Redraw_Sub()
+@ Fixed Win_Width() and Win_Height() handling only one scrollbar
 @ Various structs tweaked to better support SymbOS 4.0 features
 @ Split various modules to improve executable size
 

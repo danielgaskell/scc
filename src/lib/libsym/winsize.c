@@ -5,7 +5,7 @@ unsigned short Win_Width(Window* win) {
     if (win->flags & WIN_RESIZABLE) {
         if (win->state == WIN_MAXIMIZED) {
             w = Screen_Width();
-            if ((win->flags & WIN_RESIZABLE) && (!(win->flags & WIN_ADJUSTX) || _symversion < 40))
+            if ((win->flags & WIN_RESIZABLE) && ((win->flags & (WIN_ADJUSTX | WIN_ADJUSTY)) != (WIN_ADJUSTX | WIN_ADJUSTY) || _symversion < 40))
                 w -= 8;
             if (w > win->wmax)
                 return win->wmax;
@@ -24,7 +24,7 @@ unsigned short Win_Height(Window* win) {
     if (win->flags & WIN_RESIZABLE) {
         if (win->state == WIN_MAXIMIZED) {
             h = Screen_Height() - 23;
-            if ((win->flags & WIN_RESIZABLE) && (!(win->flags & WIN_ADJUSTY) || _symversion < 40))
+            if ((win->flags & WIN_RESIZABLE) && ((win->flags & (WIN_ADJUSTX | WIN_ADJUSTY)) != (WIN_ADJUSTX | WIN_ADJUSTY) || _symversion < 40))
                 h -= 8;
             if (win->flags & WIN_MENU)
                 h -= 9;
