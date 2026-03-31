@@ -91,4 +91,5 @@ C is also a mature language with a vast amount of open-source code written in it
 * Not all C99 and C11 additions are supported.
 * `const` and `volatile` are accepted but don't actually do anything.
 * Local variables are technically scoped to their function, not their block.
+* While `switch` statements can be nested, there can be only one `default` case.
 * If you run into type-mismatch problems with unusual pointer data types (like struct members that are typed as pointers to another typedef'd struct---this can happen when working with complex data structures for windows), try `void*` instead.
