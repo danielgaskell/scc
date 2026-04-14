@@ -34,7 +34,7 @@ signed char TCP_OpenWait(signed char handle) {
     while (!Net_Wait(NET_TCPEVT)) {
         if (_netmsg[3] == handle) {
             status = _netmsg[8] & 0x1F;
-            if (status == TCP_OPENED) {
+            if (status == TCP_OPENED || status == TCP_BUSY) {
                 // connection stayed open
                 _nsemaoff();
                 #ifdef _NETDEBUG
@@ -183,6 +183,7 @@ signed char TCP_Receive(unsigned char handle, unsigned char bank, char* addr, un
     return 0;
 }
 
+// FIXME: trap timing out while sending
 signed char TCP_Send(unsigned char handle, unsigned char bank, char* addr, unsigned short len) {
     unsigned short transferred;
     #ifdef _NETDEBUG

@@ -74,6 +74,12 @@ typedef struct {
     unsigned short remaining;
 } TCP_Trans;
 
+typedef struct {
+    unsigned short transferred;
+    unsigned short rport;
+    unsigned char ip[4];
+} UDP_Trans;
+
 extern unsigned char _netpid;
 extern unsigned char _neterr;
 extern unsigned char _netthread;
@@ -94,11 +100,14 @@ extern signed char TCP_Skip(unsigned char handle, unsigned short len);
 extern signed char TCP_Flush(unsigned char handle);
 extern signed char TCP_Disconnect(unsigned char handle);
 
+extern signed char SSL_OpenClient(char* ip, signed short lport, unsigned short rport, unsigned char bank, char* host);
+extern signed char SSL_OpenServer(unsigned short lport);
+
 extern signed char UDP_Open(unsigned char type, unsigned short lport, unsigned char bank);
 extern signed char UDP_Close(unsigned char handle);
 extern void UDP_Event(char* msg, NetStat* obj);
 extern signed char UDP_Status(unsigned char handle, NetStat* obj);
-extern signed char UDP_Receive(unsigned char handle, char* addr);
+extern signed char UDP_Receive(unsigned char handle, char* addr, unsigned short len, UDP_Trans* obj);
 extern signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, char* ip, unsigned short rport);
 extern signed char UDP_Skip(unsigned char handle);
 

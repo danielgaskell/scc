@@ -87,7 +87,7 @@ status = HTTP_POST("http://example.com", "A:\\EXAMPLE.HTM", NET_FILE,
 
 ### Proxy servers
 
-By default, HTTP functions support only unencrypted connections (URLs beginning with `http://`). Native support for SSL-encrypted connections (URLs beginning with `https://`) is not practical on 8-bit hardware. However, it is possible to access HTTPS sites by using a modern go-between computer running a web proxy such as [WebOne](https://github.com/atauenis/webone). To route requests through a proxy, place the IP address of the proxy computer into the global buffer `_http_proxy_ip` (using, e.g., `DNS_Resolve()`) and the proxy's port into the global variable `_http_proxy_port`. For example:
+HTTP functions will only support SSL-encrypted connections (URLs beginning with `https://`) on hardware that supports SSL/TLS. Alternatively, it is possible to access HTTPS sites by using a modern go-between computer running a web proxy such as [WebOne](https://github.com/atauenis/webone). To route requests through a proxy, place the IP address of the proxy computer into the global buffer `_http_proxy_ip` (using, e.g., `DNS_Resolve()`) and the proxy's port into the global variable `_http_proxy_port`. For example:
 
 ```c
 DNS_Resolve(_symbank, "192.168.0.19", _http_proxy_ip);
@@ -98,7 +98,7 @@ _http_proxy_port = 1234;
 
 ### Tracking progress
 
-Download speeds on 8-bit hardware are not very fast, typically on the order of 100-200 kbps (that is, a few times faster than a dialup modem). At this speed, a multi-megabyte file can take several minutes to download, so it is helpful to have a way to track the progress of a download and interrupt it if needed.
+Download speeds on 8-bit hardware are not very fast, typically on the order of 56-224 kbps (that is, 1-4x as fast as a dialup modem). At this speed, a multi-megabyte file can take several minutes to download, so it is helpful to have a way to track the progress of a download and interrupt it if needed.
 
 This is most easily done by running `HTTP_GET()` or `HTTP_POST()` on a [separate thread](s_task.md#multithreading). When running on a different thread, we can interrupt execution by writing a nonzero value to the global variable `_http_abort`. `HTTP_GET()` and `HTTP_POST()` will then stop downloading at their earliest convenience, writing/saving only what they have downloaded so far.
 
@@ -145,8 +145,8 @@ TCP is the primary low-level network protocol supported by SymbOS network hardwa
 
 * To open a TCP connection, use `TCP_OpenClient()` or `TCP_OpenServer()`.
 * Once open, data can be sent to the other party at any time with `TCP_Send()`.
-* The network daemon will alert us to the arrival of new data (or a change in connection status) by sending message ID `NET_TCPEVT`. We can watch for this message in our main event loop and use `TCP_Event()` to understand its contents.
-	* When `TCP_Event()` yields `NetStat.bytesrec` > 0, incoming data bytes are waiting; we can download them into a buffer using `TCP_Receive()`.
+* The network daemon will alert us of changes (either the arrival of new data when the incoming buffer was previously empty, or a change in connection status) by sending message ID `NET_TCPEVT`. We can watch for this message in our main event loop and use `TCP_Event()` to understand its contents.
+	* When `TCP_Event()` yields `NetStat.bytesrec` > 0, incoming data bytes are waiting; we can download them to memory using `TCP_Receive()`.
 	* When `TCP_Event()` yields `NetStat.status` = `TCP_CLOSED`, the remote server has closed the connection (although there may still be data in the incoming buffer waiting to be downloaded). Once we've downloaded everything we want, we can free the socket with `TCP_Close()`.
 * To disconnect from our end, use `TCP_Disconnect()`.
 
@@ -322,13 +322,48 @@ Closes and releases the TCP connection associated with the socket `handle`, with
 
 *SymbOS name*: `TCP_Close` (`TCPCLO`).
 
+## SSL/TLS functions
+
+SSL (Secure Socket Layer) and its successor TLS (Transport Layer Security) are encryption layers that run on top of TCP, using public-key cryptography to provide a secure connection between the client and server that cannot be read by third parties. SSL/TLS is too computationally expensive to run locally on 8-bit CPUs, but is supported by some newer network hardware (such as the MSX-UART and other devices using the ESP8266-UNAPI firmware).
+
+SSL/TLS connections function identically to normal TCP connections except that they are opened with `SSL_OpenClient()` and `SSL_OpenServer()` instead of `TCP_OpenClient()` and `TCP_OpenServer()`.
+
+### SSL_OpenClient()
+
+```c
+signed char SSL_OpenClient(char* ip, signed short lport, unsigned short rport,
+                           unsigned char bank, char* host);
+```
+
+Opens a client SSL/TLS connection over TCP to the IPv4 address `ip` (stored in a 4-byte buffer, one byte per octet) on local port `lport`, connecting to remote port `rport`. (For client connections, `lport` should usually be set to -1 to obtain a dynamic port number.) The function will then wait for the socket status to become `TCP_OPENED`, indicating a successful connection. (If the server refuses the connection, this function will fail with `_neterr` = `ERR_CONNECT`.)
+
+The remote certificate can optionally be validated against the hostname string at bank `bank`, address `host`. Usually, this is the hostname we are trying to connect to. If the certificate is not valid for this hostname, the connection will fail. If `host` is not provided (NULL), the remote certificate will be trusted without validation.
+
+*Return value*: On success, returns a socket handle to the new connection. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Open` (`TCPOPN`).
+
+### SSL_OpenServer()
+
+```c
+signed char SSL_OpenServer(unsigned short lport);
+```
+
+Opens a TCP server listening on local port `lport`, accepting SSL/TLS connections.
+
+*Return value*: On success, returns a socket handle to the new server. On failure, sets `_neterr` and returns -1.
+
+*SymbOS name*: `TCP_Open` (`TCPOPN`).
+
 ## UDP functions
 
 UDP is a simple "connectionless" protocol that allows raw packets to be sent and received from arbitrary IP addresses. Unlike TCP, no connection is negotiated, and the network hardware does not verify that sent packets are actually delivered (or delivered in the right order). This makes UDP most suitable for use-cases like a multiplayer game, where we may want to receive status updates from an arbitrary number of other players without it mattering very much if an individual packet gets lost.
 
-We can open a UDP session with `UDP_Open()`. When a UDP packet arrives on an open session, the network daemon will send message ID `NET_UDPEVT`, which we can process using `UDP_Event()`.
+In other words, opening a TCP connection is like calling someone on the phone: you dial, connect, talk back and forth, and hang up. Opening a UDP connection is like registering a postal address: you can receive letters from anyone at any time, but it's up to you whether you open them, and it's possible you might not receive something if your postbox fills up or it gets lost in the mail.
 
-**Warning**: UDP functions are not available on all devices. In particular, the M4 Board (the most common network hardware for Amstrad CPC) does not provide UDP; `UDP_Open()` will always fail with an error when used on this device.
+We can open a UDP listener on a specific port with `UDP_Open()`. When a UDP datagram arrives on an open port (that does not already have any datagrams pending), the network daemon will send message ID `NET_UDPEVT`, which we can process using `UDP_Event()`.
+
+**Warning**: UDP functions are not available on all hardware. `UDP_Open()` will fail with an error when used on hardware that does not support it.
 
 ### UDP_Open()
 
@@ -336,7 +371,7 @@ We can open a UDP session with `UDP_Open()`. When a UDP packet arrives on an ope
 signed char UDP_Open(unsigned char type, unsigned short lport, unsigned char bank);
 ```
 
-Opens a UDP session on local port `lport`. Data for this session will be stored in RAM bank `bank`
+Opens a UDP session listening on local port `lport`. Unlike TCP, we must specify in advance the RAM bank `bank` we intend to upload/download data to (usually `_symbank`).
 
 *Return value*: On success, returns a socket handle to the new session. On failure, sets `_neterr` and returns -1.
 
@@ -348,16 +383,16 @@ Opens a UDP session on local port `lport`. Data for this session will be stored 
 void UDP_Event(char* msg, NetStat* obj);
 ```
 
-A utility function for parsing a `NET_UDPEVT` message into a readable status report. `msg` is the address of the 14-byte message buffer containing the message; `obj` is the address of a `NetStat` struct to store the results, which has the same format as for `TCP_Status()`:
+A utility function for parsing a `NET_UDPEVT` message into a readable status report. `msg` is the address of the 14-byte message buffer containing the message; `obj` is the address of a `NetStat` struct to store the results, although the meaning of each member is slightly different than for `TCP_Status()`:
 
 ```c
 typedef struct {
     unsigned char socket;    // socket this message pertains to
     unsigned char status;    // status
-    unsigned char ip[4];     // remote IP address
-    unsigned short rport;    // remote port
-    unsigned char datarec;   // n/a
-    unsigned short bytesrec; // received bytes waiting in buffer
+    unsigned char ip[4];     // n/a
+    unsigned short rport;    // n/a
+    unsigned char datarec;   // number of pending datagrams
+    unsigned short bytesrec; // length of the oldest pending datagram
 } NetStat;
 ```
 
@@ -380,7 +415,9 @@ signed char UDP_Send(unsigned char handle, char* addr, unsigned short len,
                      char* ip, unsigned short rport)
 ```
 
-Sends a data packet from the memory address `addr` (in the bank specified in `UDP_Open()` for this session) to the IP address stored in the 4-byte buffer `ip`, using the UDP session with the socket `handle`. If sending fails because the buffer is full, the application should idle briefly and try again.
+Sends a datagram from the memory address `addr` (in the bank specified in `UDP_Open()` for this session) to the IP address stored in the 4-byte buffer `ip`, using the UDP session with the socket `handle`. If sending fails because the buffer is full, the application should idle briefly and try again.
+
+Some hardware has limitations on the maximum size of the datagram and will fail with `ERR_TOOLARGE` if this size is exceeded. For best compatibility and performance, it is good practice to keep datagrams short (1-2 KB maximum).
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
@@ -389,10 +426,23 @@ Sends a data packet from the memory address `addr` (in the bank specified in `UD
 ### UDP_Receive()
 
 ```c
-signed char UDP_Receive(unsigned char handle, char* addr);
+signed char UDP_Receive(unsigned char handle, char* addr, unsigned short len,
+                        UDP_Trans* obj);
 ```
 
-Moves data which has been received on the UDP session with the socket `handle` to the memory at address `addr` (in the bank specified in `UDP_Open()` for this session). The entire packet will be transferred at once, so be sure that there is enough space for an entire packet at the destination address. (UDP packets have a theoretical limit of 65507 bytes, but we can also check how much data is waiting with `UDP_Event()` or `UDP_Status()`.)
+Moves the oldest pending datagram from the UDP session with the socket `handle` to the memory at address `addr` (in the bank specified in `UDP_Open()` for this session). The entire packet will be transferred at once, up to a maximum of `len` bytes, discarding any extra.
+
+`obj` is an optional pointer to a `UDP_Trans` struct, into which additional information about the transfer will be loaded. This parameter may be set to NULL to omit this information. The structure of the struct is:
+
+```c
+typedef struct {
+    unsigned short transferred; // bytes transferred to destination
+    unsigned short rport;       // remote port of sender
+    unsigned char ip[4];        // remote IP address of sender
+} UDP_Trans;
+```
+
+Some hardware has limitations on the maximum size of the datagram. If this size is exceeded, `obj.transferred` may be less than `len` with the remaining data being lost.
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
@@ -404,7 +454,7 @@ Moves data which has been received on the UDP session with the socket `handle` t
 signed char UDP_Skip(unsigned char handle);
 ```
 
-Skips and throws away a complete packet which has already been received on the UDP session with the socket `handle`.
+Skips and throws away the oldest pending packet on the UDP session with the socket `handle`.
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 

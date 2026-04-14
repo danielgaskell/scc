@@ -40,8 +40,9 @@ signed char Net_Init(void) {
 
 unsigned char Net_Wait(unsigned char id) {
     unsigned short counter = Sys_Counter16() + _nettimeout;
+    unsigned char recycle = 0;
     for (;;) {
-        if (Msg_Receive(_threadpid(), _netpid, _netmsg) & 1) {
+        while (Msg_Receive(_threadpid(), _netpid, _netmsg) & 1) {
             #ifdef _NETDEBUG
             msg_print("REC: ");
             #endif
@@ -54,12 +55,18 @@ unsigned char Net_Wait(unsigned char id) {
             #ifdef _NETDEBUG
             msg_print("REQ: ");
             #endif
-            Msg_Send(_netpid, _threadpid(), _netmsg); // put message back on queue
+            while (Msg_Send(_netpid, _threadpid(), _netmsg) == 0) Idle(); // put message back on queue
+            if (++recycle > 64) {
+                // can't have >64 messages, so we're in a loop; idle briefly
+                recycle = 0;
+                Idle();
+            }
         }
         if (Sys_Counter16() > counter) {
             _neterr = ERR_TIMEOUT;
             return _neterr;
         }
+        Idle();
     }
 }
 
@@ -72,7 +79,7 @@ unsigned char Net_Command(void) {
         _neterr = ERR_OFFLINE;
         return ERR_OFFLINE;
     }
-    while (Msg_Send(_threadpid(), _netpid, _netmsg) == 0);
+    while (Msg_Send(_threadpid(), _netpid, _netmsg) == 0) Idle();
     return Net_Wait(id);
 }
 

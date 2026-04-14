@@ -22,6 +22,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     unsigned short counter;
     unsigned short packetlen;
     unsigned short buffer_left;
+    unsigned char ssl = 0;
     signed char socket;
     int result;
     unsigned short port;
@@ -55,7 +56,9 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
         }
     }
     result = Net_SplitURL(url, _nethost, &path, &port);
-    if (result != PROTO_HTTP) {
+    if (result == PROTO_HTTPS) {
+        ssl = 1;
+    } else if (result != PROTO_HTTP) {
         _neterr = ERR_BADDOMAIN;
         _http_semaphore = 0;
         return -1;
@@ -75,7 +78,10 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
     _http_status = HTTP_CONNECTING;
 
     // open connection
-    socket = TCP_OpenClient(ip, -1, 80);
+    if (ssl)
+        socket = SSL_OpenClient(ip, -1, 443, _symbank, _nethost);
+    else
+        socket = TCP_OpenClient(ip, -1, 80);
     if (socket == -1) {
         _http_semaphore = 0;
         return -1;

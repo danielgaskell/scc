@@ -41,10 +41,7 @@ void UDP_Event(char* msg, NetStat* obj) {
     obj->bytesrec = *((unsigned short*)(msg + 4));
     obj->rport = *((unsigned short*)(msg + 6));
     obj->status = msg[8];
-    obj->ip[0] = msg[10];
-    obj->ip[1] = msg[11];
-    obj->ip[2] = msg[12];
-    obj->ip[3] = msg[13];
+    obj->datarec = msg[9];
 }
 
 signed char UDP_Status(unsigned char handle, NetStat* obj) {
@@ -62,15 +59,28 @@ signed char UDP_Status(unsigned char handle, NetStat* obj) {
     return 0;
 }
 
-signed char UDP_Receive(unsigned char handle, char* addr) {
+signed char UDP_Receive(unsigned char handle, char* addr, unsigned short len, UDP_Trans* obj) {
     signed char result;
     _nsemaon();
     _netmsg[0] = 35;
     _netmsg[3] = handle;
+    *((unsigned short*)(_netmsg + 4)) = (unsigned short)addr;
     *((unsigned short*)(_netmsg + 8)) = (unsigned short)addr;
-    result = Net_SCommand();
+    result = Net_Command();
+    if (result) {
+        _nsemaoff();
+        return -1;
+    }
+    if (obj != 0) {
+        obj->transferred = *((unsigned short*)(_netmsg + 4));
+        obj->rport = *((unsigned short*)(_netmsg + 6));
+        obj->ip[0] = _netmsg[10];
+        obj->ip[1] = _netmsg[11];
+        obj->ip[2] = _netmsg[12];
+        obj->ip[3] = _netmsg[13];
+    }
     _nsemaoff();
-    return result;
+    return 0;
 }
 
 signed char UDP_Send(unsigned char handle, char* addr, unsigned short len, char* ip, unsigned short rport) {

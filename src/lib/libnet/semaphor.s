@@ -7,7 +7,10 @@ __netmsgsema:   .byte 0 ; multithreading semaphore for _netmsg
 __nsemaon:
 	ld a,(__netmsgsema)
 	or a
-	jr nz,__nsemaon
+	jr z,__nsemaon1
+	rst 0x30
+	jr __nsemaon
+__nsemaon1:
 	ld a,1
 	ld (__netmsgsema),a
 	ret
@@ -26,7 +29,10 @@ __packsema:		.byte 0 ; multithreading semaphore for _netpacket
 __packsemaon:
 	ld a,(__packsema)
 	or a
-	jr nz,__packsemaon
+	jr z,__packsemaon1
+	rst 0x30
+	jr __packsemaon
+__packsemaon1:
 	ld a,1
 	ld (__packsema),a
 	ret

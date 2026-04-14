@@ -4,6 +4,7 @@ publicip.o
 http.o
 ftp.o
 receive.o
+ssl.o
 tcp.o
 udp.o
 netutils.o

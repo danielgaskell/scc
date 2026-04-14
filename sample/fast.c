@@ -12,7 +12,7 @@
 #include <network.h>
 
 // some globals
-char packet[1024];
+char packet[2048];
 char textbuf[129];
 signed char socket = -1;
 unsigned long counter;
@@ -72,11 +72,11 @@ int main(int argc, char* argv[]) {
     counter = Sys_Counter();
     if (TCP_Send(socket, _symbank, headers, strlen(headers))) // this is an HTTP POST request, so we first send HTTP headers
         fail();
-    for (i = 0; i < 32; ++i) {
+    for (i = 0; i < 16; ++i) {
         if (TCP_Send(socket, _symbank, packet, sizeof(packet))) // ..then the body content, in chunks of any size (the content length is specified in the headers)
             fail();
     }
-    show_speed(32*sizeof(packet) + strlen(headers));
+    show_speed(16*sizeof(packet) + strlen(headers));
 
     // receive response
     Shell_Print("Download: ");
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
             // fully download any received data (see docs for a discussion of why this loops)
             get_bytes = net_stat.bytesrec;
             while (get_bytes) {
-                // download up to 1K of data
+                // download up to 2K of data
                 if (get_bytes > sizeof(packet))
                     get_bytes = sizeof(packet);
                 if (TCP_Receive(socket, _symbank, packet, get_bytes, &trans_stat))
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
             }
 
             // received enough bytes for a measurement, stop listening
-            if (received_bytes >= 31*sizeof(packet))
+            if (received_bytes >= 15*sizeof(packet))
                 break;
 
             // connection closed by server, stop listening
