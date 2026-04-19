@@ -5,6 +5,7 @@ circle.o
 get.o
 set.o
 raw.o
+prepraw.o
 load.o
 line.o
 lineb.o

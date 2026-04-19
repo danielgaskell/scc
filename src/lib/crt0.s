@@ -314,7 +314,10 @@ _threadpidsys:
 __msemaon:
 	ld a,(__symmsgsema)
 	or a
-	jr nz,__msemaon
+	jr z,__msemaon1
+	rst #0x30
+	jr __msemaon
+__msemaon1:
 	ld a,1
 	ld (__symmsgsema),a
 	ret

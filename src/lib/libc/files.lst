@@ -5,4 +5,16 @@ memmove.s
 memset.s
 rand.s
 setjmp.s
+strcat.s
+strchr.s
+strcmp.s
+strcpy.s
+stricmp.s
+strlen.s
+strncat.s
+strncmp.s
+strncpy.s
+strnicmp.s
+strrchr.s
+strstr.s
 systime.s

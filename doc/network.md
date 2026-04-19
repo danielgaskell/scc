@@ -4,6 +4,8 @@
 
 **Note:** All network functions are thread-safe, and multiple threads can have connections open simultaneously (although the network daemon usually only permits sockets to be accessed by the thread that originally opened them). If a thread calls a network function that is currently in use by another thread, it will automatically wait its turn.
 
+**Warning:** Networking is notoriously prone to subtle bugs at every level of the hardware/software stack. Test carefully, and make sure you are using the latest version of the network daemon (and firmware, if applicable) for your hardware.
+
 ## Contents
 
 * [Using the library](#using-the-library)
@@ -85,16 +87,18 @@ status = HTTP_POST("http://example.com", "A:\\EXAMPLE.HTM", NET_FILE,
 
 *Return value*: On success, writes the response to the buffer `dest` (or the file indicated by `dest`) and returns the HTTP response status code (e.g., 200 "OK", 404 "Not Found"). On failure, sets `_neterr` and returns -1. If a response is received but it does not contain a valid HTTP response status code, returns 0.
 
-### Proxy servers
+### SSL/TLS connections
 
-HTTP functions will only support SSL-encrypted connections (URLs beginning with `https://`) on hardware that supports SSL/TLS. Alternatively, it is possible to access HTTPS sites by using a modern go-between computer running a web proxy such as [WebOne](https://github.com/atauenis/webone). To route requests through a proxy, place the IP address of the proxy computer into the global buffer `_http_proxy_ip` (using, e.g., `DNS_Resolve()`) and the proxy's port into the global variable `_http_proxy_port`. For example:
+HTTP functions will only support SSL-encrypted connections (URLs beginning with `https://`) on hardware that supports SSL/TLS. By default, no certificate validation is performed. Validation can be turned on by setting the global variable `_https_verify` to a nonzero value; if the host's certificate cannot be validated, the connection will fail. (In practice, this is probably far more likely to cause connection problems than to stop bad actors, but the option is provided if needed.)
+
+Alternatively, it is possible to access HTTPS sites by using a modern go-between computer running a web proxy such as [WebOne](https://github.com/atauenis/webone). To route requests through a proxy, place the IP address of the proxy computer into the global buffer `_http_proxy_ip` (using, e.g., `DNS_Resolve()`) and the proxy's port into the global variable `_http_proxy_port`. For example:
 
 ```c
 DNS_Resolve(_symbank, "192.168.0.19", _http_proxy_ip);
 _http_proxy_port = 1234;
 ```
 
-(In practice, of course, it is bad practice to hard-code proxy addresses like this---this should be a setting the user can edit, so the app can keep working even if the original proxy server goes down.) To stop routing requests through a proxy, clear `_http_proxy_ip` to all zeros.
+In practice, of course, it is bad practice to hard-code proxy addresses like this---this should be a setting the user can edit, so the app can keep working even if the original proxy server goes down. To stop routing requests through a proxy, clear `_http_proxy_ip` to all zeros.
 
 ### Tracking progress
 
@@ -326,18 +330,22 @@ Closes and releases the TCP connection associated with the socket `handle`, with
 
 SSL (Secure Socket Layer) and its successor TLS (Transport Layer Security) are encryption layers that run on top of TCP, using public-key cryptography to provide a secure connection between the client and server that cannot be read by third parties. SSL/TLS is too computationally expensive to run locally on 8-bit CPUs, but is supported by some newer network hardware (such as the MSX-UART and other devices using the ESP8266-UNAPI firmware).
 
-SSL/TLS connections function identically to normal TCP connections except that they are opened with `SSL_OpenClient()` and `SSL_OpenServer()` instead of `TCP_OpenClient()` and `TCP_OpenServer()`.
+SSL/TLS connections function identically to normal TCP connections except that they are opened with `SSL_OpenClient()` and `SSL_OpenServer()` instead of `TCP_OpenClient()` and `TCP_OpenServer()`. Note that not all hardware supports more than one simultaneous SSL/TLS connection.
+
+**Warning**: SSL/TLS is not available on all hardware. Trying to open an SSL/TLS connection on hardware that does not support it will typically set `_neterr` = `ERR_NOFUNC`, although older drivers may behave differently.
 
 ### SSL_OpenClient()
 
 ```c
 signed char SSL_OpenClient(char* ip, signed short lport, unsigned short rport,
-                           unsigned char bank, char* host);
+                           unsigned char bank, char* host, unsigned char verify);
 ```
 
 Opens a client SSL/TLS connection over TCP to the IPv4 address `ip` (stored in a 4-byte buffer, one byte per octet) on local port `lport`, connecting to remote port `rport`. (For client connections, `lport` should usually be set to -1 to obtain a dynamic port number.) The function will then wait for the socket status to become `TCP_OPENED`, indicating a successful connection. (If the server refuses the connection, this function will fail with `_neterr` = `ERR_CONNECT`.)
 
-The remote certificate can optionally be validated against the hostname string at bank `bank`, address `host`. Usually, this is the hostname we are trying to connect to. If the certificate is not valid for this hostname, the connection will fail. If `host` is not provided (NULL), the remote certificate will be trusted without validation.
+Bank `bank`, address `host` specifies the hostname we are connecting to (e.g., `"example.com"`). Depending on server configuration, the host may reject the connection if this is unspecified or does not match expectations.
+
+If `verify` is nonzeo, the remote certificate will be validated against `host`. If the certificate is not valid for this hostname, the connection will fail. (In practice, this is probably more likely to cause connection issues than to stop bad actors, but the option is provided if needed.)
 
 *Return value*: On success, returns a socket handle to the new connection. On failure, sets `_neterr` and returns -1.
 
@@ -363,12 +371,12 @@ In other words, opening a TCP connection is like calling someone on the phone: y
 
 We can open a UDP listener on a specific port with `UDP_Open()`. When a UDP datagram arrives on an open port (that does not already have any datagrams pending), the network daemon will send message ID `NET_UDPEVT`, which we can process using `UDP_Event()`.
 
-**Warning**: UDP functions are not available on all hardware. `UDP_Open()` will fail with an error when used on hardware that does not support it.
+**Warning**: UDP is not available on all hardware (in particular, the M4 Board does not support it). `UDP_Open()` will fail with an error when used on hardware that does not support it.
 
 ### UDP_Open()
 
 ```c
-signed char UDP_Open(unsigned char type, unsigned short lport, unsigned char bank);
+signed char UDP_Open(unsigned short lport, unsigned char bank);
 ```
 
 Opens a UDP session listening on local port `lport`. Unlike TCP, we must specify in advance the RAM bank `bank` we intend to upload/download data to (usually `_symbank`).
@@ -417,7 +425,7 @@ signed char UDP_Send(unsigned char handle, char* addr, unsigned short len,
 
 Sends a datagram from the memory address `addr` (in the bank specified in `UDP_Open()` for this session) to the IP address stored in the 4-byte buffer `ip`, using the UDP session with the socket `handle`. If sending fails because the buffer is full, the application should idle briefly and try again.
 
-Some hardware has limitations on the maximum size of the datagram and will fail with `ERR_TOOLARGE` if this size is exceeded. For best compatibility and performance, it is good practice to keep datagrams short (1-2 KB maximum).
+The hardware typically imposes limits on the maximum size of the datagram (e.g., 2140 bytes for ESP8266-UNAPI based hardware like the MSX-UART). If this size is exceeded, `UDP_Send()` will fail with `ERR_TOOLARGE`.
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 
@@ -442,7 +450,7 @@ typedef struct {
 } UDP_Trans;
 ```
 
-Some hardware has limitations on the maximum size of the datagram. If this size is exceeded, `obj.transferred` may be less than `len` with the remaining data being lost.
+The hardware typically imposes limits on the maximum size of the datagram (e.g., 2140 bytes for ESP8266-UNAPI based hardware like the MSX-UART). If this size is exceeded, `obj.transferred` may be less than `len` with the remaining data being lost.
 
 *Return value*: On success, returns 0. On failure, sets `_neterr` and returns -1.
 

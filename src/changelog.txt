@@ -25,6 +25,7 @@ v1.2
 @ Reorganized documentation
 @ Improved thread safety for system calls and various others
 @ Reduced chances of ill-timed messages being lost
+@ Faster core string functions
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
 @ Fixed gfx2sgx generating incorrect 4-color images
 @ Fixed thread_quit() semaphore conflict that could cause freezes
@@ -37,6 +38,7 @@ v1.2
 @ Fixed Mouse_X() returning Y value
 @ Fixed digit order in atof()
 @ Fixed Timer_Add() returning wrong ID
+@ Fixed return values of memset(), memcpy(), memmove()
 @ Simplified FRAME_XOR property
 @ Moved atof() from libm to stdlib
 @ Changed Sys_Version() to _sysversion global (now used by crt0)

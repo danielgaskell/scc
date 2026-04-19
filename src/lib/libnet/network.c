@@ -41,7 +41,7 @@ signed char Net_Init(void) {
 unsigned char Net_Wait(unsigned char id) {
     unsigned short counter = Sys_Counter16() + _nettimeout;
     unsigned char recycle = 0;
-    for (;;) {
+    while (1) {
         while (Msg_Receive(_threadpid(), _netpid, _netmsg) & 1) {
             #ifdef _NETDEBUG
             msg_print("REC: ");

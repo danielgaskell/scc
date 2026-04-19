@@ -7,22 +7,21 @@
 _memcpy:
 	push bc
 	push ix
-	ld ix,#0x04
+	ld ix,6
 	add ix,sp
-	ld l,(ix+4)		; read address -> HL
-	ld h,(ix+5)
-	ld c,(ix+6)		; len -> BC
-	ld b,(ix+7)
+	ld l,(ix+2)		; read address -> HL
+	ld h,(ix+3)
+	ld c,(ix+4)		; len -> BC
+	ld b,(ix+5)
 	ld a,b			; skip if BC = 0 (ldir wraps rather than doing nothing)
 	or c
 	jr z,skip
-	ld e,(ix+2)		; write address -> DE
-	ld d,(ix+3)
+	ld e,(ix+0)		; write address -> DE
+	ld d,(ix+1)
+	push de
 	ldir			; do copy
-	ld l,(ix+4)		; restore starting address
-	ld h,(ix+5)
+	pop hl
 skip:
 	pop ix
 	pop bc
 	ret
-

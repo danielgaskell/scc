@@ -6,13 +6,14 @@
 /* SymbOS Network Daemon calls (SSL/TLS)                                      */
 /* ========================================================================== */
 
-signed char SSL_OpenClient(char* ip, signed short lport, unsigned short rport, unsigned char bank, char* host) {
+signed char SSL_OpenClient(char* ip, signed short lport, unsigned short rport, unsigned char bank, char* host, unsigned char verify) {
     #ifdef _NETDEBUG
     Shell_Print("[SSL_OpenClient]\r\n");
     #endif
     _nsemaon();
     _netmsg[0] = 16;
-    _netmsg[3] = host ? 12 : 4;
+    _netmsg[3] = (verify ? 12 : 4) | (bank << 4);
+    *((unsigned short*)(_netmsg + 4)) = (unsigned short)host;
     *((unsigned short*)(_netmsg + 6)) = rport;
     *((unsigned short*)(_netmsg + 8)) = lport;
     _netmsg[10] = ip[0];
@@ -34,7 +35,7 @@ signed char SSL_OpenClient(char* ip, signed short lport, unsigned short rport, u
 
 signed char SSL_OpenServer(unsigned short lport) {
     #ifdef _NETDEBUG
-    Shell_Print("[TCP_OpenServer]\r\n");
+    Shell_Print("[SSL_OpenServer]\r\n");
     #endif
     _nsemaon();
     _netmsg[0] = 16;

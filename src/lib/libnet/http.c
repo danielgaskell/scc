@@ -12,6 +12,7 @@ unsigned long _http_total;
 unsigned long _http_progress;
 unsigned char _http_abort;
 unsigned char _http_semaphore = 0;
+unsigned char _https_verify = 0;
 char* _match_http = "HTTP/1.1 ";
 char* _match_len = "\r\nCONTENT-LENGTH:";
 char* _match_crlf = "\r\n\r\n";
@@ -79,7 +80,7 @@ int _http_request(char type, char* url, char* dest, unsigned short maxlen, char*
 
     // open connection
     if (ssl)
-        socket = SSL_OpenClient(ip, -1, 443, _symbank, _nethost);
+        socket = SSL_OpenClient(ip, -1, 443, _symbank, _nethost, _https_verify);
     else
         socket = TCP_OpenClient(ip, -1, 80);
     if (socket == -1) {

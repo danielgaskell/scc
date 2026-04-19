@@ -100,10 +100,10 @@ extern signed char TCP_Skip(unsigned char handle, unsigned short len);
 extern signed char TCP_Flush(unsigned char handle);
 extern signed char TCP_Disconnect(unsigned char handle);
 
-extern signed char SSL_OpenClient(char* ip, signed short lport, unsigned short rport, unsigned char bank, char* host);
+extern signed char SSL_OpenClient(char* ip, signed short lport, unsigned short rport, unsigned char bank, char* host, unsigned char verify);
 extern signed char SSL_OpenServer(unsigned short lport);
 
-extern signed char UDP_Open(unsigned char type, unsigned short lport, unsigned char bank);
+extern signed char UDP_Open(unsigned short lport, unsigned char bank);
 extern signed char UDP_Close(unsigned char handle);
 extern void UDP_Event(char* msg, NetStat* obj);
 extern signed char UDP_Status(unsigned char handle, NetStat* obj);
@@ -120,6 +120,7 @@ extern signed char _http_status;
 extern unsigned long _http_total;
 extern unsigned long _http_downloaded;
 extern unsigned char _http_abort;
+extern unsigned char _https_verify;
 extern int HTTP_GET(char* url, char* dest, unsigned short maxlen, char* headers, unsigned char keep_headers);
 extern int HTTP_POST(char* url, char* dest, unsigned short maxlen, char* headers, char* body, unsigned short bodylen, unsigned char keep_headers);
 

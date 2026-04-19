@@ -76,7 +76,7 @@ void _serv_thread(void) {
     // open server
     _set_but2("Opening...");
     _serv_port = atoi(_port_buf);
-    _serv_socket = UDP_Open(1, _serv_port, _symbank);
+    _serv_socket = UDP_Open(_serv_port, _symbank);
     if (_serv_socket == -1) {
         Net_ErrMsg(&_serv_form);
         goto _thread_done;
