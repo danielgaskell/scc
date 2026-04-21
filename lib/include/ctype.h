@@ -22,7 +22,6 @@ extern int isspace(int __c);
 extern int isupper(int __c);
 extern int isxdigit(int __c);
 
-#define isascii(c) (!((uint8_t)(c) & 0x80))
 #define toascii(c) ((c) & 0x7f)
 
 #endif /* __CTYPE_H */

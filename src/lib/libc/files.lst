@@ -1,5 +1,17 @@
+abs.s
 fnum.s
+isalnum.s
+isalpha.s
+isascii.s
+isblank.s
+isdigit.s
+isgraph.s
+islower.s
+isprint.s
+isspace.s
+isupper.s
 longjmp.s
+memchr.s
 memcpy.s
 memmove.s
 memset.s
@@ -18,3 +30,5 @@ strnicmp.s
 strrchr.s
 strstr.s
 systime.s
+tolower.s
+toupper.s
