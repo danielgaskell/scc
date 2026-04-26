@@ -214,7 +214,7 @@ In addition to `symbos.h`, these functions can be found in `symbos/systray.h`.
 signed char Systray_Add(unsigned char bank, char* addr, unsigned char code);
 ```
 
-Add the icon whose graphic is at bank `bank`, address `addr` to the system tray on the taskbar. These can be clicked by the user, which will generate an event (`MSR_DSK_EVTCLK`) with the reference value `code`. The icon must be an 8x8 4-color SGX graphics object.
+Add the icon whose graphic is at bank `bank`, address `addr` to the system tray on the taskbar. These can be clicked by the user, which will generate an event ([`MSR_DSK_EVTCLK`](s_event.md#msr_dsk_evtclk)) with the reference value `code`. The icon must be an 8x8 4-color SGX graphics object.
 
 *Return value*: On success, returns an icon ID, which can be used to later remove the icon with `Systray_Remove()`. If there are no more icon slots available, returns -1.
 
