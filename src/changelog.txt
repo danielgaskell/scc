@@ -27,6 +27,7 @@ v1.2
 @ Reduced chances of ill-timed messages being lost
 @ Faster core string functions
 @ Fixed/updated Key_Multi() for SymbOS 4.0 [credit: Prodatron]
+@ Fixed Time_Set()
 @ Fixed gfx2sgx generating incorrect 4-color images
 @ Fixed thread_quit() semaphore conflict that could cause freezes
 @ Fixed Gfx_VLine() overwriting IY

@@ -3,7 +3,7 @@
 unsigned char Msg_Wait(char rec_pid, char send_pid, char* msg, char id) {
     unsigned short response;
     msg[0] = 0;
-    for (;;) {
+    while (1) {
         response = Msg_Sleep(rec_pid, send_pid, msg);
         if (msg[0] == id)
             return response >> 8;
@@ -14,6 +14,6 @@ unsigned char Msg_Wait(char rec_pid, char send_pid, char* msg, char id) {
 
 void Msg_Respond(char rec_pid, char send_pid, char* msg) {
     char id = msg[0] + 128;
-    while (Msg_Send(rec_pid, send_pid, msg) == 0);
+    while (Msg_Send(rec_pid, send_pid, msg) == 0) Idle();
     Msg_Wait(rec_pid, send_pid, msg, id);
 }

@@ -318,14 +318,14 @@ __msemaon:
 	rst #0x30
 	jr __msemaon
 __msemaon1:
-	ld a,1
+	inc a
 	ld (__symmsgsema),a
 	ret
 	
 ; _msemaoff(): _symmsg semaphore off
 .export __msemaoff
 __msemaoff:
-	ld a,0
+	xor a
 	ld (__symmsgsema),a
 	ret
 

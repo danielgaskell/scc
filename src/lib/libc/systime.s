@@ -37,11 +37,10 @@ _Time_Set:
 	push iy
 	ld ix,2
 	add ix,sp
-	ld b,(ix+6)
-	ld c,(ix+7)
+	ld c,(ix+6)
+	ld b,(ix+7)
 	push bc
 	pop ix
-	ld a,(ix+0)
 	ld b,(ix+1)
 	ld c,(ix+2)
 	ld d,(ix+3)
@@ -51,6 +50,7 @@ _Time_Set:
 	ld a,(ix+7)
 	.byte #0xDD
 	ld l,a          ; ld ixl,a
+	ld a,(ix+0)
 	rst #0x20
 	.word #0x810F
 	pop iy
