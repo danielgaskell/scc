@@ -267,7 +267,7 @@ When determining the visible size of a resizable window, this function should be
 void Win_Addr(unsigned char winID, unsigned char* bank, Window** addr);
 ```
 
-A utility function that takes a window ID and retrieves the memory address of the matching `Window` record, storing the bank number in `bank` (passed by reference) and the address in `addr` (passed by reference). The window can belong to any process.
+A utility function that takes a window ID and retrieves the memory address of the matching `Window` record, storing the bank number in `bank` (passed by reference) and the address in `addr` (passed by reference). The window can belong to any process. If `winID` is not a valid window, returns `bank` = 0, `addr` = 0.
 
 Example:
 

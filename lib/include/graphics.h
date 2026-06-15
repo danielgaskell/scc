@@ -6,6 +6,7 @@
 extern void Gfx_ScreenInit(void);
 extern void Gfx_Clear(char* canvas, unsigned char color);
 extern void Gfx_Init(char* canvas, unsigned short w, unsigned char h);
+extern char* Gfx_Init_Split(char* canvas, int x, int y, unsigned char w, unsigned char h, void* ctrl1, void* ctrl2);
 extern void Gfx_Select(char* canvas);
 extern void Gfx_Prep(char* buffer);
 extern void Gfx_Prep_Raw(unsigned char bank, char* buffer);

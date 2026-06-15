@@ -35,17 +35,21 @@ _Win_Addr:
 	ld a,(ix+0)
 	rlca
 	rlca
-	inc a
 	ld l,a
 	ld h,0
 	add hl,bc
-	ld a,0
-	rst #0x20				; Banking_ReadByte, get bank -> B
-	.word #0x812A
+	xor a
+	rst #0x20				; Banking_ReadWord, get bank+state -> BC
+	.word #0x8124
 	ld d,b
-	ld a,0
+	ld e,c
 	rst #0x20				; Banking_ReadWord, get address -> BC
 	.word #0x8124
+	or e
+	jr nz,__winaddrload
+	ld d,0					; state == 0 -> return 0, 0
+	ld bc,0
+__winaddrload:
 	ld l,(ix+2)				; save bank
 	ld h,(ix+3)
 	ld (hl),d
