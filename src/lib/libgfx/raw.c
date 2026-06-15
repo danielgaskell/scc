@@ -15,7 +15,3 @@ unsigned char Gfx_Load_Set_Raw(char* filename, unsigned char bank, char* buffer)
     Gfx_Prep_Set_Raw(bank, buffer);
     return 0;
 }
-
-char* Gfx_TileAddr_Raw(unsigned char bank, char* image, unsigned char tile) {
-    return image + (Bank_ReadWord(bank, image) * tile) + 3;
-}

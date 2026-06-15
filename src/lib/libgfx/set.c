@@ -23,7 +23,3 @@ void Gfx_Put_Set(char* image, unsigned short x, unsigned char y, unsigned char m
     image += (*(unsigned short*)image * tile) + 3;
     Gfx_Put(image, x, y, mode);
 }
-
-char* Gfx_TileAddr(char* image, unsigned char tile) {
-    return image + (*(unsigned short*)image * tile) + 3;
-}
