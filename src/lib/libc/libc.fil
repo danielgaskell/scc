@@ -25,12 +25,6 @@ gets.o
 getw.o
 gmtime.o
 index.o
-isascii.o
-isblank.o
-isgraph.o
-isprint.o
-ispunct.o
-isxdigit.o
 l64a.o
 labs.o
 libload.o
@@ -129,6 +123,12 @@ memicmp.o
 write.o
 read.o
 lseek.o
+ispunct.o
+isascii.o
+isblank.o
+isgraph.o
+isprint.o
+isxdigit.o
 isatty.o
 isdigit.o
 isalpha.o
