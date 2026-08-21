@@ -39,6 +39,7 @@ desksvc.o
 deskmsg.o
 wake.o
 timer.o
+time.o
 counter.o
 threads.o
 proc.o
