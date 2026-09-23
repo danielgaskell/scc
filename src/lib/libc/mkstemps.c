@@ -10,7 +10,7 @@ int mkstemps(char *s, int slen)
   __ktime_t t;
   char *p = s + strlen(s) - slen - 6;
   uint16_t value;
-  const char *n;
+  char n[8];
   int fd;
 
   if (p < s)
@@ -21,7 +21,7 @@ int mkstemps(char *s, int slen)
   value = (getuid() << 8) + getpid() + (uint16_t)t.low;
   do {
     value += 7919;	/* Any old prime ought to do */
-    n = _itoa(value);
+    itoa(value, n, 10);
     memcpy(p, "000000", 6);
     memcpy(p + 6 - strlen(n), n, strlen(n));
     fd = open(s, O_CREAT|O_EXCL|O_RDWR, 0600);

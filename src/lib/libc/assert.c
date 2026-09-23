@@ -15,12 +15,13 @@ void __errput(const char *str)
 void __assert(const char *assertion, const char *filename,
 	      const int linenumber)
 {
+    char buf[8];
 	__errput("Failed '");
 	__errput(assertion);
 	__errput("', file ");
 	__errput(filename);
 	__errput(", line ");
-	__errput(_itoa(linenumber));
+	__errput(itoa(linenumber, buf, 10));
 	__errput(".\n");
 	abort();
 }

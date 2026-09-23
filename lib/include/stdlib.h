@@ -36,7 +36,6 @@ extern void exit(int __status);
 extern int rand(void);
 extern void srand(unsigned int __seed);
 
-/* FIXME: the *toa formats are not standard so belong in a fuzix namespace */
 /* FIXME: untangle all our excessive ultoa etc variants */
 extern char *ultoa(unsigned long __value, char *__strP, int __radix);
 extern char *ltoa(long __value, char *__strP, int __radix);
@@ -50,8 +49,6 @@ extern double atof(const char *__nptr);
 
 extern int abs(int __i);
 extern long labs(long __i);
-extern const char *_itoa(int __value);
-extern const char *_uitoa(unsigned int __value);
 extern const char *_ltoa(long __value);
 extern const char *_ultoa(unsigned long __value);
 
