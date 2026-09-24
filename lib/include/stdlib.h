@@ -63,7 +63,7 @@ extern int mkstemp(char *__template);
 extern int mkstemps(char *__template, int __suffix);
 
 extern double strtod(const char *__nptr, char **__endptr);
-#define atof(x) strtod((x), (char**)0)
+extern double atof(const char *__nptr);
 
 extern char **environ;
 extern char *getenv(char *__name);

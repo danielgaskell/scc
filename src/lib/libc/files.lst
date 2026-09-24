@@ -1,6 +1,9 @@
 abs.s
+atof.s
 atoi.s
+atol.s
 fnum.s
+fnumlut.s
 isalnum.s
 isalpha.s
 isascii.s

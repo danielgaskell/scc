@@ -3,6 +3,7 @@ abs.o
 assert.o
 atoi.o
 atol.o
+atof.o
 bcmp.o
 bcopy.o
 bsearch.o
@@ -102,6 +103,7 @@ asctime_r.o
 fclose.o
 vfprintf.o
 fnum.o
+fnumlut.o
 ungetc.o
 tolower.o
 strchr.o
