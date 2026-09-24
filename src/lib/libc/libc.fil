@@ -144,6 +144,7 @@ sysshll2.o
 shellpth.o
 shellmsg.o
 errno.o
+dirdel.o
 dirread.o
 sysdrv.o
 sysdir.o

@@ -126,17 +126,6 @@ int Dir_ReadExt(unsigned char bank, char* path, unsigned char attrib, unsigned c
     return -1;
 }
 
-unsigned char Dir_Delete(unsigned char bank, char* path) {
-    unsigned char result;
-    _msemaon();
-    _symmsg[1] = 39;
-    *((char**)(_symmsg + 8)) = path;
-    _symmsg[11] = bank;
-    result = File_Command();
-    _msemaoff();
-    return result;
-}
-
 unsigned char Dir_DeleteDir(unsigned char bank, char* path) {
     unsigned char result;
     _msemaon();
