@@ -87,7 +87,7 @@ unsigned short File_ReadComp(unsigned char id, unsigned char bank, char* addr, u
 unsigned char File_ReadLine(unsigned char id, unsigned char bank, char* addr) {
     unsigned char result;
     _msemaon();
-    _symmsg[1] = 20;
+    _symmsg[1] = 25;
     _symmsg[3] = id;
     _symmsg[6] = bank;
     *((char**)(_symmsg + 8)) = addr;

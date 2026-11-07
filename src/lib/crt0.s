@@ -312,14 +312,17 @@ _threadpidsys:
 ; _msemaon(): _symmsg semaphore on
 .export __msemaon
 __msemaon:
+	di
 	ld a,(__symmsgsema)
 	or a
 	jr z,__msemaon1
+	ei
 	rst #0x30
 	jr __msemaon
 __msemaon1:
 	inc a
 	ld (__symmsgsema),a
+	ei
 	ret
 	
 ; _msemaoff(): _symmsg semaphore off

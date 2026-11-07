@@ -41,6 +41,7 @@ v1.2
 @ Fixed digit order in atof()
 @ Fixed Timer_Add() returning wrong ID
 @ Fixed return values of memset(), memcpy(), memmove()
+@ Fixed rare semaphore clash while multithreading
 @ Simplified FRAME_XOR property
 @ Moved atof() from libm to stdlib
 @ Changed Sys_Version() to _sysversion global (now used by crt0)
