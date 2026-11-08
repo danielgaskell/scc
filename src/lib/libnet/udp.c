@@ -95,7 +95,7 @@ signed char UDP_Receive(unsigned char handle, char* addr, unsigned short len, UD
     _nsemaon();
     _netmsg[0] = 35;
     _netmsg[3] = handle;
-    *((unsigned short*)(_netmsg + 4)) = (unsigned short)addr;
+    *((unsigned short*)(_netmsg + 4)) = (unsigned short)len;
     *((unsigned short*)(_netmsg + 8)) = (unsigned short)addr;
     result = Net_Command();
     if (result) {
