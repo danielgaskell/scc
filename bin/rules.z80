@@ -479,3 +479,159 @@
 =
 	ld d,(i%1 + 1)
 	ld e,(i%1 + 0)
+
+# alternate entry points that fold in the "add hl,sp" directly (needs +2)
+	ld hl,0x%1
+	add hl,sp
+	call __derefl
+=
+	ld hl,0x%1 + 2
+	call __dereflsp
+
+# redundant HL reload (e.g., message buffer code)
+	ld hl,(%1)
+	ld (hl),%2
+;
+	ld hl,(%1)
+=
+	ld hl,(%1)
+	ld (hl),%2
+;
+
+# storing a local then reading it straight back: __stwordN end state is
+# equivalent to __ldwordN except for copying LD A,L
+	call __stword%1
+;
+	call __ldword%1
+=
+	call __stword%1
+;
+	ld a,l
+
+	call __stbyte%1
+;
+	call __ldbyte%1
+=
+	call __stbyte%1
+;
+
+# don't reload HL so much
+	ld hl,(%1)
+	push hl
+;
+	ld hl,(%1)
+=
+	ld hl,(%1)
+	push hl
+;
+
+	ld hl,%1
+	push hl
+;
+	ld hl,%1
+=
+	ld hl,%1
+	push hl
+;
+
+# register-juggling no-ops
+	ld l,(hl)
+	ld a,l
+	ld hl,%1
+=
+	ld a,(hl)
+	ld hl,%1
+
+	ld l,(hl)
+	ld a,l
+	ld %1, a
+;
+	ld l,%2
+=
+	ld a,(hl)
+	ld %1, a
+;
+	ld l,%2
+
+	ex (sp),hl
+;
+	pop hl
+	push hl
+=
+	ex (sp),hl
+;
+
+# consolidate exit paths
+	ret
+%1:
+	ret
+=
+%1:
+	ret
+
+# dead code
+	ret
+	jr %1
+=
+	ret
+
+	ret
+	jp %1
+=
+	ret
+
+# inverted jump logic
+	jr z ,%1
+;
+	jr %2
+%1:
+=
+	jr nz,%2
+%1:
+
+# save bytes and cycles on some 8-bit parameter loads
+	ld a,(%1+%2)
+	ld l,a
+	ld h,0x0
+	push hl
+;
+=
+	ld hl,(%1+%2)
+	ld h,0x0
+	push hl
+;
+
+	ld a,(%1+%2)
+	ld l,a
+	push hl
+;
+=
+	ld hl,(%1+%2)
+	push hl
+
+# tighter tail calls (saves bytes when the callee does not need SP)
+	ld hl,%1
+	call __derefl
+;
+	ret
+=
+	ld hl,%1
+	jp __derefl
+
+	call __ldword4
+;
+	ret
+=
+	jp __ldword2
+
+	call __ldword6
+;
+	ret
+=
+	jp __ldword4
+
+	call __ldword8
+;
+	ret
+=
+	jp __ldword6

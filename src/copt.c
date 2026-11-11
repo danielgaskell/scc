@@ -537,14 +537,14 @@ int main(int argc, char** argv)
     int i, pass;
     struct lnode head, *p, tail;
 
-    if ((fp = fopen(argv[2], "rb")) == NULL)
+    if ((fp = fopen(argv[2], "r")) == NULL)
         error("copt: can't open patterns file\n");
     init(fp);
 
-    if ((ip = fopen("$stream3.s", "rb")) == NULL)
+    if ((ip = fopen("$stream3.s", "r")) == NULL)
         error("copt: can't open stream file\n");
 
-    if ((op = fopen(argv[1], "wb")) == NULL)
+    if ((op = fopen(argv[1], "w")) == NULL)
         error("copt: can't open output file\n");
 
     getlst(ip, "", &head, &tail);

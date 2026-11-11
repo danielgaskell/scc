@@ -41,7 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LWDIRECT 24	/* Number of __ldword1 __ldword2 etc forms for fastest access */
+#define LWDIRECT 30	/* Number of __ldword1 __ldword2 etc forms for fastest access */
 
 
 const char ccnormal[] = "nzz ";
@@ -98,12 +98,6 @@ unsigned generate_lref(unsigned v, unsigned size, unsigned to_de)
 	if (size == 4)
 		return 0;
 
-	/* Rabbit amd Z280 have LD HL,(SP + n) */
-	if (HAS_LDHLSP && v + sp <= 255 && !to_de) {
-		/* FIXME: We will load an extra byte for 16bit, so hopefully non MMIO TODO */
-		fprintf(fdo, "\tld hl,(sp+%u)\n", v + sp);
-		return 1;
-	}
 	/* This has to be a local so if it is byte sized we will load the
 	   low byte and crap above and all is good */
 	if (v + sp == 0 && size <= 2) {
@@ -133,9 +127,7 @@ unsigned generate_lref(unsigned v, unsigned size, unsigned to_de)
 	/* Word load is long winded on Z80 */
 	if (size == 2 && opt > 2) {
 		fprintf(fdo, "\tld hl,0x%x\n\tadd hl,sp\n", WORD(v));
-		if (IS_RABBIT)
-			fprintf(fdo, "\tld hl,(hl + %u\n)\n", 0);
-		else if (to_de)
+		if (to_de)
 			fprintf(fdo, "\tld e,(hl)\n\tinc hl\n\tld d,(hl)\n");
 		else
 			fprintf(fdo, "\tld a,(hl)\n\tinc hl\n\tld h,(hl)\n\tld l,a\n");
@@ -664,14 +656,6 @@ static unsigned gen_logicc(struct node *n, unsigned s, const char *op,
 {
 	unsigned h = (v >> 8) & 0xFF;
 	unsigned l = v & 0xFF;
-
-	/* Rabbit has 16bit logic operators */
-	if (s == 2 && IS_RABBIT) {
-		if (load_de_with(n) == 0)
-			return 0;
-		fprintf(fdo, "\t%s hl,de\n", op);
-		return 1;
-	}
 
 	if (s > 2 || (n && n->op != T_CONSTANT))
 		return 0;
@@ -1400,14 +1384,8 @@ unsigned gen_shortcut(struct node *n)
 				fprintf(fdo, "\tld a,l\n\tor a\n");
 			return 1;
 		}
-		if (IS_RABBIT && s <= 2) {
-			/* quick way to bool byte */
-			if (s == 1)
-				fprintf(fdo, "\tld h,l\n");
-			fprintf(fdo, "\tbool hl\n");
-		} else
-			/* Too big or value needed */
-			helper(n, "bool");
+        /* Too big or value needed */
+        helper(n, "bool");
 		n->flags |= ISBOOL;
 		return 1;
 	}
@@ -1439,12 +1417,6 @@ unsigned gen_shortcut(struct node *n)
 			if (s == 2)
 				fprintf(fdo, "\tld (iy + %u), %d\n", v + 1,
 					((unsigned)r->value) >> 8);
-			return 1;
-		}
-		/* Rabbit and Z280 */
-		if (HAS_LDHLSP && v + sp < 255 && s == 2) {
-			codegen_lr(n->right);
-			fprintf(fdo, "\tld (sp + %u),hl\n", v + sp);
 			return 1;
 		}
 		if (use_fp && v <= 128 - s) {
@@ -1899,26 +1871,11 @@ unsigned gen_node(struct node *n)
 	case T_LSTORE:
 /*		fprintf(fdo, ";L sp %u spval %u %s(%ld)\n", sp, spval, namestr(n->snum), n->value); */
 		v += sp;
-		if (HAS_LDHLSP && v <= 255) {
-			if (size == 2) {
-				fprintf(fdo, "\tld (sp+%u),hl\n", v);
-				return 1;
-			}
-			if (HAS_LDASP && size == 1) {
-				fprintf(fdo, "\tld a,l\n\tld (sp + %u),a d\n", v);
-				return 1;
-			}
-		}
 		if (v == 0 && size == 2) {
 			if (nr)
 				fprintf(fdo, "\tex (sp).hl\n");
 			else
 				fprintf(fdo, "\tpop af\n\tpush hl\n");
-			return 1;
-		}
-		/* Rabbit can LD HL,(HL + 0) so we can construct a load fairly ok */
-		if (IS_RABBIT && size == 2) {
-			fprintf(fdo, "\tld hl,0x%x\n\tadd hl,sp\n\tld hl,(hl + 0)\n", v);
 			return 1;
 		}
 		if (size == 1 && (!optsize || v >= LWDIRECT)) {
@@ -1945,7 +1902,7 @@ unsigned gen_node(struct node *n)
 			name = "stword";
 		/* Like load the helper is offset by two because of the
 		   stack */
-		if (v < 24)
+		if (v < LWDIRECT)
 			fprintf(fdo, "\tcall __%s%u\n", name, v + 2);
 		else if (v < 253)
 			fprintf(fdo, "\tcall __%s\n\t.byte %u\n", name, v + 2);
@@ -2065,11 +2022,6 @@ unsigned gen_node(struct node *n)
 		/* TODO:Z280 has EXTS */
 		return gen_cast(n);
 	case T_BOOL:
-		/* Rabbit has an boolify operator */
-		if (IS_RABBIT) {
-			fprintf(fdo, "\tbool hl\n");
-			return 1;
-		}
 		break;
 	case T_PLUS:
 		if (size <= 2) {

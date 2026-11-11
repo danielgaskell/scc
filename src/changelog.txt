@@ -56,6 +56,7 @@ v1.2
 @ Fixed Win_Width() and Win_Height() handling only one scrollbar
 @ Various structs tweaked to better support SymbOS 4.0 features
 @ Split various modules to improve executable size
+@ Small copt tweaks to improve executable size
 
 v1.1
 + Added libgfx
