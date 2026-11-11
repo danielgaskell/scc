@@ -119,10 +119,15 @@ void insert(char* s, struct lnode* p)
 /* getlst - link lines from fp in between p1 and p2 */
 void getlst(FILE* fp, char* quit, struct lnode* p1, struct lnode* p2)
 {
-    char lin[MAXLINE];
+    char lin[MAXLINE], *cr;
 
     connect(p1, p2);
-    while (fgets(lin, MAXLINE, fp) != NULL && strcmp(lin, quit)) {
+    while (fgets(lin, MAXLINE, fp) != NULL) {
+        if ((cr = strchr(lin, '\r')) != NULL) {
+            *cr = '\n';
+            *(cr + 1) = '\0';
+        }
+        if (strcmp(lin, quit) == 0) break;
         insert(install(lin), p2);
     }
 }
@@ -131,14 +136,20 @@ void getlst(FILE* fp, char* quit, struct lnode* p1, struct lnode* p2)
 /* skip blank lines and comments at the start */
 void getlst_1(FILE* fp, char* quit, struct lnode* p1, struct lnode* p2)
 {
-    char lin[MAXLINE];
+    char lin[MAXLINE], *cr;
     int firstline = 1;
 
     connect(p1, p2);
-    while (fgets(lin, MAXLINE, fp) != NULL && strcmp(lin, quit)) {
+    while (fgets(lin, MAXLINE, fp) != NULL) {
+        if ((cr = strchr(lin, '\r')) != NULL) {
+            *cr = '\n';
+            *(cr + 1) = '\0';
+        }
+        if (strcmp(lin, quit) == 0) break;
+
         if (firstline) {
             char* p = lin;
-            if (lin[0] == '#')
+            if (*p == '#')
                 continue;
             while (isspace(*p))
                 ++p;
@@ -537,14 +548,14 @@ int main(int argc, char** argv)
     int i, pass;
     struct lnode head, *p, tail;
 
-    if ((fp = fopen(argv[2], "r")) == NULL)
+    if ((fp = fopen(argv[2], "rb")) == NULL)
         error("copt: can't open patterns file\n");
     init(fp);
 
-    if ((ip = fopen("$stream3.s", "r")) == NULL)
+    if ((ip = fopen("$stream3.s", "rb")) == NULL)
         error("copt: can't open stream file\n");
 
-    if ((op = fopen(argv[1], "w")) == NULL)
+    if ((op = fopen(argv[1], "wb")) == NULL)
         error("copt: can't open output file\n");
 
     getlst(ip, "", &head, &tail);
