@@ -443,32 +443,6 @@
 	push bc
 	call %2
 
-# Bit op tidy - needs byte logic for byte ops and cc adding instead
-	ld h,0x0
-	bit %1, l
-	call __cctonot
-=
-	bit %1, l
-	call __cctonot
-
-	ld h,0x0
-	bit %1, l
-;
-	jr %2
-=
-	bit %1, l
-	jr %2
-
-	ld h,0x0
-	bit %1, l
-;
-	jr %2
-	ld h%3
-=
-	bit %1, l
-	jr %2
-	ld h%3
-
 # IX/IY and DE avoiding over the top stuff
 	push hl
 ;
