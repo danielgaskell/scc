@@ -553,14 +553,6 @@
 ;
 	ld l,%2
 
-	ex (sp),hl
-;
-	pop hl
-	push hl
-=
-	ex (sp),hl
-;
-
 # consolidate exit paths
 	ret
 %1:
@@ -635,3 +627,4 @@
 	ret
 =
 	jp __ldword6
+
