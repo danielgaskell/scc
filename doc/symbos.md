@@ -380,9 +380,9 @@ typedef struct {
 * `MENU_CHECKED`: entry has a checkmark. Note that `MENU_CHECKED` will not be updated automatically---it is our responsibility to receive menu events and take the necessary action, such as toggling the `MENU_CHECKED` flag for a given entry.
 * `MENU_SUBMENU`: entry opens a submenu. If `MENU_SUBMENU` is set, `value` points to the `Menu` struct defining the submenu to open. Submenus can be nested up to 5 levels deep.
 * `MENU_SEPARATOR`: entry is a separator line.
-* `MENU_ICON`: entry begins with an icon (SymbOS 4.0 and up only, and only allowed in drop-down menus, not a window's top-level menu bar.) If `MENU_ICON` is set, the entry's `text` string must begin with a five-byte inline image [control code](#c_text_ctrl) representing an 8x8 icon that will be plotted before the entry. (i.e., `0x06` `0x80` `banknum` `[canvas](graphics.md#graphics-library) address - 1`).
+* `MENU_ICON`: entry begins with an icon (SymbOS 4.0 and up only). If `MENU_ICON` is set, the entry's `text` string must begin with a five-byte inline image [control code](s_ctrl.md#c_text_ctrl) representing an 8x8 icon that will be plotted before the entry. See [Menu_Icon()](s_window.md#menu_icon) for the easiest way to set this up.
 
-Windows can have main menus if their `WIN_MENU` flag is set and their `menu` property points to a `Menu` struct similar to the above. Menus can also be opened independently (see the [Menu_Context()](s_desk.md#menu_context) system call).
+Windows can have main menus if their `WIN_MENU` flag is set and their `menu` property points to a `Menu` struct similar to the above. Menus can also be opened independently as context-menu popups (see the [Menu_Context()](s_desk.md#menu_context) system call).
 
 ```c
 // example

@@ -2,6 +2,7 @@ argv.o
 filebox.o
 inputbox.o
 memsize.o
+menu.o
 msgbox.o
 music.o
 effects.o

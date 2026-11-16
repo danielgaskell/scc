@@ -6,8 +6,7 @@ In addition to `symbos.h`, these functions can be found in `symbos/windows.h`.
 
 * [Window management](#window-management)
 * [Window status](#window-status)
-* [Clipboard](#clipboard)
-* [System tray](#system-tray)
+* [Menus](#menus)
 
 ## Window management
 
@@ -310,16 +309,32 @@ Updates the cursor position and selection of the specified multi-line textbox (p
 
 *SymbOS name*: `KEYPUT 31`.
 
-## Desktop
+## Menus
 
-### Desktop_Redraw()
+### Menu_Icon()
 
 *Currently only available in development builds of SCC.*
 
 ```c
-void Desktop_Redraw(void);
+void Menu_Icon(Menu_Entry* entry, char* icon)
 ```
 
-Redraws the entire desktop.
+Sets the icon associated with the menu entry `entry` (passed as a pointer) to `icon`, which must be an 8x8 16-color graphic in the **transfer** segment. (This may be inline data or a graphics [canvas](graphics.md); the `gfx2sgx` tool with the `-c` option will produce the correct output format by default.) In addition, the menu entry's `.text` field must begin with six spaces (`      `)--`Menu_Icon()` automatically fills these with the data bytes SymbOS needs to find the icon.
 
-*SymbOS name*: `DesktopService_RedrawComplete` (`DSK_SRV_DSKPLT`).
+Icons require SymbOS 4.0 or higher and are only allowed in drop-down menus, not in a window's top-level menu strip. To avoid overcrowding, icons should usually only have 8x7 pixels of actual content, and the icon background should be light blue (so as to match the menu background color on both 16-color and 4-color machines). It is also a good idea to check that 16-color icons look OK when [rendered down to 4 colors](graphics.md#color-palette).
+
+Example:
+
+```c
+_transfer char icon_quit[42] =
+    {0x04, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x05, 0x11, 0x16, 0x16, 0x66, 0x14, 0x46,
+	 0x11, 0x66, 0x14, 0x11, 0x1E, 0x16, 0x14, 0x1E, 0xEE, 0xE1, 0x14, 0x11, 0x1E, 0x16, 0x14, 0x46,
+	 0x11, 0x66, 0x11, 0x16, 0x16, 0x66, 0x66, 0x66, 0x66, 0x66};
+
+_transfer Menu mfile = {1};
+_transfer Menu_Entry mfile_quit = {MENU_ACTIVE, "      Quit", 1};
+
+// ...in main()...
+
+Menu_Icon(&mfile_quit, icon_quit);
+```

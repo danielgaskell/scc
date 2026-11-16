@@ -7,6 +7,7 @@
 * [Rubber band select](#rubber-band-select)
 * [Clipboard](#clipboard)
 * [System tray](#system-tray)
+* [Desktop](#desktop)
 
 ## Popup dialogs
 
@@ -229,3 +230,17 @@ void Systray_Remove(unsigned char id);
 Remove the icon with the ID `id` from the system tray.
 
 *SymbOS name*: `SystrayIcon_Remove_Command` (`MSC_DSK_STTREM`).
+
+## Desktop
+
+### Desktop_Redraw()
+
+*Currently only available in development builds of SCC.*
+
+```c
+void Desktop_Redraw(void);
+```
+
+Redraws the entire desktop.
+
+*SymbOS name*: `DesktopService_RedrawComplete` (`DSK_SRV_DSKPLT`).
